@@ -1,0 +1,75 @@
+<html>
+	<head>
+		<title>Thal Pixelbox</title>
+		<meta charset="utf-8">
+		<link rel="stylesheet" type="text/css" href="build/styles.css">
+	</head>
+  
+	<body>
+    
+		<!--script src="page_scripts.js"-->
+    <script>
+    function new_game() {
+      var x = document.getElementById("world_seed").value;
+      var y = document.getElementById("save_state").value;
+      sessionStorage.setItem("ws", x);
+      sessionStorage.setItem("ss", y);
+      window.location.href='new_game.html'; // send data here
+    }
+		
+    </script>
+    
+    <h3>Game</h3>
+    
+		
+    
+    <div class="row">
+      <div class="column" id="World_ID" style="background-color:#aa7;">
+        <h3>World ID</h3>
+        <input type="text" id="world_seed" name="world_seed" required minlength="0" maxlength="20" size="20" style="font-size: 20px;">
+      </div>
+      <div class="column" id="Password" style="background-color:#b97;">
+        <h3>Password</h3>
+        <input type="text" id="save_state" name="save_state" required minlength="0" maxlength="20" size="20" style="font-size: 20px;">
+      </div>
+    </div>
+    <button class="button" id="start_game" onclick="new_game();">  Start Game  </button>
+    <!--button class="button" id="toggle_speed" onclick="toggle_speed();"> Game Speed  </button-->
+    
+    <div class="row" id="show_controls">
+      <h3>Controls:</h3>
+      <div class="column" style="background-color:#999; font-size: 12px;">
+        <p>W A S D</p>
+        <p>Left arrow</p>
+        <p>Right arrow</p>
+      </div>
+      <div class="column" style="background-color:#999; font-size: 12px;">
+        <p>up left down right</p>
+        <p>attack</p>
+        <p>jump</p>
+      </div>
+    </div>
+    
+    
+    
+    
+      
+        
+        
+        <!--h2>Story:</h2>
+        <p id="story">just do it</p-->
+        
+        <!-- p>(another paragraph with info)</p -->
+        
+        <!--/div-->
+      
+      
+      <!--/section-->
+    <!-- - - - - - -->
+    
+	
+  </body>
+  
+  
+  
+</html>

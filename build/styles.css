@@ -1,0 +1,72 @@
+
+body {
+	text-align: center;
+	font-family: verdana;
+	background-color: #668;
+	margin: 0;
+	overflow: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.column {
+  float: left;
+  width: 50%;
+  padding: 10px;
+  
+  
+}
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+#show_controls {
+  /*visibility: hidden; */
+}
+
+#start_game {
+  background-color: #233544;
+  border: 2px solid #111100;
+  color: white;
+  padding: 10px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  
+  /*margin-left: 10rem;/**/
+}
+
+
+#refresh {
+  background-color: #233544;
+  border: 2px solid #111100;
+  color: white;
+  padding: 10px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+}
+
+
+
+canvas {
+  
+	/*position: absolute;/**/
+  /*position: relative;/**/
+	/*top: 30%;/**/
+	/*left: 50%;/**/
+  /*transform: translateX(-50%); /**/
+	
+  image-rendering: optimizeSpeed;
+	image-rendering: -moz-crisp-edges;
+	image-rendering: -webkit-optimize-contrast;
+	image-rendering: optimize-contrast;
+	image-rendering: pixelated;
+	-ms-interpolation-mode: nearest-neighbor;
+}

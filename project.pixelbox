@@ -1,0 +1,90 @@
+{
+	"name": "Thal_pixelbox",
+	"version": "2.1.0",
+	"appid": "3td9MiWmDlOvcc8G",
+	"screen": {
+		"fullscreen": false,
+		"resizable": false,
+		"keepAspectRatio": false,
+		"width": 256,
+		"height": 256,
+		"pixelSize": {
+			"width": 3,
+			"height": 3
+		}
+	},
+	"tileSize": {
+		"width": 8,
+		"height": 8
+	},
+	"palette": {
+		"name": "db16",
+		"file": "palette",
+		"colors": [
+			"#140c1c",
+			"#deeed6",
+			"#d2aa99",
+			"#346524",
+			"#4e4a4e",
+			"#757161",
+			"#8595a1",
+			"#6daa2c",
+			"#854c30",
+			"#d04648",
+			"#d27d2c",
+			"#dad45e",
+			"#442434",
+			"#30346d",
+			"#597dce",
+			"#6dc2ca"
+		]
+	},
+	"controls": {
+		"A2": 38,
+		"B2": 40,
+		"L2": 37,
+		"R2": 39,
+		"A": 87,
+		"L": 65,
+		"R": 68,
+		"S": 32,
+		"B": 69,
+		"D": 83,
+		"gs1": 49,
+		"gs2": 50
+	},
+	"touchEvent": {
+		"multiTouch": false,
+		"disableContextMenu": true,
+		"hideMousePointer": false
+	},
+	"gamepad": {
+		"analogToDpad": false,
+		"deadZone": 0.5
+	},
+	"loader": {
+		"colors": [
+			"#140C1C",
+			"#DEEED6"
+		],
+		"custom": ""
+	},
+	"components": {
+		"pixelboxCore": true,
+		"webGL": true,
+		"miniText": true,
+		"keyboard": true,
+		"gamepad": true,
+		"AudioManager": true,
+		"patatracker": false,
+		"bleeper": true,
+		"TINA": false,
+		"polyfill": false
+	},
+	"buildOptions": {
+		"scriptLanguage": "ES6",
+		"hasAtlas": false,
+		"mangle": [],
+		"globals": {}
+	}
+}
