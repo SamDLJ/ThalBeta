@@ -6,6 +6,7 @@ body {
 	background-image: linear-gradient(rgba(130,130,130,1), rgba(40,40,40,1));
 	margin: 0;
 	overflow: hidden;
+	height: 100%;
 }
 
 * {
@@ -18,9 +19,6 @@ body {
 	border: 5px solid rgba(70,70,70,0.5);
   padding: 20px 20px 20px 20px;
 	
-	
-  
-  
 }
 .row:after {
   content: "";
@@ -34,7 +32,7 @@ body {
 }
 
 #start_game {
-  background-color: #444444;
+  background-color: #233544;
   border: 2px solid #aabbaa;
   color: white;
   padding: 10px 32px;
@@ -49,7 +47,7 @@ body {
 
 #refresh {
   background-color: #233544;
-  border: 2px solid #111100;
+  border: 2px solid #aabbaa;
   color: white;
   padding: 10px 32px;
   text-align: center;
