@@ -1585,6 +1585,7 @@ function player1_movement() {
   
   /* -------- weapon: bubble shot (overrides skid animation) ---------- */ 
   if (btn.B) {
+		
     if (!shooting && !test_toggle_anim) { //true to test
       shooting = true;
       assets.bleeper.shoot.play();
