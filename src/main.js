@@ -1081,8 +1081,25 @@ function check_grid(px, py){
   if (px8 >= width || py8 >= height || px8 < 0 || py8 < 0 ) {
     return 1; 
   } else {
+		
     return level_grid_[py8][px8];
   }
+}
+
+function check_event_grid(px, py){
+	
+  let px8 = Math.floor(px/8);
+  let py8 = Math.floor(py/8);
+	//console.log("px8 "+px8+" py8 "+py8);
+	
+	//console.log(level_events_[py8][px8]);
+  if (px8 >= width || py8 >= height || px8 < 0 || py8 < 0 ) {
+    return 1; 
+  } else {
+  	return level_events_[py8][px8];
+  }
+  
+  
 }
 
 function snap_right(px){
@@ -1313,7 +1330,7 @@ function player1_movement() {
   /* --------  horizontal movement: button --------- */
   if (btn.R) {
 		
-		if (p.x >= level_pixel_width-9 && check_grid(p.x, p.y) == 11) {
+		if (p.x >= level_pixel_width-9 && check_event_grid(p.x, p.y) == 11) {
 				//console.log("right edge TRIG");
 				activated_area = p1_check_door(11);
 				// can still return a value and do something with it
@@ -1357,7 +1374,7 @@ function player1_movement() {
     }
     
   } else if (btn.L)  {
-		if (p.x <= 1 && check_grid(p.x, p.y) == 10) {
+		if (p.x <= 1 && check_event_grid(p.x, p.y) == 10) {
 			//console.log("left edge TRIG");
 			activated_area = p1_check_door(10);
 			return;
@@ -1433,7 +1450,8 @@ function player1_movement() {
   if (btn.A) {
 		
 		if (!btn.L && !btn.R) {
-			if ( (check_grid(p.x, p.y) == 4) || (check_grid(p.x+7, p.y) == 4)) {
+			
+			if ( (check_event_grid(p.x, p.y) == 4) || (check_event_grid(p.x+7, p.y) == 4)) {
 				entering = true;
 				activated_area = p1_check_door(4);
 				//door_sound = false;
@@ -1442,7 +1460,7 @@ function player1_movement() {
 			}
 		}
 		
-		if ( (check_grid(p.x, p.y) == 13) || (check_grid(p.x+7, p.y) == 13)) {
+		if ( (check_event_grid(p.x, p.y) == 13) || (check_event_grid(p.x+7, p.y) == 13)) {
 			//entering = true;
 			activated_area = p1_check_door(13);
 			//door_sound = false;
@@ -1529,7 +1547,7 @@ function player1_movement() {
 			}
 		}
 		
-		if ( (check_grid(p.x, p.y) == 12) || (check_grid(p.x+7, p.y) == 12)) {
+		if ( (check_event_grid(p.x, p.y) == 12) || (check_event_grid(p.x+7, p.y) == 12)) {
 			//entering = true;
 			activated_area = p1_check_door(12);
 			//door_sound = false;
@@ -2029,6 +2047,7 @@ function player2_animation(){
 
 var drstring = "";
 function p1_check_door(exit_type) {
+	console.log("checking door type "+exit_type);
 	// return should be the area index to activate (activate_area)
 	// need to find out which door was activated
 	// specify door_area and door_index
@@ -3622,17 +3641,20 @@ class LevelGraph {
 		for (let e of Object.keys(exits)) {
 			//console.log(exit_);
 			
-			area_grid[exits[e]["gy"]][exits[e]["gx"]] = exits[e]["type"];
+			event_grid[exits[e]["gy"]][exits[e]["gx"]] = exits[e]["type"];
 			
 			// ------ TESTING (putting ladders)--------
+			/*
 			if (testing) {
+				tilesheet(ts_m);
 				//area_image.set(exits[e]["gx"], exits[e]["gy"], 192);
 				for (let y_=1; y_<numScreensY*32-1; y_++) {
 					let x_ = Math.floor((numScreensX*32)/2);
 					area_grid[y_][x_] = 2;
-					//area_image.set(x_, y_, 242);
+					area_image.set(x_, y_, 242);
 				}
 			}
+			*/
 			
 			
 			
@@ -3699,34 +3721,50 @@ class LevelGraph {
 	
 	testPlaceTerrain(area_index) {
 		let area = this.areas[area_index];
-		let img_index = area_index === this.finalArea ? 192 : 208;
-		let img_offset = area_index === this.finalArea ? 0 : area_index;
+		//let img_index = area_index === this.finalArea ? 192 : 208;
+		//let img_offset = area_index === this.finalArea ? 0 : area_index;
 		
-		let bm = area["height"]-1;
+		//let bm = area["height"];
 		
 		let bH = area["height"]+2;
 		let bW = area["width"]+2;
 		
+		let gbtm = area["height"]-1;
+		let bbtm = area["height"];
+		let b0 = 1;
+		
+		
 		let border = [...Array(bH)].map(_ => Array(bW).fill(0));
 		
+		// top and bottom edges
 		for (let x=0; x<bW; x++) {
 			border[0][x] = 49;
 			border[bH-1][x] = 17;
 		}
+		// left and right edges
 		for (let y=0; y<bH; y++) {
 			border[y][0] = 34;
 			border[y][bW-1] = 32;
 		}
+		// corners
 		border[0][0] = 25;
 		border[0][bW-1] = 27;
 		border[bH-1][0] = 57;
 		border[bH-1][bW-1] = 59;
 		
+		// create floor
 		
-		for (let x=0; x<bW; x++) {
-			this.dot_(border, x, bm+1);
-			area["grid"][bm][x] = 1;
-		}
+		for (let x=1; x<bW; x++) {
+			
+			
+			if (Math.abs(Math.floor(bW/2) - x) < 2) { continue; }
+			
+			this.dot_(border, x, bbtm);
+			area["grid"][gbtm][x-1] = 1;
+		}/**/
+		
+		this.dot_(border, 1, bbtm);
+		area["grid"][gbtm][0] = 1;
 		
 		// could randomize floor bumps/ holes, and then place images behind or in front?
 		/*
@@ -3752,6 +3790,7 @@ class LevelGraph {
 		this.placeStructure(border, area, -1, -1, 1); // "image"
 		
 		
+		
 			/*
 			if (Math.abs(Math.floor(area["width"]/2) - x) <= 2){
 				continue;
@@ -3764,6 +3803,23 @@ class LevelGraph {
 		return border;
 	}
 		
+	testPlaceClimbObjects(area_index) {
+		// ------ TESTING (putting ladders)--------
+		tilesheet(ts_m);
+		let area = this.areas[area_index];
+		let nY = area["height"];
+		let nX = area["width"];
+		
+		if (testing) {
+			
+			//area_image.set(exits[e]["gx"], exits[e]["gy"], 192);
+			for (let y_=0; y_<nY; y_++) {
+				let x_ = Math.floor(nX/2);
+				area["grid"][y_][x_] = 2;
+				area["image"].set(x_, y_, 8);
+			}
+		}
+	}
 		//this.dot(area_index, 5, bm);
 		//this.dot(area_index, 5, bm+1);
 		//this.dot(area_index, 6, bm);
@@ -3898,7 +3954,7 @@ class LevelGraph {
 				this.testPlaceTerrain(i);
 				this.testScatter(i);
 				//this.testPlaceFloor(i);
-				
+				this.testPlaceClimbObjects(i);
 				//this.fixFloorOob(i);
 				//this.testPlacePlatforms(i);
 				//if (is_dungeon) {
@@ -5100,6 +5156,7 @@ function update_level() {
 			level_image_front = curr_area["image_front"];//new TileMap(width, height);
 			
 			level_grid_ = curr_area["grid"];//[...Array(height)].map(_ => Array(width).fill(0));
+			level_events_ = curr_area["event_grid"];
 			width = curr_area["width"]; // 32 is one 'screen', 64 is two 'screens' 
 			height = curr_area["height"];
 			rt = width-1;
@@ -5203,7 +5260,7 @@ function update_level() {
 	
 	draw(level_image_behind, l_offset-p.x*lfe*rte, u_offset-p.y*tpe*bte-info_box_offset);
 	draw(level_image_, l_offset-p.x*lfe*rte, u_offset-p.y*tpe*bte-info_box_offset);
-	draw(level_image_front, l_offset-p.x*lfe*rte, u_offset-p.y*tpe*bte-info_box_offset);
+	
 	
 	
 	
@@ -5235,7 +5292,10 @@ function update_level() {
   sprite(psheet[4]+(pframe*2), XMID-left_edge-XOFFSET+(8*going_left)+right_edge, YMID-top_edge+16-YOFFSET+bottom_edge-info_box_offset, going_left);
   sprite(psheet[5]+(pframe*2), XMID-left_edge+8-XOFFSET-(8*going_left)+right_edge, YMID-top_edge+16-YOFFSET+bottom_edge-info_box_offset, going_left);
   
-  draw_projectiles();
+	tilesheet(ts_m);
+	draw(level_image_front, l_offset-p.x*lfe*rte, u_offset-p.y*tpe*bte-info_box_offset);
+  
+	draw_projectiles();
   
   // for whichever sprites are 'in' the window view
   // (condition is just whether sprites are within some distance from the player)
