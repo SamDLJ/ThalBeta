@@ -13,13 +13,89 @@ body {
   box-sizing: border-box;
 }
 
-.column {
-  float: left;
-  width: 50%;
+
+.columnWID {
+  /*float: left;/**/
+	position: fixed;
+	text-align: center;
+	top: 5%;
+	left: 50%;
+	transform: translate(-100%, 0);
+  width: 256px;
+	height: 128px;
 	border: 5px solid rgba(70,70,70,0.5);
   padding: 20px 20px 20px 20px;
 	
 }
+
+.columnPWD {
+  /*float: left;/**/
+	position: fixed;
+	text-align: center;
+	top: 5%;
+	left: 50%;
+	/*transform: translate(0, 0);/**/
+  width: 256px;
+	height: 128px;
+	border: 5px solid rgba(70,70,70,0.5);
+  padding: 20px 20px 20px 20px;
+	
+}
+
+.ng_columnWID {
+  /*float: left;/**/
+	position: fixed;
+	text-align: center;
+	/*bottom: 50px;/**/
+	left: 50%;/**/
+	transform: translate(-100%, 0);
+  width: 256px;
+	height: 128px;
+	border: 5px solid rgba(70,70,70,0.5);
+  padding: 20px 20px 20px 20px;
+	
+}
+
+.ng_columnPWD {
+  /*float: left;/**/
+	position: fixed;
+	text-align: center;
+	/*top: 5%;/**/
+	left: 50%;
+	/*transform: translate(0, 0);/**/
+  width: 256px;
+	height: 128px;
+	border: 5px solid rgba(70,70,70,0.5);
+  padding: 20px 20px 20px 20px;
+	
+}
+
+.columnThal {
+  /*float: left;/**/
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-100%, 0);
+	text-align: center;
+  width: 250px;
+	border: 5px solid rgba(70,70,70,0.5);
+  padding: 20px 20px 20px 20px;
+	
+}
+
+.columnEnx {
+  /*float: left;/**/
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	/*transform: translate(0%, 0);/**/
+	text-align: center;
+  width: 250px;
+	border: 5px solid rgba(70,70,70,0.5);
+  padding: 20px 20px 20px 20px;
+	
+}
+
 .row:after {
   content: "";
   display: table;
@@ -28,6 +104,7 @@ body {
 }
 
 #show_controls {
+	text-align: center;
   /*visibility: hidden; */
 }
 
@@ -59,7 +136,11 @@ body {
 
 /* CSS */
 .button-6 {
-  align-items: center;
+	top: 35%;/**/
+	left: 50%;
+	
+	transform: translate(-50%, 0);/**/
+  /*align-items: center;/**/
   background-color: #233544;
   border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: .25rem;
@@ -76,33 +157,107 @@ body {
   margin: 0;
   min-height: 3rem;
   padding: calc(.875rem - 1px) calc(1.5rem - 1px);
-  position: relative;
+  /*position: absolute;/**/
+	position: fixed;
+	/*transform: translateX(-4px);/**/
   text-decoration: none;
   transition: all 250ms;
   user-select: none;
   -webkit-user-select: none;
   touch-action: manipulation;
-  vertical-align: baseline;
+  vertical-align: baseline;/**/
   width: auto;
 }
 
 .button-6:hover,
 .button-6:focus {
+	/*transform: translate(-50%, 0);/**/
   border-color: rgba(0, 0, 0, 0.15);
   box-shadow: rgba(0, 0, 0, 0.5) 0 4px 12px;
   color: rgba(0, 0, 0, 0.65);
+	/*position: absolute;/**/
 }
 
 .button-6:hover {
-  transform: translateY(-3px);
+	/*transform: translate(-50%, 0);/**/
+  transform: translate(-50%, -3px);
+	/*transform: translateX(-4px);/**/
+	/*position: absolute;/**/
 }
 
 .button-6:active {
+	/*transform: translate(-50%, 0);/**/
   background-color: #FFF0F1;
   border-color: rgba(0, 0, 0, 0.15);
   box-shadow: rgba(0, 0, 0, 0.66) 0 2px 4px;
   color: rgba(0, 0, 0, 0.65);
-  transform: translateY(0);
+  transform: translate(-50%, 0);
+	/*transform: translateX(-4px);/**/
+	/*position: absolute;/**/
+}
+
+.ng_button-6 {
+	/*top: 40%;/**/
+	left: 50%;
+	z-index: 1;
+  position: relative;/**/
+	/*position: fixed;/**/
+	transform: translate(-50%, 640px);/**/
+  /*align-items: center;/**/
+  background-color: #233544;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: .25rem;
+  box-shadow: rgba(0, 0, 0, 0.02) 0 1px 3px 0;
+  box-sizing: border-box;
+  color: rgba(0, 0, 0, 0.85);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: system-ui,-apple-system,system-ui,"Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  justify-content: center;
+  line-height: 1.25;
+  margin: 0;
+  min-height: 3rem;
+  padding: calc(.875rem - 1px) calc(1.5rem - 1px);
+  /*position: absolute;/**/
+	position: fixed;
+	/*transform: translateX(-4px);/**/
+  text-decoration: none;
+  transition: all 250ms;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  vertical-align: baseline;/**/
+  width: auto;
+}
+
+.ng_button-6:hover,
+.ng_button-6:focus {
+	/*transform: translate(-50%, 0);/**/
+	/*transform: translate(-50%, 512px);/**/
+  border-color: rgba(0, 0, 0, 0.15);
+  box-shadow: rgba(0, 0, 0, 0.5) 0 4px 12px;
+  color: rgba(0, 0, 0, 0.65);
+	/*position: absolute;/**/
+}
+
+.ng_button-6:hover {
+	/*transform: translate(-50%, 0);/**/
+  transform: translate(-50%, 637px);
+	/*transform: translateX(-4px);/**/
+	/*position: absolute;/**/
+}
+
+.ng_button-6:active {
+	/*transform: translate(-50%, 0);/**/
+  background-color: #FFF0F1;
+  border-color: rgba(0, 0, 0, 0.15);
+  box-shadow: rgba(0, 0, 0, 0.66) 0 2px 4px;
+  color: rgba(0, 0, 0, 0.65);
+  transform: translate(-50%, 637px);
+	/*transform: translateX(-4px);/**/
+	/*position: absolute;/**/
 }
 
 

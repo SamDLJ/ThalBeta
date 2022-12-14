@@ -610,14 +610,16 @@ const TERRAIN = {
 		"10": ["aboveground", "cliffleft", "roofleft"],
 		"11": ["aboveground", "cliffright", "roofright"],
 		"12": ["ground"],
-		"13": ["sky"]
+		"13": ["sky"],
+		"4": ["sky"]
 	},
 	
 	"sky": {
 		"10": ["sky", "peakleft", "roofleft"],
 		"11": ["sky", "peakright", "roofright"],
 		"12": ["aboveground"],
-		"13": ["sky"]
+		"13": ["sky"],
+		"4": ["sky"]
 	},
 	
 	"roof": {
@@ -895,7 +897,9 @@ function create_platform(x, y, movetype, random_phase=true){
 		plat[key] = platforms[movetype][key];
 	}
 	
-	plat.image = 226;
+	let rnd_pl_im = rnd(0, 3);
+	
+	plat.image = 224+rnd_pl_im;
 	plat.x = x;
 	plat.y = y-8;
 	
@@ -2237,8 +2241,39 @@ function projectile_update(){
   
 }
 
-var pr_offset = 0;
-function draw_projectiles(){
+var pr_xoffset = 0;
+var pr_yoffset = 0;
+function draw_projectiles() {
+	
+	if (curr_area["width"] > 32) {
+		if (left_edge == 0) {
+			pr_xoffset = SCREEN_WIDTH-XMID;
+		} else {
+			pr_xoffset = 0;
+		}
+		if (right_edge == 0) {
+		} else {
+			pr_xoffset = -(level_pixel_width - SCREEN_WIDTH);
+		}
+	} else {
+		pr_xoffset = 0;
+	}
+	
+	if (curr_area["height"] > 32) {
+		if (top_edge == 0) {
+			pr_yoffset = SCREEN_HEIGHT-YMID;
+		} else {
+			pr_yoffset = 0;
+		}
+	
+		if (bottom_edge == 0) {
+		} else {
+			pr_yoffset = -(level_pixel_height - SCREEN_HEIGHT); // to fit in info bar
+		}
+	} else {
+		pr_yoffset = 0;
+	}
+	/*
 	if (left_edge == 0) {
 		pr_offset = SCREEN_WIDTH-XMID;
 	} else {
@@ -2249,16 +2284,20 @@ function draw_projectiles(){
 		pr_offset = -(level_pixel_width - SCREEN_WIDTH);
 	}
 	
+	sprite(e.image+e.frames[e.frame]+e.dead_frame, e.x+en_xoffset-p.x*lfe*rte, e.y+en_yoffset-p.y*tpe*bte, e.going_left);
+	*/
+	
+	//tileset()
   for (let ib=0; ib<bb_shots.length; ib++){
     let bb = bb_shots[ib];
     //sprite(bb.image+bb.frames[bb.frame], bb.x-(p.x+XMID), bb.y-(p.y+YMID));
-    sprite(bb.image+bb.frames[bb.frame], bb.x+pr_offset-p.x, bb.y+YMID-p.y); // off edges the shot doesnt show
+    sprite(bb.image+bb.frames[bb.frame], bb.x+pr_xoffset-p.x*lfe*rte, bb.y+pr_yoffset-p.y*tpe*bte); // off edges the shot doesnt show
     
   }
   for (let si=0; si<snake_segs.length; si++){
     let ss_ = snake_segs[si];
     //sprite(bb.image+bb.frames[bb.frame], bb.x-(p.x+XMID), bb.y-(p.y+YMID));
-    sprite(ss_.image+ss_.frames[ss_.frame], ss_.x+pr_offset-p.x*lfe*rte, ss_.y+YMID-p.y);
+    sprite(ss_.image+ss_.frames[ss_.frame], ss_.x+pr_xoffset-p.x*lfe*rte, ss_.y+pr_yoffset-p.y*tpe*bte);
   } 
 }
 
@@ -2272,8 +2311,11 @@ function update_moving_platforms(){
   }
 }
 
-var mp_offset = 0;
+var mp_xoffset = 0;
+var mp_yoffset = 0;
 function draw_moving_platforms(){
+	
+	/*
 	if (left_edge == 0) {
 		mp_offset = SCREEN_WIDTH-XMID;
 	} else {
@@ -2283,11 +2325,40 @@ function draw_moving_platforms(){
 	} else {
 		mp_offset = -(level_pixel_width - SCREEN_WIDTH);
 	}
+	/**/
+	if (curr_area["width"] > 32) {
+		if (left_edge == 0) {
+			mp_xoffset = SCREEN_WIDTH-XMID;
+		} else {
+			mp_xoffset = 0;
+		}
+		if (right_edge == 0) {
+		} else {
+			mp_xoffset = -(level_pixel_width - SCREEN_WIDTH);
+		}
+	} else {
+		mp_xoffset = 0;
+	}
+	
+	if (curr_area["height"] > 32) {
+		if (top_edge == 0) {
+			mp_yoffset = SCREEN_HEIGHT-YMID;
+		} else {
+			mp_yoffset = 0;
+		}
+	
+		if (bottom_edge == 0) {
+		} else {
+			mp_yoffset = -(level_pixel_height - SCREEN_HEIGHT); // to fit in info bar
+		}
+	} else {
+		mp_yoffset = 0;
+	}
 	
   for (let ip=0; ip<moving_platforms.length; ip++){
     let plfm = moving_platforms[ip];
-    sprite(plfm.image+plfm.frames[plfm.frame], plfm.x+mp_offset-p.x*lfe*rte, plfm.y+YMID-p.y*tpe*bte);
-    
+    sprite(plfm.image+plfm.frames[plfm.frame], plfm.x+mp_xoffset-p.x*lfe*rte, plfm.y+mp_yoffset-p.y*tpe*bte);
+    //sprite(e.image+e.frames[e.frame]+e.dead_frame, e.x+en_xoffset-p.x*lfe*rte, e.y+en_yoffset-p.y*tpe*bte, e.going_left);
   }
 }
 
@@ -2473,8 +2544,11 @@ function update_small_enemies() {
   
 }
 
-var en_offset = 0;
+var en_xoffset = 0;
+var en_yoffset = 0;
 function draw_small_enemies() {
+	
+	/*
 	if (left_edge == 0) {
 		en_offset = SCREEN_WIDTH-XMID;
 	} else {
@@ -2483,6 +2557,36 @@ function draw_small_enemies() {
 	if (right_edge == 0) {
 	} else {
 		en_offset = -(level_pixel_width - SCREEN_WIDTH);
+	}
+	/**/
+	
+	if (curr_area["width"] > 32) {
+		if (left_edge == 0) {
+			en_xoffset = SCREEN_WIDTH-XMID;
+		} else {
+			en_xoffset = 0;
+		}
+		if (right_edge == 0) {
+		} else {
+			en_xoffset = -(level_pixel_width - SCREEN_WIDTH);
+		}
+	} else {
+		en_xoffset = 0;
+	}
+	
+	if (curr_area["height"] > 32) {
+		if (top_edge == 0) {
+			en_yoffset = SCREEN_HEIGHT-YMID;
+		} else {
+			en_yoffset = 0;
+		}
+	
+		if (bottom_edge == 0) {
+		} else {
+			en_yoffset = -(level_pixel_height - SCREEN_HEIGHT); // to fit in info bar
+		}
+	} else {
+		en_yoffset = 0;
 	}
 	
   // ses == small enemy sprites
@@ -2493,7 +2597,13 @@ function draw_small_enemies() {
       e.dead_frame = e.dead_frame == 4? 8:4;
     }
     
-    sprite(e.image+e.frames[e.frame]+e.dead_frame, e.x+en_offset-p.x*lfe*rte, e.y+YMID-p.y, e.going_left);
+    //sprite(e.image+e.frames[e.frame]+e.dead_frame, e.x+en_offset-p.x*lfe*rte, e.y+YMID-p.y, e.going_left);
+		
+		sprite(e.image+e.frames[e.frame]+e.dead_frame, e.x+en_xoffset-p.x*lfe*rte, e.y+en_yoffset-p.y*tpe*bte, e.going_left);
+		/*
+		sprite(d.images[0], (d.gx*8)+dr_xoffset-p.x*lfe*rte, (d.gy*8)+dr_yoffset-p.y*tpe*bte-info_box_offset, false);
+		draw(level_image_, l_offset-p.x*lfe*rte, u_offset-p.y*tpe*bte-info_box_offset);
+		/**/
   }
 }
 
@@ -3468,8 +3578,12 @@ class LevelGraph {
 					//let type_string = this_exit_type === 4? "door" : "edge";
 					//console.log("  built exit: "+prev_area_index+" ("+type_string+")");
 					
+					
 					let ter_list = TERRAIN[this.areas[prev_area_index]["terrain"]][prev_exit_type.toString()];
-					terrain_type = ter_list[rnd(0, ter_list.length)];
+					console.log(this.areas[prev_area_index]["terrain"]+" "+prev_area_index+" "+prev_exit_type.toString()); // 4 4
+					console.log(TERRAIN[this.areas[prev_area_index]["terrain"]]);
+					
+					terrain_type = ter_list[rnd(0, ter_list.length)]; // error? cant read undefined
 					
 					
 				} else {
@@ -3865,6 +3979,41 @@ class LevelGraph {
 	}
 	*/
 	
+	testPlaceEnemies(area_index) {
+		
+  	let area = this.areas[area_index];
+		let nY = area["height"];
+		let nX = area["width"];
+	  // scatter jumping enemies
+		
+	  for (let spray_everywhere=0; spray_everywhere<5; spray_everywhere++) {
+	    for (let i=0; i<4; i++) {
+    
+	      let rx = rnd(0, nX);
+	      let ry = rnd(nY-20, nY);
+      
+	      create_small_enemy(rx*8, ry*8, "steadyjump", 0+i*16);
+    
+	    }
+	  }
+		/**/
+  
+	  // scatter walking enemies
+		
+	  for (let spray_everywhere=0; spray_everywhere<5; spray_everywhere++) {
+	    for (let i=0; i<4; i++) {
+      
+	      let rx = rnd(0, nX);
+	      let ry = rnd(nY-20, nY);
+      
+	      create_small_enemy(rx*8, ry*8, "walkbump", 0+i*16);
+	    }
+	  }
+	  /**/
+		
+	  //create_small_enemy(30*8, 30*8, "walkbump", 0+0*16);
+	  //create_small_enemy(11*8, 30*8, "steadyjump", 0+1*16);
+	}
 	
 	
 	// ------- for testing -------- 
@@ -3913,6 +4062,25 @@ class LevelGraph {
 		
 	}
 	
+	testPlaceMovingPlatforms(area_index) {
+	  // random moving platforms
+  	let area = this.areas[area_index];
+		let nY = area["height"];
+		let nX = area["width"];
+		
+	  for (let i=0; i<5; i++) {
+    
+	    let rx = rnd(0, nX);
+	    let ry = rnd(nY-10, nY);
+			let rm = rnd(0, platforms.length);
+    
+	    create_platform(rx*8, ry*8, rm);
+    
+	  }
+		//console.log("E ");
+		/**/
+	}
+	
 	
 	
 	
@@ -3951,10 +4119,14 @@ class LevelGraph {
 			
 			if (testing) {
 				
+				
 				this.testPlaceTerrain(i);
 				this.testScatter(i);
 				//this.testPlaceFloor(i);
 				this.testPlaceClimbObjects(i);
+				this.testPlaceEnemies(i);
+				this.testPlaceMovingPlatforms(i);
+				
 				//this.fixFloorOob(i);
 				//this.testPlacePlatforms(i);
 				//if (is_dungeon) {
@@ -5295,6 +5467,7 @@ function update_level() {
 	tilesheet(ts_m);
 	draw(level_image_front, l_offset-p.x*lfe*rte, u_offset-p.y*tpe*bte-info_box_offset);
   
+	tilesheet(ts_1);
 	draw_projectiles();
   
   // for whichever sprites are 'in' the window view

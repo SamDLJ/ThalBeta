@@ -20,25 +20,35 @@
     </script>
     
     <div class="row">
-      <div class="column" id="World_ID" style="background-color:#ccd6c2;">
+      
+			
+			<div class="columnWID" id="World_ID" style="background-color:#ccd6c2;">
         <h3>World ID</h3>
-        <input type="text" id="world_seed" name="world_seed" required minlength="0" maxlength="20" size="20" style="font-size: 20px;">
+        <input type="text" id="world_seed" name="world_seed" required minlength="0" maxlength="20" size="20" style="font-size: 20px; width: 100%;">
       </div>
-      <div class="column" id="Password" style="background-color:#7a6652;">
+      <div class="columnPWD" id="Password" style="background-color:#7a6652;">
         <h3>Password</h3>
-        <input type="text" id="save_state" name="save_state" required minlength="0" maxlength="20" size="20" style="font-size: 20px;">
+        <input type="text" id="save_state" name="save_state" required minlength="0" maxlength="20" size="20" style="font-size: 20px; width: 100%;">
       </div>
-    </div>
-    <button class="button-6" role="button" id="start_game" onclick="new_game();">  Start Game!  </button>
+    
+		
+		
+		</div>
+    
+		
+		<div>
+			<button class="button-6" role="button" id="start_game" onclick="new_game();">  Start Game!  </button>
+		</div>
     <!--button class="button" id="toggle_speed" onclick="toggle_speed();"> Game Speed  </button-->
     
-    <div class="row" id="show_controls">
-      <div class="column" style="background-color:#9c8cc0; font-size: 12px;">
-		 	 	<table>
-					<thead>
-				  	<tr>
+    <div class="row" id="show_controls" style="text-align: center;">
+      <div class="columnThal" style="background-color:#9c8cc0; font-size: 10px; text-align: center;">
+		 	 	<table style="text-align: center;">
+					<thead style="text-align: center;">
+				  	<tr style="text-align: center;">
 							<td><b>Thal controls</b></td>
-							<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+					  </tr>
+				  	<tr>
 					    <td>(Player 1)</td>
 					  </tr>
 					</thead>
@@ -73,12 +83,13 @@
 					</thead>
 				</table>
       </div>
-      <div class="column" style="background-color:#d1a461; font-size: 12px;">
-		 	 	<table>
-					<thead>
+      <div class="columnEnx" style="background-color:#d1a461; font-size: 10px; text-align: center;">
+		 	 	<table style="text-align: center;">
+					<thead style="text-align: center;">
+				  	<tr >
+							<td ><b>Enx controls</b></td>
+					  </tr>
 				  	<tr>
-							<td><b>Enx controls</b></td>
-							<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
 					    <td>(Player 2)</td>
 					  </tr>
 					</thead>

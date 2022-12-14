@@ -6,19 +6,19 @@
 	</head>
 	<body>
     <script src="build/index.js" type="text/javascript"></script>
-    
+    <button class="ng_button-6" id="refresh" onClick="reset_game();"> Reset Game </button>
     <div class="row">
-      <div class="column" id="World_ID" style="background-color:#ccd6c2;">
+      <div class="ng_columnWID" id="World_ID" style="background-color:#ccd6c2;">
         <h3>World ID</h3>
         <p id="world_id_info"></p>
       </div>
-      <div class="column" id="Password" style="background-color:#7a6652;">
+      <div class="ng_columnPWD" id="Password" style="background-color:#7a6652;">
         <h3>Password</h3>
         <p id="save_state_info"></p>
       </div>
     </div>
     <!-- button class="button" id="start_game" onclick="confirm_world_seed(); new_game()">  Start Game  </button -->
-    <button class="button-6" id="refresh" onClick="reset_game();"> Reset Game </button>
+    
 		<!--button class="button" id="refresh" onClick="toggle_speed();"> Toggle Speed </button-->
     
     <script>
