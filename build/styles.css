@@ -9,7 +9,7 @@ body {
 	overflow: hidden;
 	height: 100%;
 	perspective: 1000px;/**/
-	background-image: url('/assets/webpage/arcade_machine_in_room.png');/**/
+	background-image: url('arcade_machine_in_room.png');/**/
 	background-repeat: no-repeat;
 	background-attachment: fixed;
 	background-size: 2400px 1600px;/**/
