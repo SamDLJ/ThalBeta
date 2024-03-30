@@ -7,7 +7,7 @@
 		"resizable": false,
 		"keepAspectRatio": false,
 		"width": 256,
-		"height": 256,
+		"height": 192,
 		"pixelSize": {
 			"width": 2,
 			"height": 2
@@ -52,7 +52,12 @@
 		"gs2": 50,
 		"D2": 191,
 		"B2": 191,
-		"B": 69
+		"B": 69,
+		"P": 80,
+		"O": 79,
+		"K": 75,
+		"I": 73,
+		"U": 51
 	},
 	"touchEvent": {
 		"multiTouch": false,
@@ -60,7 +65,7 @@
 		"hideMousePointer": false
 	},
 	"gamepad": {
-		"analogToDpad": false,
+		"analogToDpad": true,
 		"deadZone": 0.5
 	},
 	"loader": {

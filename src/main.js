@@ -1,370 +1,34 @@
 // update is called once per frame
 //import gamepad;
 import { platforms } from "./platforms.js";
+//import { player1_movement } from "./thal.js";
+import { TERRAIN, ZEN, dot_order, pnode, PLAT_STYLE, BRANCH, T } from "./objects.js";
+import { CHUNKS } from "./chunks.js";
+import { dot_, dot_image, dot_w, get_biome_info, get_chunk_shapes,
+	gL, gJ, g7, gr, wL, wJ, w7, wr, wu, wn
+ } from "./game_functions.js";
+
 //import { tileinfo } from "./objects.js";
 //import { build_test_level } from "./build_level.js";
 //import { build_level } from "./build_level.js";
 
-// pyqt5 pixel editor for small level areas, converts into a level array then click on 'copy' button, or convert to a file?
 
-
-
-
+//var gamepad1 = gamepads[0];
+//gamepad;
+var WHATAMI = 0;
 
 // Development/projects/thalgame
-/*
 
-----------
-current TODO:
 
-HEROKU IS NOT FREE ANYMORE
-(base) Samuels-MacBook-Pro:thalgame samueljohnson$ heroku ps
- ›   Warning: heroku update available from 7.60.2 to 7.67.1.
- ▸    Starting November 28th, 2022, free Heroku Dynos will no longer be available. To keep your apps running, upgrade to paid dynos. Learn more in our blog
- ▸    (https://blog.heroku.com/next-chapter).
-No dynos on ⬢ thalgame
 
-	
-	
-	- vertical style levels
-	
-	
-	- 'puzzle' aspects, to get to each area 
-			
-			key 'unlocks' door
-			lever/switch/button 'activates' wall/object/platform
 
-			ropes/vines/ladders to go up, holes and the like to go down
-			
+const WORLD_ID = document.getElementById("world_id_info").innerHTML;
+const SAVE_STATE = document.getElementById("save_state_info").innerHTML;
 
-			'teleportation' or magic thing
-	
-	
-	
-	
 
-	- entire 'Thal' game could be one world? that way cut scenes could take up like half of the game lol
 
 
 
-	- doors and entering animation
-	- entering new dungeons, need way to store area data
-			- if game is procedural, only need to access level structures as you load them.
-	
-	
-	
-	
-
-	
-
-
-
-
-			
-	- 'dead ends' should have either:
-			bosses
-			special items
-			
-			
-	✔ graph/node structure to find the way out
-		initial 'main' path, then add random branches to it
-	
-		( can be used in the world map )
-			
-
-----------
-  
- intro sequence + title screen
-
- animations:
-    cutscenes as well as character dialogue
-
-
-
- slopes
- test 'structure' (2d array?) that can be placed conveniently in the level
- 
- 
- save state for password:
-    save all of the treasures/artifacts (bosses respawn, but not necessary to kill) 
-    player name (world id) is incorporated in the cryptograph along with the item sequence/combination
-    
-    101100000name_world_id -> morph -> password with 20 characters
-
-    after decoding, will do a check to make sure it is a legitimate password:
-      
-      ten 1s and 0s at the start
-      name after that exactly matches the world id that the person has put in
-      ... good to go!
-
-    
-
-
-
-    
-  
-    will need to choose which things to save for progress? gives password for those
-
- enemies and physics
- new tilesheet for each 'thing'
- 
-two players (just need left, right, jump, and shoot. WASD for player 1, arrows for player 2)
-  heroes:
-  Thal   Enx   G. Goose
-  
-  villains:
-  Nally  Theehoarth
-
-  minis:
-  Nut Meg
-
-  minivillains:
-  Tun Gem
-collision detection? or Thal just overtop--physics would be similar to platforms, easy to implement
-
-
-
-
-level types (last through the whole level):
-   weather effects: ice changes 'slide' and 
-
-
-
-
-game types (as shown in over world):
-	
-	
-  platform (working on now) 
-  
-	overworld (enter levels from here) 'minithal' version
-  
-	space-shooter (between worlds, enter worlds from here)
-
-
-simple colour palette, like gameboy
-
-
-
-
-
-
-how to avoid html injection? inputting values might be risky?
-
-
-travel options 
-	- walking/on foot, OR...
-	vehicle with upgrades:
-	- the "Plain Jane", slightly faster than walking but not by much (speed 2)
-	- giant tires -> dune-buggy thing that can run over mountains all jittery. (speed 2)
-	- amphibious thing to go across water, (speed 2 on land, speed 1 on water)
-	- "Turbo Zap" - super duper fast, for planetary highways (speed 3)
-
-
-
-
-worldmap terrain ideas
-	- quicksand and mud, randomly get stuck, must button mash to get out
-	- zoomed in version with new tileset: trees and rocks/boulders
-		- canyon-type, bottom layer is walkable, then use inverse of trail to fill rest of map with 1s, so trail is '0'
-			- (mostly helps for drawing it)
-	- need to implement maze, as well as trails, "wnodes"
-	- recheck all cliff/rock formations, if beside trees should re-number. one final image map at the end.
-	
-	- 
-
-- level map, when destroying, see if can blit a new image and change the terrain
-	- platforms and pnodes, more involved
-	
-- 
-
-- G.G. ("Gwen Goose") sprite
-	- white, brown coat
-	
-- more Thal sprites, without helmet
-	- string ability (becomes "1 dimensional"), basically creates cracks, holes, any other void or empty "matrix"
-		- running moves in a wavy loop
-		- whip attack
-		- squeeze through small cracks (two types: - and | )
-		- create holes and loops (avoid portal-like things) by tying in knots and strings
-		- hands should be bright circles, to get that satisfying "mario" aesthetic
-- stats and item use
-
-
-		
-- mood and feel of the game: lonely, lost, nostalgic, adventure, retrowave, alien planets, 
-	- entering cities or areas could have epic backgrounds: megaopolis, grid sunset, mountain-range, cloud-tops, 
-	- scale taken care of by level generating algorithm
-
-
-
-
-
-
-
-
-------------------
-
-
-  item: mortar and pestle (Kutni)
-    can get upgrades! this allows the player to save up their collected spices and not use (crush) them until they get a "better" one
-    (saving the spices risks losing progress, only saves the kutni)
-    
-    many levels of each type, but only one of each level has 'the Kutni' upgrade. (single integer for cryptograph, 0-5)
-    
-    - wood (brown), get from The Jungle (World 1) 
-                    +1 to max stat
-    - stone (grey), get from The Mountains (World 2)
-                    +2 to max stat
-    - marble (white), get from The Palace (World 3)
-                    +3 to max stat
-    - diamond (light blue), get from The Volcano (World 4)
-                    +5 to max stat
-    - neutron (black), get from The Star System (World 5), more like a dyson sphere
-                    +8 to max stat
-    
-    changes the color on her vest
-    
-    
-    
-    
-    use: to crush spices, for stats
-
-    
-    
-    (basically any tree in the game will have either of these, doesn't have to be a 'nutmeg' tree since it is an alien world)
-    
-    Lots in the Jungle (World 1) so need to stock up early on.
-    The Mountains (World 2) is less so. (some mountain levels have snow and ice. be careful! increase speed (sugar))
-    The Palace (World 3) doesn't have 'natural' ones growing, so very scarce.
-    World 4 and 5 have no spices.
-    
-    find raw spices -> 
-    
-    example screen:
-    
-               (icon, raw material)                 (icon, pile+jar).                  
-    nutmeg   20        O  |\                  |\     A[]   (dark brown)    MP       5 [/////..]          7  
-                          | \                 | \  
-    cinnamon  4        |  |  \   (  mortar    |  \   A[]   (light brown)   HP       2 [//..............] 16      
-                          |   >   and pestle  |   >
-    cayenne  11        j  |  /       pic  )   |  /   A[]   (light orange)  DEF.       [///]              3
-                          | /                 | /  
-    sugar     1        Y  |/                  |/     A[]   (light gold)    SPD.     3 [///..]            5   <- in quicksand/water etc.
-
-    
-    
-    
-      nutmeg 
-        - looks like: trees, fruit is yellow, some split open to reveal red inside
-        - collected as: brown-red seeds 
-        - use mortar and pestle: dark brown powder 
-        
-        - raw effects: fully heal mana
-        - ground effects: fully heal and increase max mana
-    
-      cinnamon 
-        - looks like: trees, bark is bright brown
-        - collected as: sticks/rolls 
-        - mortar and pestle: light brown powder
-        
-        - raw effects: fully heal HP
-        - ground effects: fully heal and increase max HP
-    
-      cayenne 
-        - looks like: plant, red/orange peppers 
-        - collected as: peppers
-        - mortar and pestle: red/orange powder
-        
-        - raw effects: increase defense temporarily and cause "burn" damage to enemies temporarily
-        - ground effects: increase max defense
-    
-      sugar 
-        - looks like: plant, striped black-white or green-yellow
-        - collected as: short, striped stalks
-        - mortar and pestle: light gold powder
-        
-        - raw effects: electricity storage and power, increase speed temporarily
-        - ground effects: increase max speed (better through water, quicksand, steep hills, sticky sap, etc.)
-		
-			
-			clove?
-      
-      save state saves your mortar and pestle, but not your stats.
-      don't want to allow the player to cheat--resetting the game should be more difficult, not be a loophole.
-      if reset, can re-collect all the spices you dropped and grind them into 'better' stats but that's up to the player whether it is worth it.
-      Also lose your high score. (by starting from 0 it will know if you've reset the game, so it wont give out special bonuses)
-     
-      
-
-  
-  
-  
-  
-  other main 'Key' items (shows up as little icons at the top):
-    - gears -- to make machines go or work, basically changes the physics of the game
-        - change gravity
-        - can put in machinery to make buttons, levers, and switches work (moving platforms)
-        - 
-    - bongos -- changes enemy behaviour of the game
-    
-    - triangles -- allows 'loop' magic and boosts some stats
-
-  Key items are a single integer in the save state (covers all 8 combinations 000 001 010 011 100 101 110 111)
-  
-  randomized over all the 'final' bosses, 3 out of 5 bosses.
-
-
-  1 integer for mortar and pestle
-  1 integer for key items
-
-  
-  
-		
-		
------
-far world map tileset has grass, mountains, lakes, etc
-close world map tileset has trees, bushes, etc
-
-got small "zoomed out" map from large map,
-now just need to get a bigger, "zoomed in" map from a small 'over world' map
-
-for each x,y in the small map, create ...
-
-
------ 
-for animation/movie sequences, she could have 'simpsons' strabismus eyes when being silly
-
-
-
-
-
-----
-
-instead of sprite collision, use the tilemap to determine solids
-
-
----
-
-Nut and Meg as miniature clones/sidekicks
-
-Tun and Gem are Nut and Meg's clones (lol!) even tinier
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/
 
 //const bleeper = require('pixelbox/bleeper');
 //import { level_01_grid } from "./levels.js";
@@ -383,8 +47,12 @@ Tun and Gem are Nut and Meg's clones (lol!) even tinier
 var debug_msg = "";
 var testing = true;
 
-const SCREEN_WIDTH = 8*32;
-const SCREEN_HEIGHT = 8*32;
+const G_W = 32;
+const G_H = 24;
+const SPRITE_PIXEL_SIZE = 8;
+const SCREEN_WIDTH = SPRITE_PIXEL_SIZE * G_W;
+const SCREEN_HEIGHT = SPRITE_PIXEL_SIZE * G_H;
+
 //const SCROLL_LEFT = SCREEN_WIDTH
 const XMID = Math.floor(SCREEN_WIDTH/2);
 const YMID = Math.floor(SCREEN_HEIGHT/2);
@@ -396,14 +64,25 @@ const YMID = Math.floor(SCREEN_HEIGHT/2);
 // backgrounds
 var bg1 = assets.backgrounds.bg1;
 var bg1b = assets.backgrounds.bg1b;
+var bg2 = assets.backgrounds.bg2;
+var bg1c = assets.backgrounds.bg1c;
+
+var bg3a = assets.backgrounds.bg3a;
+var bg3b = assets.backgrounds.bg3b;
+var bg3c = assets.backgrounds.bg3c;
+var bg3d = assets.backgrounds.bg3d;
+
+var bg_rain = assets.foregrounds.light_rain;
+
 
 // tilesheets
-var ts_1 = assets.tilesheet;
-var ts_m = assets.tilesheet_mountain;
-var ts_2 = assets.tilesheet2;
-var ts_se = assets.tilesheet_enemies;
-var ts_a = assets.animations.title_screen.a;
-var ts_terrain = assets.tilesheet_terrain;
+var ts_1 = assets.tilesheet_grassland;
+var ts_wmap = assets.tilesheet_worldmap;
+//var ts_m = assets.tilesheet_mountain;
+//var ts_2 = assets.tilesheet2;
+//var ts_se = assets.tilesheet_enemies;
+//var ts_a = assets.animations.title_screen.a;
+//var ts_terrain = assets.tilesheet_terrain;
 
 /* 
 	south park style speech
@@ -485,8 +164,6 @@ function PRNG(input_string, n){
 }
 
 
-const WORLD_ID = document.getElementById("world_id_info").innerHTML;
-const SAVE_STATE = document.getElementById("save_state_info").innerHTML;
 
 
 
@@ -494,6 +171,7 @@ const SAVE_STATE = document.getElementById("save_state_info").innerHTML;
 //const seed = PRNG("who knows", 10000); // "Hello World" -> 0.6276661821175367, ...
 const seed = PRNG(WORLD_ID, 10000); // "Hello World" -> 0.6276661821175367, ...
 
+// each area can have its own seed
 
 // how would this work if exported from another function?
 // input starting iR, spit out final?
@@ -508,232 +186,118 @@ function rnd(min_, max_) {
   return value;
 }
 
-//function inc_rnd()
 
 
 
-// for any randomizers, put in a list of rnd() nad use what is 
 
-// TODO: organize tilesheet 
+// worldmap movement
 /* ======================================================== */
-
-// this will also have tilesheets for each one
-const TERRAIN = {
-	"peak": {
-		"10": ["peakright", "peak"],
-		"11": ["peakleft", "peak"],
-		"12": ["mountain"],
-		"13": ["sky"],
-		"4": ["insidecavetop"],
-		
-	},
-	"peakright": {
-		"10": ["sky"],
-		"11": ["peak"],
-		"12": ["cliffright"],
-		"13": ["sky"],
-		"4": ["insidecavetop"],
-		
-	},
-	"peakleft": {
-		"10": ["peak"],
-		"11": ["sky"],
-		"12": ["cliffleft"],
-		"13": ["sky"],
-		"4": ["insidecavetop"],
-		
-	},
+function player1_world_movement() {
 	
-	"mountain": {
-		"10": ["mountain", "cliffright"],
-		"11": ["mountain", "cliffleft"],
-		"12": ["mountain", "caveground"],
-		"13": ["mountain", "peak"],
-		"4": ["insidecave"],
-		
-	},
-	"cliffright": {
-		"10": ["aboveground"],
-		"11": ["mountain"],
-		"12": ["cliffright", "caveright"],
-		"13": ["cliffright", "peakright"],
-		"4": ["insidecave"],
-		
-	},
-	"cliffleft": {
-		"10": ["mountain"],
-		"11": ["aboveground"],
-		"12": ["cliffleft", "caveleft"],
-		"13": ["cliffleft", "peakleft"],
-		"4": ["insidecave"]
-	},
-	
-	"caveground": {
-		"10": ["caveground", "caveright"],
-		"11": ["caveground", "caveleft"],
-		"12": ["underground"],
-		"13": ["mountain"],
-		"4": ["insidecave"]
-	},
-	"caveleft": {
-		"10": ["caveground"],
-		"11": ["ground", "caveright"],
-		"12": ["underground"],
-		"13": ["cliffleft"],
-		"4": ["insidecave"]
-	},
-	"caveright": {
-		"10": ["ground", "caveleft"],
-		"11": ["caveground"],
-		"12": ["underground"],
-		"13": ["cliffright"],
-		"4": ["insidecave"]
-	},
-	
-	"underground": {
-		"10": ["underground"],
-		"11": ["underground"],
-		"12": ["underground"],
-		"13": ["underground", "ground"],
-		"4": ["underground"]
-	},
-	
-	"ground": {
-		"10": ["ground", "caveleft", "towergroundleft"],
-		"11": ["ground", "caveright", "towergroundright"],
-		"12": ["underground"],
-		"13": ["aboveground"],
-		"4": ["underground"]
-	},
-	
-	"aboveground": {
-		"10": ["aboveground", "cliffleft", "roofleft"],
-		"11": ["aboveground", "cliffright", "roofright"],
-		"12": ["ground"],
-		"13": ["sky"],
-		"4": ["sky"]
-	},
-	
-	"sky": {
-		"10": ["sky", "peakleft", "roofleft"],
-		"11": ["sky", "peakright", "roofright"],
-		"12": ["aboveground"],
-		"13": ["sky"],
-		"4": ["sky"]
-	},
-	
-	"roof": {
-		"10": ["roofright", "roof"],
-		"11": ["roofleft", "roof"],
-		"12": ["tower"],
-		"13": ["sky"],
-		"4": ["insidetowertop"]
-	},
-	"roofright": {
-		"10": ["sky"],
-		"11": ["roof"],
-		"12": ["towerright"],
-		"13": ["sky"],
-		"4": ["insidetowertop"]
-	},
-	"roofleft": {
-		"10": ["roof"],
-		"11": ["sky"],
-		"12": ["roofleft"],
-		"13": ["sky"],
-		"4": ["insidetowertop"]
-	},
-	
-	"tower": {
-		"10": ["towerright"],
-		"11": ["towerleft"],
-		"12": ["towerground"],
-		"13": ["roof"],
-		"4": ["insidetower"]
-	},
-	"towerright": {
-		"10": ["aboveground"],
-		"11": ["tower"],
-		"12": ["towergroundright"],
-		"13": ["roofright"],
-		"4": ["insidetower"]
-	},
-	"towerleft": {
-		"10": ["tower"],
-		"11": ["aboveground"],
-		"12": ["towergroundleft"],
-		"13": ["roofleft"],
-		"4": ["insidetower"]
-	},
-	
-	"towerground": {
-		"10": ["towergroundright"],
-		"11": ["towergroundleft"],
-		"12": ["underground"],
-		"13": ["tower"],
-		"4": ["insidetowerground"]
-	},
-	"towergroundright": {
-		"10": ["ground"],
-		"11": ["towerground"],
-		"12": ["underground"],
-		"13": ["towerright"],
-		"4": ["insidetowerground"]
-	},
-	"towergroundleft": {
-		"10": ["towerground"],
-		"11": ["ground"],
-		"12": ["underground"],
-		"13": ["towerleft"],
-		"4": ["insidetowerground"]
-	},
-	
-	"insidecavetop": {
-		"10": ["insidecavetop"],
-		"11": ["insidecavetop"],
-		"12": ["insidecave"],
-		"13": ["peak", "peakleft", "peakright"],
-		"4": ["peak", "peakleft", "peakright", "mountain", "cliffleft", "cliffright"]
-	},
-	"insidecave": {
-		"10": ["insidecave"],
-		"11": ["insidecave"],
-		"12": ["insidecave"],
-		"13": ["insidecave", "insidecavetop"],
-		"4": ["insidecave", "mountain", "cliffleft", "cliffright", "caveground", "caveleft", "caveright"]
-	},
-	
-	// sheet
-	"insidetowertop": {
-		"10": ["insidetowertop"],
-		"11": ["insidetowertop"],
-		"12": ["insidetower"],
-		"13": ["roof", "roofleft", "roofright"],
-		"4": ["roof", "roofleft", "roofright", "insidetowertop"]
-	},
-	"insidetower": {
-		"10": ["insidetower"],
-		"11": ["insidetower"],
-		"12": ["insidetowerground"],
-		"13": ["insidetowertop"],
-		"4": ["insidetower", "tower", "towerleft", "towerright"]
-	},
-	"insidetowerground": {
-		"10": ["insidetowerground"],
-		"11": ["insidetowerground"],
-		"12": ["basement"],
-		"13": ["insidetower"],
-		"4": ["insidetowerground", "towerground", "towergroundleft", "towergroundright"]
-	},
-	
-	"basement": {
-		"10": ["basement"],
-		"11": ["basement"],
-		"12": ["basement"],
-		"13": ["basement", "insidetower"],
-		"4": ["basement"]
+	// game pad controls override the keyboard
+	if (gamepad1) {
+		if (gamepad1.btn["A"]) { GP.B = 1; } else { GP.B = 0; }
+		if (gamepad1.btn["B"]) { GP.A = 1; } else { GP.A = 0; }
+		if (gamepad1.btn["up"] && !gamepad1.btn["start"]) { GP.L = 1; } else { GP.L = 0; }
+		if (gamepad1.btn["down"] && !gamepad1.btn["start"]) { GP.R = 1; } else { GP.R = 0; }
+		if (gamepad1.btn["back"]) { if (GP.Select) { GP.Select = 2; } else { GP.Select = 1; } } else { GP.Select = 0; }
+		if (gamepad1.btn["start"]) { if (GP.Start) { GP.Start = 2; } else { GP.Start = 1; } } else { GP.Start = 0; }
+		if (gamepad1.z >= 1) { GP.D = 1; } else { GP.D = 0; }
+		if (gamepad1.z <= -1) { GP.U = 1; } else { GP.U = 0; }
 	}
+	
+	if (btn.P) {
+		//pw.x = 2*8;
+		//pw.y = 4*8;
+		//console.log(chunk_set);
+		//pw.cx = 0;
+		//pw.cy = 0;
+		
+		
+		console.log(chunk_set);
+		/*
+		let cset = chunk_set[pw.cx+"_"+pw.cy]["image"];
+		for (let cy=0; cy<16; cy++) {
+			//console.log(cset[cy]);
+			let sss = "";
+			for (let cx=0; cx<16; cx++) {
+				if (cset[cy][cx] < 10) {
+					sss += cset[cy][cx]+"  ";
+				} else {
+					sss += cset[cy][cx]+" ";
+				}
+				
+				//console.log(cset[cy][cx]);
+			}
+			console.log(sss);
+		}
+		/**/
+		
+		//flush_chunk_set(pw.cx, pw.cy);
+	}
+
+	w_walking = 0;
+	if (btn.R || GP.R) {
+		w_walking = 1;
+		going_left = false;
+		if (!([1,2,3].includes(check_world_grid(pw.x+2, pw.y)))) { //&& check_world_grid(pw.x+2, pw.y+4) !== 1) {
+			if (1) {
+				pw.x+=2; 
+			}
+	 	}
+	} else if (btn.L || GP.L) {
+		w_walking = 1;
+		going_left = true;
+		if (!([1,2,3].includes(check_world_grid(pw.x-2, pw.y)))) { //&& check_world_grid(pw.x-2, pw.y+4) !== 1) {
+			if (1) {
+				pw.x-=2; 
+			}
+	 	}
+	}
+	
+	if (btn.A || GP.U) {
+		w_walking = 1;
+		if (!([1,2,3].includes(check_world_grid(pw.x, pw.y-4)))) { // && check_world_grid(pw.x+2, pw.y-4) !== 1) {
+			if (1) {
+				pw.y-=2; 
+			}
+		}
+	} else if (btn.D || GP.D) {
+		w_walking = 1;
+		// (check_grid(p.x, pB(p.y)) == 0) && (check_grid(p.x+7, pB(p.y)) == 0)
+		if (!([1,2,3].includes(check_world_grid(pw.x, pw.y+4)))) { //&& check_world_grid(pw.x+2, pw.y+4) !== 1) {
+			if (1) {
+				pw.y+=2; 
+			}
+		}
+	}
+
 }
+
+var Ish = 512;
+var pw_sheet_id = Ish;
+
+var w_walking = 0;
+var w_walking_index = 0;
+//var w_walking_frames = [0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,2,2,2,2,2,2,2,2,0,0,0,0,0,0,0]; //,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2];
+//var w_walking_frames = [4,4,4,4,4,4,4,6,6,6,6,6,6,6,8,8,8,8,8,8,8,10,10,10,10,10,10,10,12,12,12,12,12,12,12, 14,14,14,14,14,14,14];
+var w_walking_frames = [4,4,4,6,6,6,8,8,8,8,8,10,10,10,12,12,12,14,14,14,14,14];
+
+function player1_world_animation() {
+	if (w_walking) {
+		w_walking_index++;
+    if (w_walking_index >= w_walking_frames.length) {
+			w_walking_index = 0;
+		}
+		pw_sheet_id = Ish + w_walking_frames[w_walking_index];
+	} else {
+		w_walking_index = 0;
+		pw_sheet_id = Ish;
+	}
+	
+	
+}
+
 
 
 
@@ -747,54 +311,14 @@ const TERRAIN = {
 function get_psheet(anim_index){
   return [
     anim_index, anim_index+1,
-    anim_index+16,anim_index+17,
-    anim_index+32,anim_index+33
+    anim_index+16, anim_index+17,
+    anim_index+32, anim_index+33
   ];
 }
 
 
 
-// positions on the spritesheet.
-const ZEN = [
-	
-	// Thal
-  {
-    "idle": 144,
-    "jump": 54,
-    "run": 148,
-    "fall": 54,
-    "shoot": 56,
-    "slide": 148,
-    "skid": 106,
-    "climb": 102,
-		"door": 56,
-  },
-	
-	// Thal (no helmet)
-  {
-    "idle": 0,
-    "jump": 48,
-    "run": 4,
-    "fall": 48,
-    "shoot": 50,
-    "slide": 4,
-    "skid": 100,
-    "climb": 112,
-		"door": 52,
-  },
-	
-	// Enx
-  {
-    "idle": 0,
-    "jump": 48,
-    "run": 4,
-    "fall": 12,
-    "shoot": 50,
-    "slide": 6,
-    "skid": 100,
-    "climb": 102,
-  },
-];
+
 
 
 var HEAD = 0;
@@ -804,9 +328,10 @@ var HEAD2 = 2;
 const XOFFSET = 4;
 const YOFFSET = 16;
 
-var p = { x: 3*8, y: 29*8 }; //player
+var p = { x: 0*8, y: 0*8 }; //player
 var p2 = { x: 5*8, y: 29*8 }; //player2
-
+var pw = { x: 2*8, y: 4*8, cx: 0, cy: 0 }; //player
+var pw2 = { x: 0*8, y: 0*8 }; //player2
 
 var psheet = get_psheet(ZEN[HEAD].idle);
 var psheet2 = get_psheet(ZEN[HEAD2].idle);
@@ -890,6 +415,8 @@ function create_door(area, x, y, status=0, next, x_next, y_next) {
 
 
 // moving platforms
+
+/*
 var moving_platforms = [];
 function create_platform(x, y, movetype, random_phase=true){
 	let plat = {};
@@ -897,9 +424,9 @@ function create_platform(x, y, movetype, random_phase=true){
 		plat[key] = platforms[movetype][key];
 	}
 	
-	let rnd_pl_im = rnd(0, 3);
+	let rnd_pl_im = 0;//rnd(0, 3);
 	
-	plat.image = 224+rnd_pl_im;
+	plat.image = 226+rnd_pl_im;
 	plat.x = x;
 	plat.y = y-8;
 	
@@ -907,11 +434,11 @@ function create_platform(x, y, movetype, random_phase=true){
     plat.vframe = rnd(0, plat.vx.length-1);
   }
   
-  moving_platforms.push(plat);
-}
+  //moving_platforms.push(plat);
+}*/
 
 
-var small_enemies = [];
+//var small_enemies = [];
 function create_small_enemy(x,y, move_type="walkbump", image=0, random_phase=true){
   /* 
     get hp and other stats from library, depending on name
@@ -1039,7 +566,9 @@ function create_small_enemy(x,y, move_type="walkbump", image=0, random_phase=tru
   if (random_phase) {
     enemy.frame = rnd(0, enemy.frames.length-1);
   }
-  small_enemies.push(enemy);
+	
+	
+  //curr_area["small enemies"].push(enemy);
 }
 
 
@@ -1074,9 +603,137 @@ var score = 0;
 var combo = 0; // increment
 var combo_start = 0;
 
-//var grid = level_01;
 
-// 
+
+
+var nutmeg = 0;
+var sugar = 0;
+var cayenne = 0;
+//var 
+
+
+function check_world_grid(px, py){
+	/*
+		15 is the rightmost and bottommost index of the chunk
+		15 also happens to be the 'solid' tile label that we cant walk through
+		these are two different 15s
+	
+	*/
+  
+	let px8 = Math.floor(Math.abs(px)/8)%16;
+  let py8 = Math.floor(Math.abs(py)/8)%16;
+	let curr_x8 = Math.floor(Math.abs(pw.x)/8)%16;
+	let curr_y8 = Math.floor(Math.abs(pw.y)/8)%16;
+	
+	// account for negative side of the map (-x -y)
+	if (pw.x < 0) {
+		px8 = 15 - px8;
+		curr_x8 = 15 - curr_x8;
+		
+	}
+	if (pw.y < 0) {
+		py8 = 15 - py8;
+		curr_y8 = 15 - curr_y8;
+	}
+	
+	
+	// account for 'loop-collision' with curr_chunk wrap -- find grid for chunk map beside it
+	let next_chunk = "";
+	if (px8 === 15 && curr_x8 === 0) {
+		
+		next_chunk = (pw.cx-1)+"_"+pw.cy;
+		let block_ = 0;
+		try {
+			block_ = chunk_set[next_chunk]["event"][py8][15]; // rightmost grid tile
+			//console.log(block_);
+		} catch (e) {
+			//console.log(next_chunk);
+			//console.log(chunk_set[next_chunk]);
+		}
+		if (block_ === 1) {
+			return 1;
+		} else {
+			return 0;//block_;
+		}
+	}
+	
+	if (px8 === 0 && curr_x8 === 15) {
+		next_chunk = (pw.cx+1)+"_"+pw.cy;
+		let block_ = 0;
+		try {
+			block_ = chunk_set[next_chunk]["event"][py8][0]; // leftmost grid tile
+			//console.log(block_);
+		} catch (e) {
+			//console.log(next_chunk);
+			//console.log(chunk_set[next_chunk]);
+		}
+		if (block_ === 1) {
+			return 1;
+		} else {
+			return 0;//block_;
+		}
+	}
+	
+	if (py8 === 15 && curr_y8 === 0) {
+		next_chunk = pw.cx+"_"+(pw.cy-1);
+		let block_ = 0;
+		try {
+			block_ = chunk_set[next_chunk]["event"][15][px8]; // bottommost most grid tile
+			
+		} catch (e) {
+			//console.log(next_chunk);
+			//console.log(chunk_set[next_chunk]);
+		}
+		if (block_ === 1) {
+			return 1;
+		} else {
+			return 0;//block_;
+		}
+	}
+	
+	if (py8 === 0 && curr_y8 === 15) {
+		next_chunk = pw.cx+"_"+(pw.cy+1);
+		let block_ = 0;
+		try {
+			block_ = chunk_set[next_chunk]["event"][0][px8]; // topmost grid tile
+			//console.log(block_);
+		} catch (e) {
+			//console.log(next_chunk);
+			//console.log(chunk_set[next_chunk]);
+			
+		}
+		if (block_ === 1) {
+			return 1;
+		} else {
+			return 0;//block_;
+		}
+	}
+	
+	
+	
+	//console.log(pw.cx+"_"+pw.cy+" "+px8+" "+py8+" "+curr_x8+" "+curr_y8);
+	
+	
+	
+	
+	try {
+		
+		let grid_value = curr_chunk["event"][py8][px8];
+		if (grid_value === 1) {
+			
+			//console.log(curr_chunk);
+			return grid_value;
+			
+		} else {
+			return 0;
+		}
+		
+		//
+	} catch (e) {
+		
+		return 0;
+	} /**/
+}
 
 
 function check_grid(px, py){
@@ -1085,25 +742,31 @@ function check_grid(px, py){
   if (px8 >= width || py8 >= height || px8 < 0 || py8 < 0 ) {
     return 1; 
   } else {
-		
-    return level_grid_[py8][px8];
+		if (!(isNaN(parseFloat(px)) && isNaN(parseFloat(py)))) {
+			//console.log(py8+" "+px8);
+			try {
+				return level_grid_[py8][px8];
+			} catch (err) {
+				console.log(p.y+" "+p.x);
+				throw err;
+			}
+		}
   }
 }
 
 function check_event_grid(px, py){
+	//if (px && py) {
+	  let px8 = Math.floor(px/8);
+	  let py8 = Math.floor(py/8);
+		//console.log("px8 "+px8+" py8 "+py8);
 	
-  let px8 = Math.floor(px/8);
-  let py8 = Math.floor(py/8);
-	//console.log("px8 "+px8+" py8 "+py8);
-	
-	//console.log(level_events_[py8][px8]);
-  if (px8 >= width || py8 >= height || px8 < 0 || py8 < 0 ) {
-    return 1; 
-  } else {
-  	return level_events_[py8][px8];
-  }
-  
-  
+		//console.log(level_events_[py8][px8]);
+	  if (px8 >= width || py8 >= height || px8 < 0 || py8 < 0 ) {
+	    return 1; 
+	  } else {
+	  	return level_events_[py8][px8]; // 1
+	  }
+		//} 
 }
 
 function snap_right(px){
@@ -1121,6 +784,8 @@ function snap_down(py){
 function snap_up(py){
   return Math.floor(py/8)*8;
 }
+
+
 
 var pgridx = Math.floor(p.x/8);
 var pgridx2 = Math.floor(p2.x/8);
@@ -1185,6 +850,7 @@ var pwalk_frames2 = [0,0,0,0,0,1,1,1,1,1,2,2,2,2,2,3,3,3,3,3,4,4,4,4,4,5,5,5,5,5
 var pwalk_index = 0;
 var pwalk_index2 = 0;
 
+
 // used in both the animation and the count
 var shooting = false;
 var shooting2 = false;
@@ -1205,7 +871,7 @@ var pframe2 = 0;
 
 var jumping = false;
 var jumping2 = false;
-var jump = [4,4,3,3,3,3,2,2,2,2,2,1,1,1,1,1,1,1,1];
+var jump = [4,4,3,3,3,2,2,2,2,1,1,1,1,1];//,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1];
 var jump2 = [3,3,3,3,3,2,2,2,2,1,1,1,1,1];
 var j = 0;
 var j2 = 0;
@@ -1217,14 +883,14 @@ var f2 = 0;
 
 var running = false;
 var running2 = false;
-var run = [1,1,1,1,1,1,1,1,1,1,1,1,1,2];//,1,2,1,2,1,2,1,2,1,2,1,2,1,2];// 7 is the maximum, otherwise clipping happens
+var run = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2];//,1,2,1,2,1,2,1,2,1,2,1,2,1,2];// 7 is the maximum, otherwise clipping happens
 var run2 = [1,1,1,1,1,1,1,1,1,1,1,1,1,2];
 var r = 0;
 var r2 = 0;
 
 var sliding = false;
 var sliding2 = false;
-var slide = [1,0];//[2,2,2,2,1,1,1,0];
+var slide = [2,2,2,1,1,1,0];
 var slide2 = [2,2,2,2,1,1,1,1,1,1,1,1,0];
 var s = slide.length-1; //last should always be 0
 var s2 = slide2.length-1; //last should always be 0
@@ -1238,7 +904,17 @@ var pclimb_index2 = 0;
 //var c = climb.length-1; //last should always be 0
 //var c2 = climb2.length-1; //last should always be 0
 
-var entering = false;
+var hurting = false;
+var hurting2 = false;
+var hurt_frames = [2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0];
+var knock_back = [2,2,1, 1, 1,0,0];
+var knock_back_y = [-1,-1,-1, 0,0,0,0];
+var hurt2_frames = [0,0,0,0,1,1,1,1,0,0,0,0,1,1,1,1,0,0,0,0,1,1,1,1,0,0,0,0,1,1,1,1,0,0,0,0,1,1,1,1,0,0,0,0,1,1,1,1,0,0,0,0];
+var hurt_index = 0;
+var hurt2_index = 0;
+
+var entering = 0;
+var unlock_fail_sound = false;
 var penter_frames = [
 	1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
@@ -1248,25 +924,57 @@ var penter_index = 0;
 var door_animation = false;
 
 
+var areasavepoint = -1;
+var activate_reenter_bexit = -1;
+
+
 var bg_width = 256;
 //var bg_depth_scroll_1 = 0;
 
 
 var test_toggle_anim = false;
+var paused = false;
 
+
+var GP = {
+	"A": 0,
+	"B": 0,
+	"U": 0,
+	"D": 0,
+	"L": 0,
+	"R": 0,
+	"Start": 0,
+	"Select": 0
+}
 
 
 
 function player1_movement() {
   
+	// game pad controls override the keyboard
+	if (gamepad1) {
+		if (gamepad1.btn["A"]) { GP.B = 1; } else { GP.B = 0; }
+		if (gamepad1.btn["B"]) { GP.A = 1; } else { GP.A = 0; }
+		if (gamepad1.btn["up"] && !gamepad1.btn["start"]) { GP.L = 1; } else { GP.L = 0; }
+		if (gamepad1.btn["down"] && !gamepad1.btn["start"]) { GP.R = 1; } else { GP.R = 0; }
+		if (gamepad1.btn["back"]) { if (GP.Select) { GP.Select = 2; } else { GP.Select = 1; } } else { GP.Select = 0; }
+		if (gamepad1.btn["start"]) { if (GP.Start) { GP.Start = 2; } else { GP.Start = 1; } } else { GP.Start = 0; }
+		if (gamepad1.z >= 1) { GP.D = 1; } else { GP.D = 0; }
+		if (gamepad1.z <= -1) { GP.U = 1; } else { GP.U = 0; }
+	}
+	
+	//console.log("checking  "+p.x+" "+p.y);
+	
+	
+	
 	// ======= temporary - testing speech =======
   if (!test_toggle_anim) {
-    if (btn.S && btn.B) {
+    if ((btn.S && btn.B) || GP.Select === 1) {
       //tilesheet(ts_anim);
       test_toggle_anim = true;
       face_frame = 0;
     }
-  } else if (btn.S && btn.A) {
+  } else if ((btn.S && btn.A) || GP.Select === 1) {
     //tilesheet(ts_0);
     test_toggle_anim = false;
     if (HEAD) { HEAD = 0; }
@@ -1277,27 +985,120 @@ function player1_movement() {
     }// else {face_frame = face_frames.length-1;}
     return;
   }
-  
 	
-  if (entering) {
+	if (!paused) {
+		if (GP.Start === 1) {
+			assets.bleeper.incorrect.play();
+			paused = true;
+		}
+	} else if (GP.Start === 1) {
+		assets.bleeper.correct.play();
+		paused = false;
+	} else {
+		return;
+	}
+	
+	
+	if (btn.U) {
+		reset_position("3");
+	} else {
+		cheat_up = 0;
+	}
+	
+	if (btnp.P) {
+		reset_position("P");
+	}
+	if (btnp.O) {
+		reset_position("O");
+	}
+	if (btnp.K) {
+		reset_position("K");
+	}
+	if (btnp.I) {
+		reset_position("I");
+	}
+  
+	if (unlocking_door) {
+		unlocking_door--;
+		return;
+	} 
+	if (trying_door_fail) {
+		trying_door_fail--;
+		return;
+	}
+	if (opening_door) {
+		opening_door--;
+		return;
+	}
+	if (entering_door) {
+		entering_door--;
+		return;
+	}
+	
+	
+	
+	/*
+  if (entering) { // entering should be a number instead of boolean
+		console.log("p1_movement(): if("+entering+")");
+		
+		if (entering === 2 && !unlock_fail_sound) {
+			assets.bleeper.unlock_fail.play();
+			unlock_fail_sound = true;
+			activated_area = -1;
+			//penter_index = penter_frames.length-1;
+		} else if (entering === 1) {
+			//console.log("  entering is 1");
+		}
+		
 		if (penter_index >= penter_frames.length-1 ) {
-			entering = false;
+			
+			
 			penter_index = 0;
 			//activated_area = -1;
+			if (entering === 1) {
+				console.log("   !    entering === "+entering);
+				
+				//p.x = ready_enter_door["gotox"]*8;
+				//p.y = ready_enter_door["gotoy"]*8;
+				//console.log(ready_enter_door);
+				//console.log(p.x+" "+p.y);
+				//entering = 0; // ?
+			}  else {
+				console.log("   !    not entering === 1    entering === "+entering);
+				//ready_enter_door = {};
+			}
 			
-			p.x = ready_enter_door["gotox"]*8;
-			p.y = ready_enter_door["gotoy"]*8;
+			
+			
 			//current_area = ready_enter_door["goto"];
 			//activated_area = 1;
 			//console.log(ready_enter_door);
-			ready_enter_door = {};
+			//ready_enter_door = {};
+			entering = 0;
+			unlock_fail_sound = false;
+			activated_area = -1;
 			
 		} else {
 			penter_index++;
 		}
   	return;
-  }
+  }/**/
 	
+	
+	
+	
+	
+	if (hurting) {
+		if (hurt_index === 0) {
+			assets.bleeper.ouch.play();
+		}
+		if (hurt_index < knock_back.length) {
+			p.x = going_left ? p.x + knock_back[hurt_index] : p.x - knock_back[hurt_index];
+			if (grounded) {
+				p.y = p.y + knock_back_y[hurt_index];
+			}
+		}
+	}
 	
 	
   /* --------  horizontal movement: sliding --------- */
@@ -1332,11 +1133,11 @@ function player1_movement() {
   
   //console.log(p.x+" "+level_pixel_width);
   /* --------  horizontal movement: button --------- */
-  if (btn.R) {
+  if (btn.R || GP.R) {
 		
 		if (p.x >= level_pixel_width-9 && check_event_grid(p.x, p.y) == 11) {
 				//console.log("right edge TRIG");
-				activated_area = p1_check_door(11);
+				activated_area = p1_check_exit(11);
 				// can still return a value and do something with it
 				return;
 		}
@@ -1358,17 +1159,29 @@ function player1_movement() {
 		
     if ( check_grid(right_check, p.y) == 1) { // also check blocks above and below
       if (!bumped_sound && p.x < level_pixel_width-16) {
-				console.log(p.x+" "+level_pixel_width);
+				//console.log(p.x+" "+level_pixel_width);
        	assets.bleeper.bump.play();
         bumped_sound = true;
       }
-      p.x = snap_right(p.x);
+			
+      p.x = snap_right(p.x-1); // ****** <----- ****** testing
+			
       running = false; //? doesnt do anything since it is set to true a few lines above
       
     } else {
       p.x += run[r];
       bumped_sound = false;
     }
+		
+		/*
+		if ( check_grid(p.x+8, p.y) === 51) {
+  		p.y = p.y-(8-p.x%8);
+			console.log(p.y);
+  	} else if ( check_grid(p.x, p.y) === 15) {
+		//console.log(p.x%8);
+  		p.y = p.y-p.x%8;
+			console.log(p.y);
+  	}/**/
     
     if (r < run.length-1) {
       r += 1;
@@ -1377,10 +1190,10 @@ function player1_movement() {
       }
     }
     
-  } else if (btn.L)  {
+  } else if (btn.L || GP.L)  {
 		if (p.x <= 1 && check_event_grid(p.x, p.y) == 10) {
 			//console.log("left edge TRIG");
-			activated_area = p1_check_door(10);
+			activated_area = p1_check_exit(10);
 			return;
 		}
 		
@@ -1403,13 +1216,25 @@ function player1_movement() {
         bumped_sound = true;
         //ban_left = true; //
       }
-      p.x = snap_left(p.x);
+			
+			
+      p.x = snap_left(p.x+1); // ****** <----- ****** testing
       running = false;
       
     } else {
       p.x -= run[r];
       bumped_sound = false;
     }
+		
+		/*
+		if ( check_grid(p.x+8, p.y) === 51) {
+  		p.y = p.y-(8-p.x%8);
+			console.log(p.y);
+  	} else if ( check_grid(p.x, p.y) === 15) {
+		//console.log(p.x%8);
+  		p.y = p.y-p.x%8;
+			console.log(p.y);
+  	}/**/
     
     if (r < run.length-1) {
       r += 1;
@@ -1432,13 +1257,26 @@ function player1_movement() {
   
   /* -------- vertical movement: went off edge ---------- */
   if (grounded) {
-    
+		
+		if (p.y < curr_area["height"]*8 - 8) {
+			if (going_left) {
+				groundsavepoint = [p.x+4, p.y]; 
+			} else {
+				groundsavepoint = [p.x-4, p.y]; 
+			}
+			
+		}
+		
 		// need to check TWO grid spots below
     if ( (check_grid(p.x, pB(p.y)) == 0) && (check_grid(p.x+7, pB(p.y)) == 0) ) {
 			//grounded = false;
 			// 
 			if (!climbing) { grounded = false; }
-    }
+    } 
+		// slopes, may not work if walking on to it from the side?
+		
+		
+		
     
   } else if (climbing) {
   	grounded = true;
@@ -1451,28 +1289,47 @@ function player1_movement() {
 		climbing = false;
   }
 	
-  if (btn.A) {
+	
+	
+  if (btn.A || GP.A || GP.U) { // btn.A is jump/up, so the 'w' key
 		
-		if (!btn.L && !btn.R) {
-			
-			if ( (check_event_grid(p.x, p.y) == 4) || (check_event_grid(p.x+7, p.y) == 4)) {
-				entering = true;
-				activated_area = p1_check_door(4);
+		if (!btn.L && !btn.R && !GP.L && !GP.R) {
+			//console.log("checking  "+p.x+" "+p.y);
+			if ( (check_event_grid(p.x, p.y) == 4) || (check_event_grid(p.x+7, p.y) == 4) && (!gamepad1 || GP.U)) {
+				
+				activated_area = p1_check_exit(4);
+				
+				
+				// entering should be changed in the above function
+				//entering = activated_area > -1 ? 1 : 2; // locked if 2
 				//door_sound = false;
+				//console.log("p1_movement(): if btn.A and door on grid: entering = "+entering+", activated area = "+activated_area);
 			
 				return;
 			}
 		}
 		
-		if ( (check_event_grid(p.x, p.y) == 13) || (check_event_grid(p.x+7, p.y) == 13)) {
+		// UP
+		if ( (check_event_grid(p.x, p.y) == 13) || (check_event_grid(p.x+7, p.y) == 13) && (!gamepad1 || GP.U || GP.A)) {
 			//entering = true;
-			activated_area = p1_check_door(13);
+			activated_area = p1_check_exit(13); // going up
+			//groundsavepoint[1] = -(current_area); // <--- dealing with falling back down
+			areasavepoint = current_area;
+			//console.log("going up thru exit...areasavepoint: area "+areasavepoint);
+			//console.log("                  ...groundsavepoint:    "+groundsavepoint);
+			//groundsavepoint[0] = p.x;
+			//groundsavepoint[1] = p.y;
 			//door_sound = false;
+			
+      //jumping = true;
+      //grounded = false;
+      //on_platform = false;
+			//console.log("jump");
 		
 			return;
 		}
 		
-		if ( (check_grid(p.x, p.y) == 2) || (check_grid(p.x+7, p.y) == 2) ) {
+		if ( (check_grid(p.x, p.y) == 2) || (check_grid(p.x+7, p.y) == 2) && (!gamepad1 || GP.U)) {
 			climbing = true;
 			//grounded = false;
 			pclimb_index++;
@@ -1484,10 +1341,11 @@ function player1_movement() {
 				assets.bleeper.climb.play();
 			}
 			
-    } else if (grounded || on_platform) {
+    } else if ((grounded || on_platform ) && ((!gamepad1 && btn.A) || GP.A)) {
       
       if ( (check_grid(p.x, pT(p.y)) == 1) || (check_grid(p.x+7, pT(p.y)) == 1) ) {
         if (!bonked_sound) {
+					
           assets.bleeper.bonk.play();
           bonked_sound = true;
         }
@@ -1497,6 +1355,7 @@ function player1_movement() {
         up_check = pT(p.y-jump[j]);
         
         if (check_grid(p.x, up_check) == 1 || check_grid(p.x+7, up_check) == 1) {
+					//console.log("1 if (check_grid(p.x, up_check) == 1 || check_grid(p.x+7, up_check) == 1) {");
           p.y = snap_up(p.y);
           assets.bleeper.bonk.play();
           jumping = false;
@@ -1512,9 +1371,12 @@ function player1_movement() {
       }
       
     } else if (jumping) {
+			
       
       up_check = pT(p.y-jump[j]);
       if (check_grid(p.x, up_check) == 1 || check_grid(p.x+7, up_check) == 1) {
+				
+				//console.log("2 if (check_grid(p.x, up_check) == 1 || check_grid(p.x+7, up_check) == 1) {");
         p.y = snap_up(p.y);
         assets.bleeper.bonk.play();
         jumping = false;
@@ -1535,7 +1397,7 @@ function player1_movement() {
   }
   
   
-	if (btn.D) {
+	if (btn.D || GP.D) {
 		
 		if ( (check_grid(p.x, p.y) == 2) || (check_grid(p.x+7, p.y) == 2) ) {
 			// if not on ground or the tile below is also a ladder -- FIX: clipping into ground
@@ -1553,10 +1415,50 @@ function player1_movement() {
 		
 		if ( (check_event_grid(p.x, p.y) == 12) || (check_event_grid(p.x+7, p.y) == 12)) {
 			//entering = true;
-			activated_area = p1_check_door(12);
+			activated_area = p1_check_exit(12);
+			//console.log("goin down..."+activated_area);
 			//door_sound = false;
 		
 			return;
+		}
+	} else {
+		// place this where it makes sense, pushing down etc.
+		// what do when hopping up from area below?
+		if (p.y >= curr_area["height"]*8 - 8) {
+			// check if recently went through exit
+			
+			if (areasavepoint > -1 && groundsavepoint[1] < 32) {
+				
+				//activated_area = Math.abs(groundsavepoint[1]);
+				//console.log(areasavepoint);
+				//
+				// go back to the previous room
+				//p.y = 0;
+				//return;
+				//console.log(" activate: go back to previous area below");
+				//console.log("         : gsp "+groundsavepoint);
+				//console.log("         : asp "+areasavepoint);
+				//console.log("         : aca "+activated_area);
+				//activated_area = areasavepoint;
+				
+				activate_reenter_bexit = areasavepoint;
+				areasavepoint = -1;
+				
+				p.x = groundsavepoint[0];
+				p.y = 0;
+				groundsavepoint[1] = 0;
+				//return;
+				
+			} else {
+				//console.log(" asp = -1: hitting bottom");
+				//console.log("         : gsp "+groundsavepoint);
+				p.x = groundsavepoint[0];
+				p.y = groundsavepoint[1];
+				assets.bleeper.ouch.play();
+				hurting = true;
+				
+			}
+			
 		}
 	}
   
@@ -1567,10 +1469,11 @@ function player1_movement() {
     // need to check TWO grid spots below
     down_check = pB(p.y+fall[f]); // this one is 
     if ( (check_grid(p.x, down_check) == 1) || (check_grid(p.x+7, down_check) == 1) ) {
-      p.y = snap_down(p.y);
+			//console.log("snap down");
+      p.y = snap_down(p.y-2); // snap down <--------- testing
       grounded = true;
       f = 0;
-      assets.bleeper.land.play();
+      //assets.bleeper.land.play();
     } else {
       p.y += fall[f];
       if (f < fall.length-1) { f += 1; }
@@ -1580,13 +1483,16 @@ function player1_movement() {
   } else {
     f = 0; //?
   }
+	
+	
   
   //----------- last minute checks for current position (inside collision box)
   if ((check_grid(p.x, p.y+7) == 1) && (check_grid(p.x+7, p.y+7) == 0)) {
-    p.x = snap_left(p.x+7); //Math.floor(px/8)*8;
+		//console.log("p.x = snap_left");
+    p.x = snap_left(p.x+4); //Math.floor(px/8)*8;
     can_wall_jump = true;
-  } else
-  if ((check_grid(p.x, p.y+7) == 0) && (check_grid(p.x+7, p.y+7) == 1)) {
+  } else if ((check_grid(p.x, p.y+7) == 0) && (check_grid(p.x+7, p.y+7) == 1)) {
+		//console.log("p.x = snap_right");
     p.x = snap_right(p.x-4); //Math.floor(px/8)*8+8;
     can_wall_jump = true;
   } else {
@@ -1606,7 +1512,7 @@ function player1_movement() {
   
   
   /* -------- weapon: bubble shot (overrides skid animation) ---------- */ 
-  if (btn.B) {
+  if (btn.B || GP.B) {
 		
     if (!shooting && !test_toggle_anim) { //true to test
       shooting = true;
@@ -1639,6 +1545,14 @@ function player1_movement() {
   if (snake) {
     create_snake(p.x, p.y, 0, 0);
   }
+	
+	/*
+	if (check_grid(p.x-4, p.y+4) === 51) {
+		console.log("!!");
+	}
+	if (check_grid(p.x-4, p.y+4) === 15) {
+		console.log("!!");
+	}/**/
   
   // ---- just move the player the bare minimum, 
   // beside or above the platform -----
@@ -1663,10 +1577,13 @@ function player1_movement() {
 		top_edge = 0;
 	}
 	if (p.y > level_pixel_height-YMID) {
+		//console.log("hurt! fall! oh no!");
 		bottom_edge = p.y-level_pixel_height+YMID;
 	} else {
 		bottom_edge = 0;
 	}
+	
+	
 	
 }
 var left_edge = 0;
@@ -1685,7 +1602,7 @@ function player1_animation(){
     psheet = get_psheet(ZEN[HEAD].idle); //ZEN[HEAD].idle
     
   
-    if (btn.R || btn.L) {
+    if (btn.R || btn.L || GP.R || GP.L) {
       psheet = get_psheet(ZEN[HEAD].run);
       
       pframe = pwalk_frames[pwalk_index];
@@ -1696,7 +1613,7 @@ function player1_animation(){
       
       pframe = pidle_frames[pidle_index];
       pidle_index++;
-      if (pidle_index >= pidle_frames.length) pidle_index = 0;
+      if (pidle_index >= pidle_frames.length || hurting) pidle_index = 0;
     }
     
     if (skidding) {
@@ -1727,10 +1644,45 @@ function player1_animation(){
     pframe = pshoot_frames[pshoot_index];
   }
 	
-	if (entering) {
+	
+	if (opening_door || unlocking_door || entering_door) {
 		psheet = get_psheet(ZEN[HEAD].door);
 		pframe = penter_frames[penter_index];
-	}
+	}/**/
+	
+	
+	/*
+var hurting = false;
+var hurt_frames = [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1];
+var hurt_index = 0;
+	*/
+	
+	if (hurting) {
+		
+		//
+		hurt_index++;
+		if (hurt_index >= hurt_frames.length-1) {
+			hurt_index = 0;
+			hurting = false;
+		}
+		
+		
+		if (hurt_frames[hurt_index] === 2) {
+			psheet = get_psheet(ZEN[HEAD].hurt);
+			pframe = 0;
+		} else if (hurt_frames[hurt_index] === 1) {
+			psheet = get_psheet(ZEN[HEAD].invisible);
+			pframe = 0;
+		} else {
+			//console.log(psheet[0]);
+		}
+		
+		
+		
+	}/**/
+	
+	
+	
   
 
 }
@@ -2049,110 +2001,148 @@ function player2_animation(){
 }
 
 
+var cheat_up = 0;
+var reset_position_x = 0;
+var reset_position_y = 0;
+var groundsavepoint = [0,0];
+var debug_on = false;
+function reset_position(where_to) {
+	
+	if (where_to == "P") {
+		p.x = groundsavepoint[0];//reset_position_x;
+		p.y = groundsavepoint[1]-8;//reset_position_y;
+	}
+	
+	if (where_to == "3") {
+		if (cheat_up === 0) {
+			cheat_up = 1;
+			p.y -= 80;
+		} else if (cheat_up === 1) {
+			cheat_up = 2;
+		}
+	}
+	
+	if (where_to == "O") {
+		
+		if (has_key === 0) {
+			p.x -= 80;
+		} else if (has_key === 1) {
+			p.x += 80;
+		} else if (has_key === 2) {
+			p.y += 80;
+		} else if (has_key === 3) {
+			p.y -= 80;
+		}
+		
+		
+	}
+	
+	if (where_to == "K") {
+		
+		has_key++;
+	}
+	
+	if (where_to == "I") {
+		//hurting = true;
+		//console.log("ouch!");
+		
+		if (debug_on) {
+			debug_on = false;
+		} else {
+			debug_on = true;
+			if (has_key > 0) {
+				has_key--;
+			}
+		}
+	}
+	
+	
+	
+	
+}
+
+
+
+/* ========================= DOORS + ACTIVATE AREAS =========================== */
+
+
+
+var has_key = 0;
+var ready_enter_door = {};
+
+var trying_door_fail = 0;
+var unlocking_door = 0;
+var opening_door = 0;
+var entering_door = 0;
 var drstring = "";
-function p1_check_door(exit_type) {
-	console.log("checking door type "+exit_type);
-	// return should be the area index to activate (activate_area)
-	// need to find out which door was activated
-	// specify door_area and door_index
-	
-	let doors = curr_area["exits"];//door_areas[current_area];
-	
-	// {"1":{} }
-	//let goto_ = -1;
-	
-	
+function p1_check_exit(exit_type) {
+	let doors = curr_area["exits"];
 	for (let d_i of Object.keys(doors)) {
 		let door = doors[d_i];
-		if (door["type"] == exit_type) {
-			p.x = door["gotox"]*8;
-			p2.x = door["gotox"]*8;
-			p.y = door["gotoy"]*8;
-			p2.y = door["gotoy"]*8;
-			//goto_ = d_i;
-			
+		if (door["type"] == exit_type) { // make sure we are on an exit
 			if (door["type"] == 4) {
-				door_animation = true;
+				if (Math.abs(door["gx"]-Math.floor(p.x/8)) < 2) { // make sure we get the correct exit in the list
+					if (door["status"] === 2) { // locked. check if has_key
+						//console.log("door status 2");
+						if (has_key && !unlocking_door) {
+							//console.log("  unlocking door");
+							assets.bleeper.door_unlock.play();
+							has_key--;
+							unlocking_door = 30;
+							door.status = 1; // unlock but keep the door closed
+							door.images.forEach((d, i) => {
+							  door.images[i] = door.open_images[i]+2;
+							})
+						} else if (!trying_door_fail && !unlocking_door) {
+							//console.log("  door is locked! need key");
+							assets.bleeper.unlock_fail.play();
+							trying_door_fail = 30; // timer
+						}
+						return -1;
+					} else if (door["status"] === 1) { // unlocked, closed
+						//console.log("door status 1");
+						if (!opening_door) {
+							//console.log("  opening door");
+							assets.bleeper.door_open.play();
+							opening_door = 30;
+							door.status = 0;
+							door.images.forEach((d, i) => {
+							  door.images[i] = door.open_images[i];
+							})
+							ready_enter_door = door;
+						} 
+						return d_i;
+					} else if (door["status"] === 0) { // unlocked, open
+						//console.log("door status 0");
+						if (!entering_door) {
+							//console.log("  entering door");
+							entering_door = 30;
+							ready_enter_door = door;
+						}
+						return d_i;
+					}
+				}
+			} else {
+				ready_enter_door = door;
+				
+				return d_i;
 			}
-			return d_i;
 		}
 	}
-		
-	/*	
-		if ( door["type"] == 13 && btn.U) {
-			//console.log("top exit! to "+d_i);
-			//console.log(door);
-			//current_area = d_i;
-			//p.y = 0;
-			//p2.y = 0;
-			p.x = door["gotox"]*8;
-			p2.x = door["gotox"]*8;
-			p.y = door["gotoy"]*8;
-			p2.y = door["gotoy"]*8;
-			goto_ = d_i;
-			break;
-			
-		} else if ( door["type"] == 12 && btn.D) {
-			//console.log("-> right exit! to "+d_i);
-			//console.log("bottom exit! to "+d_i);
-			//console.log(door);
-			p.x = door["gotox"]*8;
-			p2.x = door["gotox"]*8;
-			p.y = door["gotoy"]*8;
-			p2.y = door["gotoy"]*8;
-			goto_ = d_i;
-			break;
-			
-		} else if ( door["type"] == 11 && btn.R) {
-			//console.log("-> right exit! to "+d_i);
-			//current_area = d_i;
-			//p.x = 0;
-			//p2.x = 0;
-			p.x = door["gotox"]*8;
-			p2.x = door["gotox"]*8;
-			p.y = door["gotoy"]*8;
-			p2.y = door["gotoy"]*8;
-			goto_ = d_i;
-			break;
-			
-		} else if ( door["type"] == 10 && btn.L) {
-			//console.log("<- left exit! to "+d_i);
-			//current_area = d_i;
-			//p.x = newLevel.areas[d_i]["width"]*8;
-			//p2.x = newLevel.areas[d_i]["width"]*8;
-			p.x = door["gotox"]*8;
-			p2.x = door["gotox"]*8;
-			p.y = door["gotoy"]*8;
-			p2.y = door["gotoy"]*8;
-			goto_ = d_i;
-			break;
-		
-		} else if ( Math.abs(p.x- door.gx*8-8)<16 && Math.abs(p.y - door.gy*8)<8 ) {
-			door_animation = true;
-			
-			//console.log("p1_check_door d_i: "+d_i+"  door type: "+door["type"]);
-			goto_ = d_i;//door["type"];
-			break;
-		}
-	}
-	*/
-	
 	return -1; // no door
 }
 
-/*
-function p1_check_area() {
-	return -1;
-}
-*/
+
+
+
 
 
 function p1_check_platform_collision() {
   
   //  Doesn't use grid, since they move around
   var coll_list = [];
-  for (let ip=0; ip<moving_platforms.length; ip++){
-    let m = moving_platforms[ip];
+  for (let ip=0; ip<curr_area["platforms"].length; ip++){
+    let m = curr_area["platforms"][ip];
     if ( Math.abs(p.x-m.x)<8 && Math.abs(p.y-m.y)<8 ) {
       coll_list.push(m);
     }
@@ -2183,8 +2173,8 @@ function p2_check_platform_collision() {
   
   //  Doesn't use grid, since they move around
   var coll_list2 = [];
-  for (let ip=0; ip<moving_platforms.length; ip++){
-    let m = moving_platforms[ip];
+  for (let ip=0; ip<curr_area["platforms"].length; ip++){
+    let m = curr_area["platforms"][ip];
     if ( Math.abs(p2.x-m.x)<8 && Math.abs(p2.y-m.y)<8 ) {
       coll_list2.push(m);
     }
@@ -2245,7 +2235,7 @@ var pr_xoffset = 0;
 var pr_yoffset = 0;
 function draw_projectiles() {
 	
-	if (curr_area["width"] > 32) {
+	if (curr_area["width"] > G_W) {
 		if (left_edge == 0) {
 			pr_xoffset = SCREEN_WIDTH-XMID;
 		} else {
@@ -2259,7 +2249,7 @@ function draw_projectiles() {
 		pr_xoffset = 0;
 	}
 	
-	if (curr_area["height"] > 32) {
+	if (curr_area["height"] > G_H) {
 		if (top_edge == 0) {
 			pr_yoffset = SCREEN_HEIGHT-YMID;
 		} else {
@@ -2302,8 +2292,8 @@ function draw_projectiles() {
 }
 
 function update_moving_platforms(){
-  for (let ip=0; ip<moving_platforms.length; ip++){
-    let plfm = moving_platforms[ip];
+  for (let ip=0; ip<curr_area["platforms"].length; ip++){
+    let plfm = curr_area["platforms"][ip];
     plfm.x += plfm.vx[plfm.vframe];
     plfm.y += plfm.vy[plfm.vframe];
     plfm.vframe += 1;
@@ -2326,7 +2316,7 @@ function draw_moving_platforms(){
 		mp_offset = -(level_pixel_width - SCREEN_WIDTH);
 	}
 	/**/
-	if (curr_area["width"] > 32) {
+	if (curr_area["width"] > G_W) {
 		if (left_edge == 0) {
 			mp_xoffset = SCREEN_WIDTH-XMID;
 		} else {
@@ -2340,7 +2330,7 @@ function draw_moving_platforms(){
 		mp_xoffset = 0;
 	}
 	
-	if (curr_area["height"] > 32) {
+	if (curr_area["height"] > G_H) {
 		if (top_edge == 0) {
 			mp_yoffset = SCREEN_HEIGHT-YMID;
 		} else {
@@ -2355,8 +2345,8 @@ function draw_moving_platforms(){
 		mp_yoffset = 0;
 	}
 	
-  for (let ip=0; ip<moving_platforms.length; ip++){
-    let plfm = moving_platforms[ip];
+  for (let ip=0; ip<curr_area["platforms"].length; ip++){
+    let plfm = curr_area["platforms"][ip];
     sprite(plfm.image+plfm.frames[plfm.frame], plfm.x+mp_xoffset-p.x*lfe*rte, plfm.y+mp_yoffset-p.y*tpe*bte);
     //sprite(e.image+e.frames[e.frame]+e.dead_frame, e.x+en_xoffset-p.x*lfe*rte, e.y+en_yoffset-p.y*tpe*bte, e.going_left);
   }
@@ -2371,8 +2361,8 @@ var enemy_test = 0;
 
 /*        */
 function update_small_enemies() {
-  
-  for (let ses=0; ses<small_enemies.length; ses++){
+  let small_enemies = curr_area["small_enemies"];
+  for (let ses=0; ses<small_enemies.length; ses++) {
     let e = small_enemies[ses];
     
     // should only update if they are near the player, i.e. Thal has to bring it into the screen
@@ -2383,7 +2373,10 @@ function update_small_enemies() {
       continue;
     }
     
-    
+		/* -------- detect collision with player -------- */
+    if ( Math.abs(p.x-e.x)<8 && Math.abs(p.y-e.y)<8 ) {
+      hurting = true;
+    }
     
     /* -------- horizontal movement ---------- */ 
     if (e.going_left) {
@@ -2421,6 +2414,10 @@ function update_small_enemies() {
         e.stuck_in_block = false;
       } 
     }
+		
+		if (e.y >= curr_area["height"]*8 -8) {
+			e.alive = false;
+		}
     
     e.vxframe++;
     if (e.vxframe >= e.vx.length) e.vxframe = 0;
@@ -2513,7 +2510,7 @@ function update_small_enemies() {
     
     /* check bubble shot */
     enemy_test = bb_shots.length+" ";
-    for (let ib=0; ib<bb_shots.length; ib++){
+    for (let ib=0; ib<bb_shots.length; ib++) {
       if (e.alive && Math.abs(bb_shots[ib].x - e.x) < 4 && Math.abs(bb_shots[ib].y - e.y) < 4){
         bb_shots[ib].alive = false;
         assets.bleeper.hit.play();
@@ -2531,16 +2528,12 @@ function update_small_enemies() {
           */
         }
         
-        
-        
-        
-        
       }
     }
     //enemy_test = " "+e.move_phase+" "+e.stuck_in_block;
   }
   
-  small_enemies = small_enemies.filter( function(a) { return a.dead_frames < 60; } );
+  curr_area["small_enemies"] = curr_area["small_enemies"].filter( function(a) { return a.dead_frames < 60; } );
   
 }
 
@@ -2560,7 +2553,7 @@ function draw_small_enemies() {
 	}
 	/**/
 	
-	if (curr_area["width"] > 32) {
+	if (curr_area["width"] > G_W) {
 		if (left_edge == 0) {
 			en_xoffset = SCREEN_WIDTH-XMID;
 		} else {
@@ -2574,7 +2567,7 @@ function draw_small_enemies() {
 		en_xoffset = 0;
 	}
 	
-	if (curr_area["height"] > 32) {
+	if (curr_area["height"] > G_H) {
 		if (top_edge == 0) {
 			en_yoffset = SCREEN_HEIGHT-YMID;
 		} else {
@@ -2590,11 +2583,11 @@ function draw_small_enemies() {
 	}
 	
   // ses == small enemy sprites
-  for (let ses=0; ses<small_enemies.length; ses++){
-    let e = small_enemies[ses];
+  for (let ses=0; ses<curr_area["small_enemies"].length; ses++){
+    let e = curr_area["small_enemies"][ses];
     
     if (e.dead_frames%2 == 0) {
-      e.dead_frame = e.dead_frame == 4? 8:4;
+      e.dead_frame = e.dead_frame == 4? -48:4;
     }
     
     //sprite(e.image+e.frames[e.frame]+e.dead_frame, e.x+en_offset-p.x*lfe*rte, e.y+YMID-p.y, e.going_left);
@@ -2607,101 +2600,180 @@ function draw_small_enemies() {
   }
 }
 
-//var aaa = "";
-var has_key = 1;
-var ready_enter_door = {};
 
-
-/* ========================= DOORS + ACTIVATE AREAS =========================== */
-function update_door(goto_area) {
+// special items get a floaty dance
+var itm_anim_y = [ 
+	0,0,0,
+	1,1,1,1,
+	2,2,2,2,2,
+	3,3,3,3,3,3,3,3,3,
+	2,2,2,2,2,
+	1,1,1,1,
+	0,0,0,
+	-1,-1,-1,-1,
+	-2,-2,-2,-2,-2,
+	-3,-3,-3,-3,-3,-3,-3,-3,-3,
+	-2,-2,-2,-2,-2,
+	-1,-1,-1,-1
+];
+var itm_anim_x = [
 	
-	// current_area is updated earlier in level_update()
-	//console.log("goto_area "+goto_area+" from area "+current_area);
+	2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+	1,1,1,1,1,1,1,1,1,1,
+	0,0,0,0,0,0,0,
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+	-2,-2,-2,-2,-2,-2,-2,-2,-2,-2,-2,-2,-2,-2,-2,-2,
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+	0,0,0,0,0,0,0,
+	1,1,1,1,1,1,1,1,1,1
+	
+	
+];
+var iay = 0;
+var iax = 0;
+var itm_xoffset = 0;
+var itm_yoffset = 0;
+function draw_items(){
+	if (curr_area["width"] > G_W) {
+		if (left_edge == 0) {
+			itm_xoffset = SCREEN_WIDTH-XMID;
+		} else {
+			itm_xoffset = 0;
+		}
+		if (right_edge == 0) {
+		} else {
+			itm_xoffset = -(level_pixel_width - SCREEN_WIDTH);
+		}
+	} else {
+		itm_xoffset = 0;
+	}
+	
+	if (curr_area["height"] > G_H) {
+		if (top_edge == 0) {
+			itm_yoffset = SCREEN_HEIGHT-YMID;
+		} else {
+			itm_yoffset = 0;
+		}
+	
+		if (bottom_edge == 0) {
+		} else {
+			itm_yoffset = -(level_pixel_height - SCREEN_HEIGHT); // to fit in info bar
+		}
+	} else {
+		itm_yoffset = 0;
+	}
+	
+	/*
+		
+		only get to use items if the level is completed.
+		if level is not completed, all items are reset, must get them all again
+	
+	*/
+	
+	iay++;
+	if (iay > itm_anim_y.length-1) {
+		iay = 0;
+	}
+	iax++;
+	if (iax > itm_anim_x.length-1) {
+		iax = 0;
+	}
 	
 	
 	
-	if (goto_area > -1) {
-		
-		
-		//let doors = door_areas[current_area];
-		let doors = curr_area["exits"];
-		//console.log(doors);
-		
-		//console.log("B");
-		//console.log("goto_area "+goto_area+" from area "+current_area);
-		//console.log("finding doors["+goto_area+"]:");
-		//console.log(doors);
-		
-		let door = doors[goto_area];
-		//console.log(door);
-		//console.log("C");
-		
-		if (door["status"] === 0) {
-			// -------- ENTER NEW AREA --------
-			/*
-			
-			door.images.forEach((d, i) => {
-			  door.images[i] = door.open_images[i]+2;
-			})
-			*/
-			
-			if (door_animation) {
-				//door.status = 1;
-				assets.bleeper.enter_area.play();
-				ready_enter_door = door;
-				door_animation = false;
-				//console.log("goto_area "+goto_area+" from area "+current_area);
+  for (let i=0; i<curr_area["items"].length; i++) {
+		let itm = curr_area["items"][i];
+		if (itm["gathered"] === false) {
+			if (itm["name"] === "nutmeg") {
+				sprite(T["nutmeg"], itm.gx*8+itm_xoffset-p.x*lfe*rte, itm.gy*8+itm_yoffset-p.y*tpe*bte);
+			} else if (itm["name"] === "sugar_l") {
+				sprite(T["sugar_bbl"], itm.gx*8+itm_xoffset-p.x*lfe*rte, itm.gy*8+itm_yoffset-p.y*tpe*bte);
+				//sprite(T["sugar_bbr"], itm.gx*8+8+itm_xoffset-p.x*lfe*rte, itm.gy*8+itm_yoffset-p.y*tpe*bte);
+				sprite(T["sugar_bl"], itm.gx*8+itm_xoffset-p.x*lfe*rte, itm.gy*8-8+itm_yoffset-p.y*tpe*bte);
+				//sprite(T["sugar_br"], itm.gx*8+8+itm_xoffset-p.x*lfe*rte, itm.gy*8-8+itm_yoffset-p.y*tpe*bte);
+				sprite(T["sugar_ml"], itm.gx*8+itm_xoffset-p.x*lfe*rte, itm.gy*8-16+itm_yoffset-p.y*tpe*bte);
+				//sprite(T["sugar_mr"], itm.gx*8+8+itm_xoffset-p.x*lfe*rte, itm.gy*8-16+itm_yoffset-p.y*tpe*bte);
+				sprite(T["sugar_tl"], itm.gx*8+itm_xoffset-p.x*lfe*rte, itm.gy*8-24+itm_yoffset-p.y*tpe*bte);
+				//sprite(T["sugar_tr"], itm.gx*8+8+itm_xoffset-p.x*lfe*rte, itm.gy*8-24+itm_yoffset-p.y*tpe*bte);
+			} else if (itm["name"] === "sugar_r") {
+				//sprite(T["sugar_bbl"], itm.gx*8+itm_xoffset-p.x*lfe*rte, itm.gy*8+itm_yoffset-p.y*tpe*bte);
+				sprite(T["sugar_bbr"], itm.gx*8+itm_xoffset-p.x*lfe*rte, itm.gy*8+itm_yoffset-p.y*tpe*bte);
+				//sprite(T["sugar_bl"], itm.gx*8+itm_xoffset-p.x*lfe*rte, itm.gy*8-8+itm_yoffset-p.y*tpe*bte);
+				sprite(T["sugar_br"], itm.gx*8+itm_xoffset-p.x*lfe*rte, itm.gy*8-8+itm_yoffset-p.y*tpe*bte);
+				//sprite(T["sugar_ml"], itm.gx*8+itm_xoffset-p.x*lfe*rte, itm.gy*8-16+itm_yoffset-p.y*tpe*bte);
+				sprite(T["sugar_mr"], itm.gx*8+itm_xoffset-p.x*lfe*rte, itm.gy*8-16+itm_yoffset-p.y*tpe*bte);
+				//sprite(T["sugar_tl"], itm.gx*8+itm_xoffset-p.x*lfe*rte, itm.gy*8-24+itm_yoffset-p.y*tpe*bte);
+				sprite(T["sugar_tr"], itm.gx*8+itm_xoffset-p.x*lfe*rte, itm.gy*8-24+itm_yoffset-p.y*tpe*bte);
+			} else if (itm["name"] === "sugar_dbl") {
+				sprite(T["sugar_bbl"], itm.gx*8-4+itm_xoffset-p.x*lfe*rte, itm.gy*8+itm_yoffset-p.y*tpe*bte);
+				sprite(T["sugar_bbr"], itm.gx*8-4+8+itm_xoffset-p.x*lfe*rte, itm.gy*8+itm_yoffset-p.y*tpe*bte);
+				sprite(T["sugar_bl"], itm.gx*8-4+itm_xoffset-p.x*lfe*rte, itm.gy*8-8+itm_yoffset-p.y*tpe*bte);
+				sprite(T["sugar_br"], itm.gx*8-4+8+itm_xoffset-p.x*lfe*rte, itm.gy*8-8+itm_yoffset-p.y*tpe*bte);
+				sprite(T["sugar_ml"], itm.gx*8-4+itm_xoffset-p.x*lfe*rte, itm.gy*8-16+itm_yoffset-p.y*tpe*bte);
+				sprite(T["sugar_mr"], itm.gx*8-4+8+itm_xoffset-p.x*lfe*rte, itm.gy*8-16+itm_yoffset-p.y*tpe*bte);
+				sprite(T["sugar_tl"], itm.gx*8-4+itm_xoffset-p.x*lfe*rte, itm.gy*8-24+itm_yoffset-p.y*tpe*bte);
+				sprite(T["sugar_tr"], itm.gx*8-4+8+itm_xoffset-p.x*lfe*rte, itm.gy*8-24+itm_yoffset-p.y*tpe*bte);
+			} else if (itm["name"] === "pepper") {
+				sprite(T["pepper_bl"], itm.gx*8-4+itm_xoffset-p.x*lfe*rte, itm.gy*8+itm_yoffset-p.y*tpe*bte);
+				sprite(T["pepper_br"], itm.gx*8-4+8+itm_xoffset-p.x*lfe*rte, itm.gy*8+itm_yoffset-p.y*tpe*bte);
+				sprite(T["pepper_tl"], itm.gx*8-4+itm_xoffset-p.x*lfe*rte, itm.gy*8-8+itm_yoffset-p.y*tpe*bte);
+				sprite(T["pepper_tr"], itm.gx*8-4+8+itm_xoffset-p.x*lfe*rte, itm.gy*8-8+itm_yoffset-p.y*tpe*bte);
+			} else if (itm["name"] === "door_key") {
+				
+				sprite(T["door_key"], itm.gx*8+itm_xoffset-p.x*lfe*rte+itm_anim_x[iax], itm.gy*8+itm_yoffset-p.y*tpe*bte+itm_anim_y[iay]);
 			}
-			
-			
-			
-		} else if (door.status == 1) {
-			// -------- ENTER NEW AREA --------
-			// opening door
-			door.images.forEach((d, i) => {
-			  door.images[i] = door.open_images[i];
-			})
-			if (door_animation) {
-				door.status = 0;
-				assets.bleeper.door_open.play();
-				door_animation = false;
+		}
+		if (Math.abs(p.x-(itm.gx*8)) < 8 && Math.abs(p.y-(itm.gy*8)) < 8) {
+			if (!itm["gathered"]){
+				if (itm["name"] === "nutmeg") {
+					nutmeg++;
+					score += 50;
+				} else if (itm["name"] === "sugar_l" || itm["name"] === "sugar_r") {
+					sugar++;
+					score += 50;
+				} else if (itm["name"] === "sugar_dbl") {
+					sugar++;
+					sugar++;
+					score += 200;
+				} else if (itm["name"] === "pepper") {
+					cayenne++;
+					score += 100;
+				} else if (itm["name"] === "door_key") {
+					has_key++;
+					score += 200;
+				}
+				
+				if (itm["name"] === "door_key") {
+					assets.bleeper.collect_key.play();
+				} else if (itm["name"] === "sugar_dbl") {
+					assets.bleeper.collect_big.play();
+				} else {
+					assets.bleeper.collect.play();
+				}
 				
 			}
+			itm["gathered"] = true;
 			
-		} else if (door.status == 2) {
-			if (has_key) {
-				// unlocking door
-				door.images.forEach((d, i) => {
-				  door.images[i] = door.open_images[i]+2;
-				})
-				if (door_animation) {
-					door.status = 1;
-					has_key--;
-					assets.bleeper.door_unlock.play();
-					//door_sound = false;
-					door_animation = false;
-				}
-			} else {
-				if (door_animation) {
-					assets.bleeper.unlock_fail.play();
-					door_animation = false;
-				}	
-			}
-		} else {
-			// nothing
 		}
-		
-		
-	} 
+  }
+	
+	
+	
 }
+
+
+
+
+
 
 
 var dr_xoffset = 0;
 var dr_yoffset = 0;
 function draw_doors() {
 	let doors_ = curr_area["exits"];//door_areas[current_area];
+	let terrain_type = curr_area["terrain"];
 	
-	if (curr_area["width"] > 32) {
+	if (curr_area["width"] > G_W) {
 		if (left_edge == 0) {
 			dr_xoffset = SCREEN_WIDTH-XMID;
 		} else {
@@ -2715,7 +2787,7 @@ function draw_doors() {
 		dr_xoffset = 0;
 	}
 	
-	if (curr_area["height"] > 32) {
+	if (curr_area["height"] > G_H) {
 		if (top_edge == 0) {
 			dr_yoffset = SCREEN_HEIGHT-YMID;
 		} else {
@@ -2776,24 +2848,46 @@ var bte = 0;
 
 var bg_offset_0 = 0;
 var bg_offset_1 = 0;
+var bg_offset_2 = 0;
+var bg_offset_3 = 0;
+var bg_offset_4 = 0;
+
+var bg_scale_0 = 32; // 1 is not moving at all
+var bg_scale_1 = 16;
+var bg_scale_2 = 8;
+var bg_scale_3 = 4;
+var bg_scale_4 = 2;
+
+
 
 var stall_scroll = false;
 
 // calculate whether background scrolls based on left_edge and right_edge
 // this also controls lfe, rte, tpe, and bte
-function background_scroll() {
+function background_scroll(terrain_type) {
+	
+	/*
+		
+	
+	*/
   
   // need to calculate how long the level is, then put as may as necessary as well as on both ends.
-  if (curr_area["width"] > 32) {
+  if (curr_area["width"] > G_W) {
 		if (left_edge == 0) {
 				lfe = 1;
-				bg_offset_0 = -6;
-				bg_offset_1 = -32;
+				bg_offset_0 = -4;
+				bg_offset_1 = -8;
+				bg_offset_2 = -16;
+				bg_offset_3 = -32;
+				bg_offset_4 = -64;
 			
 		} else {
 				lfe = 0;
 				bg_offset_0 = 0;
 				bg_offset_1 = 0;
+				bg_offset_2 = 0;
+				bg_offset_3 = 0;
+				bg_offset_4 = 0;
 		}
 	
 		if (right_edge == 0) {
@@ -2810,8 +2904,11 @@ function background_scroll() {
 				
 				// Math.floor(p.x/4) == 160
 				// level_pixel_width-XMID) == 640
-				bg_offset_0 = Math.floor((level_pixel_width-XMID)/20)-6;
-				bg_offset_1 = Math.floor((level_pixel_width-XMID)/4)-32;
+				bg_offset_0 = Math.floor((level_pixel_width-XMID)/bg_scale_0)-4;
+				bg_offset_1 = Math.floor((level_pixel_width-XMID)/bg_scale_1)-8;
+				bg_offset_2 = Math.floor((level_pixel_width-XMID)/bg_scale_2)-16;
+				bg_offset_3 = Math.floor((level_pixel_width-XMID)/bg_scale_3)-32;
+				bg_offset_4 = Math.floor((level_pixel_width-XMID)/bg_scale_4)-64;
 				/*
 				console.log(Math.floor(p.x/4)+" "+(level_pixel_width-XMID));
 				if (Math.floor(p.x/4) >= level_pixel_width-XMID) {
@@ -2842,9 +2939,13 @@ function background_scroll() {
 		
 		bg_offset_0 = 0;
 		bg_offset_1 = 0;
+		bg_offset_2 = 0;
+		bg_offset_3 = 0;
+		bg_offset_4 = 0;
+		
   }
 	
-	if (curr_area["height"] > 32) {
+	if (curr_area["height"] > G_H) {
 		if (top_edge == 0) {
 				tpe = 1;
 		} else {
@@ -2863,7 +2964,7 @@ function background_scroll() {
 	
 		
   
-	
+	//return;
 	//console.log(curr_area["width"]);
 	
 	// going right
@@ -2881,184 +2982,213 @@ function background_scroll() {
 	// so we can tell where the background edge loops around. 3*8 is default
 	let le_ = 0;//3*8;
 	
-  bg_dist_0 = Math.floor(p.x/20)*lfe*rte + bg_offset_0;
+  bg_dist_0 = Math.floor(p.x/bg_scale_0)*lfe*rte + bg_offset_0;
 	
 	// right_edge = p.x-level_pixel_width+XMID; 
   // 0 - 256 - ()
-  draw(bg1, le_ - bg_width - bg_dist_0, 0+12);
-  draw(bg1, le_ - bg_dist_0, 0+12);
-  draw(bg1, le_ + bg_width - bg_dist_0, 0+12);
-	draw(bg1, le_ + bg_width*2 - bg_dist_0, 0+12);
+	
+	let offset_plus = 0;
+	
+	if (terrain_type === "underground") {
+		
+	  draw(bg2, le_ - bg_width - bg_dist_0, 0);
+	  draw(bg2, le_ - bg_dist_0, 0);
+	  draw(bg2, le_ + bg_width - bg_dist_0, 0);
+		draw(bg2, le_ + bg_width*2 - bg_dist_0, 0);
+		
+	} else if (["ground", "aboveground"].includes(terrain_type)) {
+		// bg1 is father away
+	  draw(bg1, le_ - bg_width - bg_dist_0, 0+offset_plus);
+	  draw(bg1, le_ - bg_dist_0, 0+offset_plus);
+	  draw(bg1, le_ + bg_width - bg_dist_0, 0+offset_plus);
+		draw(bg1, le_ + bg_width*2 - bg_dist_0, 0+offset_plus);
   
+	  bg_dist_1 = Math.floor(p.x/4)*lfe*rte + bg_offset_1;
+	
+		// bg1b is closer
+		draw(bg1b, le_ - bg_width*2 - bg_dist_1, 0+offset_plus);
+	  draw(bg1b, le_ - bg_width - bg_dist_1, 0+offset_plus);
+	  draw(bg1b, le_ - bg_dist_1, 0+offset_plus);
+	  draw(bg1b, le_ + bg_width - bg_dist_1, 0+offset_plus);
+		draw(bg1b, le_ + bg_width*2 - bg_dist_1, 0+offset_plus);
   
-  bg_dist_1 = Math.floor(p.x/4)*lfe*rte + bg_offset_1;
+		//console.log(bg_offset);
+	} else if (["sky", "peak", "peakright", "peakleft"].includes(terrain_type)) {
+		
+		let ofp = 0;
+		// backmost
+		//draw(bg3a, le_ - bg_width*2 - bg_dist_0, 0+ofp);
+	  draw(bg3a, le_ - bg_width - bg_dist_0, 0+ofp);
+	  draw(bg3a, le_ - bg_dist_0, 0+ofp);
+	  draw(bg3a, le_ + bg_width - bg_dist_0, 0+ofp);
+		draw(bg3a, le_ + bg_width*2 - bg_dist_0, 0+ofp);
+		
+	  bg_dist_1 = Math.floor(p.x/bg_scale_1)*lfe*rte + bg_offset_1;
 	
+		// bg_b is closer
+		draw(bg3b, le_ - bg_width*2 - bg_dist_1, 0+ofp);
+	  draw(bg3b, le_ - bg_width - bg_dist_1, 0+ofp);
+	  draw(bg3b, le_ - bg_dist_1, 0+ofp);
+	  draw(bg3b, le_ + bg_width - bg_dist_1, 0+ofp);
+		draw(bg3b, le_ + bg_width*2 - bg_dist_1, 0+ofp);
+		
+	  bg_dist_2 = Math.floor(p.x/bg_scale_2)*lfe*rte + bg_offset_2;
 	
+		// bg_c
+		draw(bg3c, le_ - bg_width*2 - bg_dist_2, 0+ofp);
+	  draw(bg3c, le_ - bg_width - bg_dist_2, 0+ofp);
+	  draw(bg3c, le_ - bg_dist_2, 0+ofp);
+	  draw(bg3c, le_ + bg_width - bg_dist_2, 0+ofp);
+		draw(bg3c, le_ + bg_width*2 - bg_dist_2, 0+ofp);
+		
+	  bg_dist_3 = Math.floor(p.x/bg_scale_3)*lfe*rte + bg_offset_3;
 	
-  draw(bg1b, le_ - bg_width - bg_dist_1, 0+12);
-  draw(bg1b, le_ - bg_dist_1, 0+12);
-  draw(bg1b, le_ + bg_width - bg_dist_1, 0+12);
-	draw(bg1b, le_ + bg_width*2 - bg_dist_1, 0+12);
+		// bg_d
+		draw(bg3d, le_ - bg_width*2 - bg_dist_3, 0+ofp);
+	  draw(bg3d, le_ - bg_width - bg_dist_3, 0+ofp);
+	  draw(bg3d, le_ - bg_dist_3, 0+ofp);
+	  draw(bg3d, le_ + bg_width - bg_dist_3, 0+ofp);
+		draw(bg3d, le_ + bg_width*2 - bg_dist_3, 0+ofp);
+  	
+		//console.log(bg_offset);
+	} else if (["towergroundright", "towergroundleft"].includes(terrain_type)) {
+		// bg1 is father away
+	  draw(bg1, le_ - bg_width - bg_dist_0, 0+offset_plus);
+	  draw(bg1, le_ - bg_dist_0, 0+offset_plus);
+	  draw(bg1, le_ + bg_width - bg_dist_0, 0+offset_plus);
+		draw(bg1, le_ + bg_width*2 - bg_dist_0, 0+offset_plus);
   
-	//console.log(bg_offset);
+	  bg_dist_1 = Math.floor(p.x/bg_scale_2)*lfe*rte + bg_offset_2;
 	
+		// bg1b is closer
+		draw(bg1b, le_ - bg_width*2 - bg_dist_1, 0+offset_plus);
+	  draw(bg1b, le_ - bg_width - bg_dist_1, 0+offset_plus);
+	  draw(bg1b, le_ - bg_dist_1, 0+offset_plus);
+	  draw(bg1b, le_ + bg_width - bg_dist_1, 0+offset_plus);
+		draw(bg1b, le_ + bg_width*2 - bg_dist_1, 0+offset_plus);
+	
+	} else if (["insidetowerground", "insidetower", "insidetowertop"].includes(terrain_type)) {
+		// bg1 is father away
+	  /*
+		draw(bg1c, le_ - bg_width - bg_dist_0, 0+12);
+	  draw(bg1c, le_ - bg_dist_0, 0+12);
+	  draw(bg1c, le_ + bg_width - bg_dist_0, 0+12);
+		draw(bg1c, le_ + bg_width*2 - bg_dist_0, 0+12);
+  */
+	
+	  bg_dist_1 = Math.floor(p.x/4)*lfe*rte + bg_offset_1;
+	
+		// bg1b is closer
+		draw(bg1c, le_ - bg_width*2 - bg_dist_1, 0+offset_plus);
+	  draw(bg1c, le_ - bg_width - bg_dist_1, 0+offset_plus);
+	  draw(bg1c, le_ - bg_dist_1, 0+offset_plus);
+	  draw(bg1c, le_ + bg_width - bg_dist_1, 0+offset_plus);
+		draw(bg1c, le_ + bg_width*2 - bg_dist_1, 0+offset_plus);
+	
+	}
 	
 	
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// USE: inherits(Child, Parent) make class Child inherit from class Parent
-
-
-
-/* ========================= PLATFORM NODES =========================== */
-
-class pnode {
-  // a pnode is a platform node or singular block
-  // 'length' will determine which sprites to display according to the ptypes
-  constructor(ptype) {
-    
-    this.prev_pnode = null;
-    this.prev_gap = 0; // gap between this pnode and the previous pnode
-    this.prev_height = 0; // relative height of previous pnode
-    this.prev_end = 0; // number of pnodes to the left
-    
-    this.branch = null;
-    this.branch_height = 0;
-    this.ptype = ptype;
-    
-    // could be individual 'blocks', then checks both the ptype
-    // as well as the 
-    // this.length = length; 
-    
-    
-    //this.x = 0; // absolute x position on map 
-    //this.y = 0; // absolute y position on map
-    //this.art = null; // double array for which sprite tiles
-    
-    this.next_pnode = null;
-    this.next_gap = 0; // gap between this pnode and the next pnode
-    this.next_height = 0; // relative height of next pnode
-    this.next_end = 0; // number of pnodes to the right
-    
-  }
-  
-  setPrev(prev_pnode, gap, height_) {
-    this.prev_pnode = prev_pnode;
-    this.prev_gap = gap;
-    this.prev_height = height_;
-    prev_pnode.next_pnode = this;
-    prev_pnode.next_gap = gap;
-    prev_pnode.next_height = -1*height_;
-  }
-  setBranch(branch_pnode, height_=0) {
-    this.branch = branch_pnode;
-    this.branch_height = height_;
-    branch_pnode.branch = this;
-    branch_pnode.branch_height = -1*height_;
-  }
-  setNext(next_pnode, gap=0, height_=0) {
-    this.next_pnode = next_pnode;
-    this.next_gap = gap;
-    this.next_height = height_;
-    next_pnode.prev_pnode = this;
-    next_pnode.prev_gap = gap;
-    next_pnode.prev_height = -1*height_;
-  }
-  
-  hasPrev() {
-    return this.prev_pnode ? true : false;
-  }
-  hasBranch() {
-    return this.branch ? true : false;
-  }
-  hasNext() {
-    return this.next_pnode ? true : false;
-  }
-  
-  getPrev() {
-    if (this.prev_node) {
-      return this.prev_node.print();
-    }
-    return {};
-  }
-  getBranch() {
-    if (this.branch) {
-      return this.branch.print();
-    }
-    return {};
-  }
-  getNext() {
-    if (this.next_node) {
-      return this.next_node.print();
-    }
-    return {};
-  }
-  
-  detach() {
-    if (this.hasPrev()) {
-      this.prev_pnode.next_pnode = null;
-      this.prev_pnode.next_height = 0;
-      this.prev_pnode.next_gap = 0;
-    }
-    if (this.hasNext()) {
-      this.next_pnode.prev_pnode = null;
-      this.next_pnode.prev_height = 0;
-      this.next_pnode.prev_gap = 0;
-    }
-    if (this.hasBranch()){
-      this.branch.branch = null;
-      this.branch.branch_height = 0;
-    }
-    this.prev_pnode = null;
-    this.prev_gap = 0;
-    this.prev_height = 0;
-    this.branch = null;
-    this.next_pnode = null;
-    this.next_gap = 0;
-    this.next_height = 0;
-    
-  }
-  
-  // use this for console.log(pnode.info())
-  info() {
-    return {
-      "prev_node": this.hasPrev(),
-      "prev_gap": this.prev_gap,
-      "prev_height": this.prev_height,
-      "branch": this.hasBranch(),
-      "ptype": this.ptype,
-      "x": this.x,
-      "y": this.y,
-      "next_node": this.hasNext(),
-      "next_gap": this.next_gap,
-      "next_height": this.next_height,
-      "next_end": this.next_end
-    };
-  }
-  
+function getRandomInt(max) {
+  return Math.floor(Math.random() * max);
 }
 
 
 
+var drop1x = 0;
+var drop1y = 0;
+var drop2x = 0;
+var drop2y = 0;
+var drop3x = 0;
+var drop3y = 0;
+var drop4x = 0;
+var drop4y = 0;
+var drop5x = 0;
+var drop5y = 0;
+function draw_weather() {
+	if (!(dt%32)) {
+		drop1x = getRandomInt(250);
+		drop1y = getRandomInt(192);
+	}
+	if (!(dt%16)) {
+		drop2x = getRandomInt(250);
+		drop2y = getRandomInt(192);
+	}
+	if (!(dt%8)) {
+		drop3x = getRandomInt(250);
+		drop3y = getRandomInt(192);
+	}
+	if (!(dt%32)) {
+		drop4x = getRandomInt(250);
+		drop4y = getRandomInt(192);
+	}
+	if (!(dt%32)) {
+		drop4x = getRandomInt(250);
+		drop4y = getRandomInt(192);
+	}
+	/*
+	if (dt%2){
+		draw(bg_rain, 0, dt%8);
+	}
+	/**/
+	
+	sprite(508, drop1x, drop1y+(dt%32)*3);
+	sprite(508, drop2x, drop2y+(dt%16)*3);
+	sprite(508, drop3x, drop3y+(dt%8)*3);
+	sprite(508, drop4x, drop4y+(dt%32)*3);
+	sprite(508, drop5x, drop5y+(dt%32)*3);
+	
+	//sprite(508, 0, 0);
+	
+}
+
+function draw_minimap() {
+	
+	
+	
+	let cmap = curr_area["cmap"];
+	for (let cy=0; cy<cmap.length; cy++){
+		for (let cx=0; cx<cmap[0].length; cx++) {
+			if (cmap[cy][cx]) {
+				if (["^^", "vv", ">^", "^<", ">.", ".<", "v_", "_v", "C.", "C^", "Cv"].includes(cmap[cy][cx])) {
+					sprite(510, 3+cx, 3+cy);
+				} else if (["D-"].includes(cmap[cy][cx])) {
+					sprite(509, 3+cx, 3+cy); sprite(509, 3+cx+1, 3+cy);
+					sprite(509, 3+cx, 3+cy+2); sprite(509, 3+cx+1, 3+cy+2);
+				} else if (["D|"].includes(cmap[cy][cx])) {
+					sprite(509, 3+cx, 3+cy); sprite(510, 3+cx+1, 3+cy);
+					sprite(510, 3+cx+1, 3+cy+1);
+					sprite(509, 3+cx, 3+cy+2); sprite(510, 3+cx+1, 3+cy+2);
+				} else {
+					sprite(509, 3+cx, 3+cy);
+				}
+			}
+			
+		}
+	}
+}
 
 
 
+function tupleExists(array, tuple) {
+  for (const arr of array) {
+    if (arr[0] === tuple[0] && arr[1] === tuple[1]) {
+      return true;
+    }
+  }
+  return false;
+}
 
+
+function findElementByValues(obj, pName1, pValue1, pName2, pValue2) {
+  for (const key in obj) {
+    if (obj[key][pName1] === pValue1 && obj[key][pName2] === pValue2) {
+      return obj[key];
+    }
+  }
+  return null; // If no match is found
+}
 
 
 
@@ -3067,11 +3197,6 @@ class pnode {
 
 
 /* ===================== LEVEL GRAPH ===================== */
-
-var current_area = 0;
-var activated_area = -1;
-//var current_level = 0;
-//var exit_choices = ["edge", "edge", "door"];
 
 class LevelGraph {
 	/*
@@ -3084,6 +3209,8 @@ class LevelGraph {
 	      8──7─┘
 		
 		
+		
+		6, 8, and 9 should have cool items or difficult enemies
 	
 		
 		the first element in each array is what the node in the graph is connected to
@@ -3098,6 +3225,9 @@ class LevelGraph {
 			make sure it is the same going back, left edge or door
 	
 		- distribute  key+lock combos 
+	
+	
+	
 	
 	*/
 	
@@ -3177,6 +3307,7 @@ class LevelGraph {
 			
 	}
 	
+	
 	area_info(area_index) {
 		//let area = this.AdjList.get(area_index);
 		let exits = this.areas[area_index]["exits"];
@@ -3205,6 +3336,15 @@ class LevelGraph {
 		string += "width: "+this.areas[area_index]["width"];
 		string += "  height: "+this.areas[area_index]["height"];
 		string += "\nterrain: "+this.areas[area_index]["terrain"];
+		string += "\nvertical: "+this.areas[area_index]["is_vertical"];
+		if (this.areas[area_index]["right_to_left"]) {
+			string += "\n   <--- go left";
+		} else {
+			string += "\n   go right -->";
+		}
+		
+		
+		
 		
 		return string;
 	}
@@ -3231,19 +3371,23 @@ class LevelGraph {
 	
 	
 	// add area to list if it doesnt exist, else replace
-	build_area(area_index, numScreensX=1, numScreensY=1) {
+	build_area(area_index, numScreensX=1, numScreensY=1, is_vertical=false) {
 		/*
 			
-			exits themselves need to know terrain type ahead, e.g. if cave entrance then it should have rock around it
+			
+		
+		
 			
 		*/
 		
 		//console.log("build area: "+area_index+"   numXscr: "+numScreensX+" numYscr: "+numScreensY);
-		let area_grid = [...Array(numScreensY*32)].map(_ => Array(numScreensX*32).fill(0));
-		let event_grid = [...Array(numScreensY*32)].map(_ => Array(numScreensX*32).fill(0));
-		let area_image = new TileMap(numScreensX*32, numScreensY*32);
-		let area_image_behind = new TileMap(numScreensX*32, numScreensY*32);
-		let area_image_front = new TileMap(numScreensX*32, numScreensY*32);
+		//let area_chunk_map
+		
+		let area_grid = [...Array(numScreensY*G_H)].map(_ => Array(numScreensX*G_W).fill(0));
+		let event_grid = [...Array(numScreensY*G_H)].map(_ => Array(numScreensX*G_W).fill(0));
+		let area_image = new TileMap(numScreensX*G_W, numScreensY*G_H);
+		let area_image_behind = new TileMap(numScreensX*G_W, numScreensY*G_H);
+		let area_image_front = new TileMap(numScreensX*G_W, numScreensY*G_H);
 		
 		//let area_oob = new TileMap(numScreensX*32, numScreensY*32); // bottom of the screen?
 		
@@ -3252,9 +3396,11 @@ class LevelGraph {
 		
 		//console.log("area_index: "+area_index+"     conn_list: "+connection_list);
 		
+		// this might depend on whether level is vertical
 		let edge_list = this.shuffleArray([11,11,11,10,12,13,4]); // more 11s mean better chance of moving to the right
 		
 		let terrain_type = "";
+		let right_to_left = false;
 		
 		let exits = {}; // can have more than one exit in this area (except area 0)
 		
@@ -3307,6 +3453,7 @@ class LevelGraph {
 				*/
 				
 				let exit_type = 4; // default is door
+				
 				if (edge_list.length > 0){
 					exit_type = edge_list.pop(); // otherwise pop from list and remove others
 					edge_list = edge_list.filter(function(type){ return type != exit_type; });
@@ -3318,7 +3465,10 @@ class LevelGraph {
 				// 12 and 13 are optional paths 'in'/'out' of the background
 				//let exit_type = 0;
 				
-				let status = 0; // <------ *********** RANDOMIZE
+				let status_ = 0;//rnd(0,2); // <------ *********** RANDOMIZE
+				if (exit_type === 4) {
+					status_ = 2;
+				}
 				
 				let gotox = -1;
 				let gotoy = -1;
@@ -3335,34 +3485,42 @@ class LevelGraph {
 			  switch (exit_type) {
 					case 4: // exit thru door
 						gotox = 5; // this will be changed later, better algorithm
-						gx = numScreensX*32 - 5;
-						gy = numScreensY*32 - 2;
+						gx = numScreensX*G_W - 5;
+						gy = numScreensY*G_H - 2;
 			      break;
 			    case 10: // exit thru left edge
 						gx = 0;
-						gy = numScreensY*32 - 2;
+						gy = numScreensY*G_H - 2;
+						right_to_left = true;
 			      break;
 			    case 11: // exit thru right edge
 						gotox = 0;
-						gx = numScreensX*32 - 1;
-						gy = numScreensY*32 - 2;
+						gx = numScreensX*G_W - 1;
+						gy = numScreensY*G_H - 2;
 			      break;
 			    case 12: // exit thru bottom
 						gotoy = 0; 
-						gx = Math.floor((numScreensX*32)/2);
-						gy = numScreensY*32 - 1;
+						gx = Math.floor((numScreensX*G_W)/2);
+						gy = numScreensY*G_H - 1;
 			      break;
 			    case 13: // exit thru top
-						gx = Math.floor((numScreensX*32)/2);
+						gx = Math.floor((numScreensX*G_W)/2);
 						gy = 0;
 			      break;
 					
 			      
 			  }
 				
+				terrain_type = this.init_terrain_type;
+				let toff = 0;//64*5;
+				if (terrain_type === "ground") {
+					//toff = 64*5;
+				}
 				/**/
 				// {"status": 0, "x": 0, "y": k*32+30, "type": 10, "goto": -1}
 				// for area 0, area 1 is the only possibility
+				
+				
 				exits["1"] = {
 					
 					"goto": 1,
@@ -3371,15 +3529,22 @@ class LevelGraph {
 					"gotox": gotox,
 					"gotoy": gotoy,
 					"type": exit_type,
-					"status": status,
-					"open_images": [234, 235, 218, 219, 202, 203],
+					"status": status_,
+					"open_images": [
+						234+toff, 
+						235+toff, 
+						218+toff, 
+						219+toff, 
+						202+toff, 
+						203+toff
+					],
 					"images": [
-						234+(status*2), 
-						235+(status*2), 
-						218+(status*2), 
-						219+(status*2), 
-						202+(status*2), 
-						203+(status*2)
+						234+(status_*2)+toff, 
+						235+(status_*2)+toff, 
+						218+(status_*2)+toff,
+						219+(status_*2)+toff,
+						202+(status_*2)+toff,
+						203+(status_*2)+toff
 					],
 				};
 				//let type_string = exit_type === 4? "door" : "edge";
@@ -3389,7 +3554,7 @@ class LevelGraph {
 				//if first room, only one exit at the end 
 				// (can be random in that last screen, else right edge)
 				
-				terrain_type = this.init_terrain_type;
+				
 				
 			} else if (area_index == this.finalArea) {
 				/*
@@ -3408,7 +3573,11 @@ class LevelGraph {
 				let prev_exit_type = prev_exit["type"];
 				let this_exit_type = -1;
 				
-				let status = 0; // can't randomize, since this is the way back (unless it closes or locks behind you)
+				let status_ = 0;//rnd(0,2); // can't randomize, since this is the way back (unless it closes or locks behind you)
+				if (prev_exit_type === 4) {
+					status_ = 1;
+				}
+				
 				let gx = 0;
 				let gy = 0;
 			  
@@ -3417,28 +3586,29 @@ class LevelGraph {
 					case 4: // door
 			      this_exit_type = 4;
 						gx = 5;
-						gy = numScreensY*32 - 2;
+						gy = numScreensY*G_H - 2;
 			      break;
 					
 					case 10: // if left edge...
-						this_exit_type = 11; // ...then this is a right exit  |   ->|
-						gx = numScreensX*32 - 1; 
-						gy = numScreensY*32 - 2;
+						this_exit_type = 11; // ...then THIS exit is a right exit to the previous room  | boss ->|- prev |
+						gx = numScreensX*G_W - 1; 
+						gy = numScreensY*G_H - 2;
+						right_to_left = true; // because entering into the boss fight from the right
 						break;
 			    case 11: // if right edge...
-			      this_exit_type = 10; // ...then this is a left exit   |<-   |
+			      this_exit_type = 10; // ...then THIS exit is a left exit to the previous room  | prev -|<- boss |
 						gx = 0;
-						gy = numScreensY*32 - 2; //prev_exit["y"];
+						gy = numScreensY*G_H - 2; //prev_exit["y"];
 			      break;
 					case 12: // if bottom...
 						this_exit_type = 13; // then exit through top         |  ^  |
-						gx = Math.floor((numScreensX*32)/2);
+						gx = Math.floor((numScreensX*G_W)/2);
 						gy = 0;
 						break;
 					case 13: // if top...
 						this_exit_type = 12; // then exit through bottom      |  _  |
-						gx = Math.floor((numScreensX*32)/2);
-						gy = numScreensY*32 - 1;
+						gx = Math.floor((numScreensX*G_W)/2);
+						gy = numScreensY*G_H - 1;
 						break;
 						
 			  }
@@ -3451,6 +3621,14 @@ class LevelGraph {
 				prev_exit["gotoy"] = gy;
 				this.areas[prev_area_index]["exits"][area_index] = prev_exit;
 				
+				let prev_ter = this.areas[prev_area_index]["terrain"];
+				let ter_list = TERRAIN[prev_ter][prev_exit_type.toString()];
+				terrain_type = ter_list[rnd(0, ter_list.length)];
+				let toff = 0;//64*5;
+				if (terrain_type === "ground") {
+					//toff = 64*5;
+				}
+				
 				exits[prev_area_index] = {
 					"goto": prev_area_index,
 					"gx": gx,
@@ -3458,15 +3636,22 @@ class LevelGraph {
 					"gotox": prev_exit["gx"], 
 					"gotoy": prev_exit["gy"],
 					"type": this_exit_type,
-					"status": status,
-					"open_images": [234, 235, 218, 219, 202, 203],
+					"status": status_,
+					"open_images": [
+						234+toff, 
+						235+toff, 
+						218+toff, 
+						219+toff, 
+						202+toff, 
+						203+toff
+					],
 					"images": [
-						234+(status*2), 
-						235+(status*2), 
-						218+(status*2), 
-						219+(status*2), 
-						202+(status*2), 
-						203+(status*2)
+						234+(status_*2)+toff, 
+						235+(status_*2)+toff, 
+						218+(status_*2)+toff,
+						219+(status_*2)+toff,
+						202+(status_*2)+toff,
+						203+(status_*2)+toff
 					],
 				};
 				let type_string = this_exit_type === 4? "door" : "edge";
@@ -3474,9 +3659,7 @@ class LevelGraph {
 				//console.log(". . exits[last]: "+gx+" "+gy+" -> "+prev_exit["gx"]+" "+prev_exit["gy"]+"    type: "+this_exit_type);
 				
 				//console.log(". . exits[last]: "+gx+" "+gy+" -> "+gotox+" "+gotoy);
-				let prev_ter = this.areas[prev_area_index]["terrain"];
-				let ter_list = TERRAIN[prev_ter][prev_exit_type.toString()];
-				terrain_type = ter_list[rnd(0, ter_list.length)];
+				
 				
 			
 			}	else {
@@ -3510,7 +3693,10 @@ class LevelGraph {
 					let this_exit_type = -1;
 					
 					
-					let status = 0; // <------ *********** RANDOMIZE
+					let status_ = 0;//rnd(0,2); // cant randomize, since this is the way back
+					if (prev_exit_type === 4) {
+						status_ = 1;
+					}
 					
 					let gx = 0;
 					let gy = 0;
@@ -3520,28 +3706,29 @@ class LevelGraph {
 						case 4: // door
 				      this_exit_type = 4;
 							gx = 5;
-							gy = numScreensY*32 - 2;
+							gy = numScreensY*G_H - 2;
 				      break;
 							
 						case 10: // if left edge...
-							this_exit_type = 11; // ...then this is a right exit  |   ->|
-							gx = numScreensX*32 - 1; 
-							gy = numScreensY*32 - 2;
+							this_exit_type = 11; // ...then this is a right exit to the previous room  |   ->|
+							gx = numScreensX*G_W - 1; 
+							gy = numScreensY*G_H - 2;
+							right_to_left = true;
 							break;
 				    case 11: // if right edge...
-				      this_exit_type = 10; // ...then this is a left exit   |<-   |
+				      this_exit_type = 10; // ...then this is a left exit to the previous room  |<-   |
 							gx = 0;
-							gy = numScreensY*32 - 2; //prev_exit["y"];
+							gy = numScreensY*G_H - 2; //prev_exit["y"];
 				      break;
 						case 12: // if bottom...
 							this_exit_type = 13; // then exit through top         |  ^  |
-							gx = Math.floor((numScreensX*32)/2);
+							gx = Math.floor((numScreensX*G_W)/2);
 							gy = 0;
 							break;
 						case 13: // if top...
 							this_exit_type = 12; // then exit through bottom      |  _  |
-							gx = Math.floor((numScreensX*32)/2);
-							gy = numScreensY*32 - 1;
+							gx = Math.floor((numScreensX*G_W)/2);
+							gy = numScreensY*G_H - 1;
 							break;
 				  }
 					
@@ -3554,6 +3741,12 @@ class LevelGraph {
 					this.areas[prev_area_index]["exits"][area_index] = prev_exit;
 					
 					//console.log(this.areas[prev_area_index]["exits"]);
+					let ter_list = TERRAIN[this.areas[prev_area_index]["terrain"]][prev_exit_type.toString()];
+					terrain_type = ter_list[rnd(0, ter_list.length)]; // error? cant read undefined
+					let toff = 0;//64*5;
+					if (terrain_type === "ground") {
+						toff = 64*5;
+					}
 					
 					exits[prev_area_index] = {
 						"goto": prev_area_index,
@@ -3562,15 +3755,22 @@ class LevelGraph {
 						"gotox": prev_exit["gx"], 
 						"gotoy": prev_exit["gy"],
 						"type": this_exit_type,
-						"status": status,
-						"open_images": [234, 235, 218, 219, 202, 203],
+						"status": status_,
+						"open_images": [
+							234+toff, 
+							235+toff, 
+							218+toff, 
+							219+toff, 
+							202+toff, 
+							203+toff
+						],
 						"images": [
-							234+(status*2), 
-							235+(status*2), 
-							218+(status*2), 
-							219+(status*2), 
-							202+(status*2), 
-							203+(status*2)
+							234+(status_*2)+toff, 
+							235+(status_*2)+toff, 
+							218+(status_*2)+toff,
+							219+(status_*2)+toff,
+							202+(status_*2)+toff,
+							203+(status_*2)+toff
 						],
 					};
 					
@@ -3579,11 +3779,7 @@ class LevelGraph {
 					//console.log("  built exit: "+prev_area_index+" ("+type_string+")");
 					
 					
-					let ter_list = TERRAIN[this.areas[prev_area_index]["terrain"]][prev_exit_type.toString()];
-					console.log(this.areas[prev_area_index]["terrain"]+" "+prev_area_index+" "+prev_exit_type.toString()); // 4 4
-					console.log(TERRAIN[this.areas[prev_area_index]["terrain"]]);
 					
-					terrain_type = ter_list[rnd(0, ter_list.length)]; // error? cant read undefined
 					
 					
 				} else {
@@ -3606,7 +3802,10 @@ class LevelGraph {
 							edge_list = edge_list.filter(function(type){ return type != exit_type; });
 						}
 						
-						let status = 0; // <------ *********** RANDOMIZE
+						let status_ = 0;
+						if (exit_type === 4) {
+							status_ = 2; //rnd(0,2); // <------ *********** RANDOMIZE
+						}
 						
 						let gotox = 0;
 						let gotoy = 0;
@@ -3620,28 +3819,31 @@ class LevelGraph {
 					  switch (exit_type) {
 							case 4: // exit thru door
 								gotox = 5; // this will be changed later, better algorithm
-								gx = numScreensX*32 - goto_area - 5;
-								gy = numScreensY*32 - 2;
+								gx = numScreensX*G_W - goto_area - 5;
+								gy = numScreensY*G_H - 2;
 					      break;
 					    case 10: // exit thru left edge
 								gx = 0;
-								gy = numScreensY*32 - 2;
+								gy = numScreensY*G_H - 2;
+								right_to_left = true;
 					      break;
 					    case 11: // exit thru right edge
 								gotox = 0;
-								gx = numScreensX*32 - 1;
-								gy = numScreensY*32 - 2;
+								gx = numScreensX*G_W - 1;
+								gy = numScreensY*G_H - 2;
 					      break;
 					    case 12: // exit thru bottom
 								gotoy = 0; 
-								gx = Math.floor((numScreensX*32)/2);
-								gy = numScreensY*32 - 1;
+								gx = Math.floor((numScreensX*G_W)/2);
+								gy = numScreensY*G_H - 1;
 					      break;
 					    case 13: // exit thru top
-								gx = Math.floor((numScreensX*32)/2);
+								gx = Math.floor((numScreensX*G_W)/2);
 								gy = 0;
 					      break;
 					  }
+						
+						
 						
 						exits[goto_area] = {
 							"goto": goto_area,
@@ -3650,15 +3852,22 @@ class LevelGraph {
 							"gotox": gotox, 
 							"gotoy": gotoy,
 							"type": exit_type,
-							"status": status,
-							"open_images": [234, 235, 218, 219, 202, 203],
+							"status": status_,
+							"open_images": [
+								234, 
+								235, 
+								218, 
+								219, 
+								202, 
+								203
+							],
 							"images": [
-								234+(status*2), 
-								235+(status*2), 
-								218+(status*2), 
-								219+(status*2), 
-								202+(status*2), 
-								203+(status*2)
+								234+(status_*2), 
+								235+(status_*2), 
+								218+(status_*2),
+								219+(status_*2),
+								202+(status_*2),
+								203+(status_*2)
 							],
 						};
 						let type_string = exit_type === 4? "door" : "edge";
@@ -3677,8 +3886,11 @@ class LevelGraph {
 							edge_list = edge_list.filter(function(type){ return type != exit_type; });
 						}
 						
-						let status = 0; // <------ *********** RANDOMIZE
-				
+						let status_ = 0;
+						if (exit_type === 4) {
+							status_ = 2; //rnd(0,2); // <------ *********** RANDOMIZE
+						}
+						
 						let gotox = 0;
 						let gotoy = 0;
 						let gx = 0;
@@ -3691,26 +3903,27 @@ class LevelGraph {
 					  switch (exit_type) {
 							case 4: // exit thru door
 								gotox = 5; // this will be changed later, better algorithm
-								gx = numScreensX*32 - goto_area - 5;
-								gy = numScreensY*32 - 2;
+								gx = numScreensX*G_W - goto_area - 5;
+								gy = numScreensY*G_H - 2;
 					      break;
 					    
 							case 10: // exit thru left edge
 								gx = 0;
-								gy = numScreensY*32 - 2;
+								gy = numScreensY*G_H - 2;
+								right_to_left = true;
 					      break;
 					    case 11: // exit thru right edge
 								gotox = 0;
-								gx = numScreensX*32 - 1;
-								gy = numScreensY*32 - 2;
+								gx = numScreensX*G_W - 1;
+								gy = numScreensY*G_H - 2;
 					      break;
 					    case 12: // exit thru bottom
 								gotoy = 0; 
-								gx = Math.floor((numScreensX*32)/2);
-								gy = numScreensY*32 - 1;
+								gx = Math.floor((numScreensX*G_W)/2);
+								gy = numScreensY*G_H - 1;
 					      break;
 					    case 13: // exit thru top
-								gx = Math.floor((numScreensX*32)/2);
+								gx = Math.floor((numScreensX*G_W)/2);
 								gy = 0;
 					      break;
 					  }
@@ -3722,15 +3935,22 @@ class LevelGraph {
 							"gotox": gotox, 
 							"gotoy": gotoy,
 							"type": exit_type,
-							"status": status,
-							"open_images": [234, 235, 218, 219, 202, 203],
+							"status": status_,
+							"open_images": [
+								234,//+toff, 
+								235,//+toff, 
+								218,//+toff, 
+								219,//+toff, 
+								202,//+toff, 
+								203,//+toff
+							],
 							"images": [
-								234+(status*2), 
-								235+(status*2), 
-								218+(status*2), 
-								219+(status*2), 
-								202+(status*2), 
-								203+(status*2)
+								234+(status_*2),//+toff, 
+								235+(status_*2),//+toff, 
+								218+(status_*2),//+toff,
+								219+(status_*2),//+toff,
+								202+(status_*2),//+toff,
+								203+(status_*2),//+toff
 							],
 						};
 						let type_string = exit_type === 4? "door" : "edge";
@@ -3748,65 +3968,40 @@ class LevelGraph {
 			//console.log("-- end "+ai+" ");
 		}
 		
-		//console.log("A ");
 		
 		
-		
-		for (let e of Object.keys(exits)) {
-			//console.log(exit_);
-			
-			event_grid[exits[e]["gy"]][exits[e]["gx"]] = exits[e]["type"];
-			
-			// ------ TESTING (putting ladders)--------
-			/*
-			if (testing) {
-				tilesheet(ts_m);
-				//area_image.set(exits[e]["gx"], exits[e]["gy"], 192);
-				for (let y_=1; y_<numScreensY*32-1; y_++) {
-					let x_ = Math.floor((numScreensX*32)/2);
-					area_grid[y_][x_] = 2;
-					area_image.set(x_, y_, 242);
-				}
-			}
-			*/
-			
-			
-			
-		}
 		
 		let area_info = {
+			//"chunk_map": area_chunks,
 			"grid": area_grid,
 			"event_grid": event_grid,
+			"items": [],
+			"small_enemies": [],
+			"platforms": [],
 			"image": area_image, 
 			"image_behind": area_image_behind,
 			"image_front": area_image_front,
 			"exits": exits, // [0,2]
-			"width": numScreensX*32,
-			"height": numScreensY*32,
+			"width": numScreensX*G_W,
+			"height": numScreensY*G_H,
 			"xscreens": numScreensX,
 			"yscreens": numScreensY,
 			"terrain": terrain_type,
+			"is_vertical": is_vertical,
+			"right_to_left": right_to_left 
 		}
 		
-		//console.log(terrain_type);
 		
 		
-		//console.log("------------"+area_index);
-		//console.log(area_info["exits"]);
+		this.areas.splice(area_index, 1, area_info); // at position 'index' add area info and remove
 		
-		//console.log("B ");
-		this.areas.splice(area_index, 1, area_info); // at position 'index' add area and remove
-		
-		//console.log("C ");
-		// floor
-		// exits
 		
 		
 		
 	}
 	
 	
-	
+	/*
 	makeAreaDungeon(area_index) {
 		let area = this.areas[area_index];
 		
@@ -3818,11 +4013,12 @@ class LevelGraph {
 				}
 			}
 		}
-	}
+	}/**/
 	
+	/*
 	moveExit(area_index, exit_index, xnew, ynew) {
 		
-	}
+	}/**/
 	
 	
 		/*
@@ -3831,262 +4027,3293 @@ class LevelGraph {
 		  48 49 50  51 52 53  54 55 56  57 58 59  60 61 62 63
 		*/
 	
-	// ------- for testing -------- 
-	
-	testPlaceTerrain(area_index) {
-		let area = this.areas[area_index];
-		//let img_index = area_index === this.finalArea ? 192 : 208;
-		//let img_offset = area_index === this.finalArea ? 0 : area_index;
-		
-		//let bm = area["height"];
-		
-		let bH = area["height"]+2;
-		let bW = area["width"]+2;
-		
-		let gbtm = area["height"]-1;
-		let bbtm = area["height"];
-		let b0 = 1;
-		
-		
-		let border = [...Array(bH)].map(_ => Array(bW).fill(0));
-		
-		// top and bottom edges
-		for (let x=0; x<bW; x++) {
-			border[0][x] = 49;
-			border[bH-1][x] = 17;
-		}
-		// left and right edges
-		for (let y=0; y<bH; y++) {
-			border[y][0] = 34;
-			border[y][bW-1] = 32;
-		}
-		// corners
-		border[0][0] = 25;
-		border[0][bW-1] = 27;
-		border[bH-1][0] = 57;
-		border[bH-1][bW-1] = 59;
-		
-		// create floor
-		
-		for (let x=1; x<bW; x++) {
-			
-			
-			if (Math.abs(Math.floor(bW/2) - x) < 2) { continue; }
-			
-			this.dot_(border, x, bbtm);
-			area["grid"][gbtm][x-1] = 1;
-		}/**/
-		
-		this.dot_(border, 1, bbtm);
-		area["grid"][gbtm][0] = 1;
-		
-		// could randomize floor bumps/ holes, and then place images behind or in front?
-		/*
-		this.dot_(behindborder, 1, bm);
-		this.dot_(behindborder, 2, bm);
-		this.dot_(behindborder, 3, bm);
-		this.dot_(behindborder, 4, bm);
-		this.dot_(behindborder, 5, bm);
-		this.dot_(behindborder, 2, bm-1);
-		this.dot_(behindborder, 3, bm-1);
-		this.dot_(behindborder, 4, bm-1);
-		this.dot_(behindborder, 5, bm-1);
-		this.dot_(behindborder, 2, bm-2);
-		this.dot_(behindborder, 3, bm-2);
-		this.dot_(behindborder, 4, bm-2);
-		this.dot_(behindborder, 2, bm-3);
-		this.dot_(behindborder, 3, bm-3);
-		this.dot_(behindborder, 4, bm-3);
-		this.dot_(behindborder, 4, bm-4);
-		this.dot_(behindborder, 3, bm-4);
-		/**/
-		
-		this.placeStructure(border, area, -1, -1, 1); // "image"
-		
-		
-		
-			/*
-			if (Math.abs(Math.floor(area["width"]/2) - x) <= 2){
-				continue;
-			}
-			*/
-			//area["grid"][bm][x] = 1;
-			//this.dot(area_index, x, bm);
-			//this.dot(area_index, x, bm+1);
-			//area["image"].set(x, bm, 240 );  // ***** USE DOT *****
-		return border;
-	}
-		
-	testPlaceClimbObjects(area_index) {
-		// ------ TESTING (putting ladders)--------
-		tilesheet(ts_m);
-		let area = this.areas[area_index];
-		let nY = area["height"];
-		let nX = area["width"];
-		
-		if (testing) {
-			
-			//area_image.set(exits[e]["gx"], exits[e]["gy"], 192);
-			for (let y_=0; y_<nY; y_++) {
-				let x_ = Math.floor(nX/2);
-				area["grid"][y_][x_] = 2;
-				area["image"].set(x_, y_, 8);
-			}
-		}
-	}
-		//this.dot(area_index, 5, bm);
-		//this.dot(area_index, 5, bm+1);
-		//this.dot(area_index, 6, bm);
-		//this.dot(area_index, 6, bm+1);
-		
-		//area["image"].set(area_index, bm-28, 193);  // ***** USE DOT *****
-		
-		
-		//area["image"].set(3, 5, 193);  // ***** USE DOT *****
-		//area["image"].set(2, 4, 193);  // ***** USE DOT *****
-		
-		//checkBlockIds(3,6);
-		/*
-		// climb (ladder, beanstalk)
-		for (let y=0; y<area["height"]-1; y++) {
-			area["grid"][y][1] = 2;
-			area["image"].set(1, y, 242);
-		}
-			//}
-		*/
-		
-	
 	
 	/*
-	fixFloorOob(area_index) {
-		let area = this.areas[area_index];
-		let img = area["image"];
-		let bm = area["height"]-1;
-		let fix_tile = 0;
-		let check_tile = 0;
-		for (let x=0; x<area["width"]; x++) {
-			check_tile = img.get(x, bm) ? img.get(x, bm)["sprite"] : 0;
-			if (x == 0) {
-				fix_tile = dot_order["oob_bl_corner"][check_tile.toString()];
-			} else if (x == area["width"]-1) {
-				fix_tile = dot_order["oob_br_corner"][check_tile.toString()];
-			} else {
-				fix_tile = dot_order["oob_bottom"][check_tile.toString()];
-			}
-			
-			img.set(x, bm, fix_tile);
-		}
-	}
-	*/
-	
-	testPlaceEnemies(area_index) {
+	createDungeonChunkMap(area_index) {
 		
-  	let area = this.areas[area_index];
-		let nY = area["height"];
-		let nX = area["width"];
-	  // scatter jumping enemies
 		
-	  for (let spray_everywhere=0; spray_everywhere<5; spray_everywhere++) {
-	    for (let i=0; i<4; i++) {
-    
-	      let rx = rnd(0, nX);
-	      let ry = rnd(nY-20, nY);
-      
-	      create_small_enemy(rx*8, ry*8, "steadyjump", 0+i*16);
-    
-	    }
-	  }
-		/**/
-  
-	  // scatter walking enemies
-		
-	  for (let spray_everywhere=0; spray_everywhere<5; spray_everywhere++) {
-	    for (let i=0; i<4; i++) {
-      
-	      let rx = rnd(0, nX);
-	      let ry = rnd(nY-20, nY);
-      
-	      create_small_enemy(rx*8, ry*8, "walkbump", 0+i*16);
-	    }
-	  }
-	  /**/
-		
-	  //create_small_enemy(30*8, 30*8, "walkbump", 0+0*16);
-	  //create_small_enemy(11*8, 30*8, "steadyjump", 0+1*16);
-	}
+	}/**/
 	
 	
-	// ------- for testing -------- 
-	testPlacePlatforms(area_index) {
+	
+	
+	
+	printChunks(a, cmap, dcx, dcy, ucx, ucy) {
+		let area = this.areas[a];
 		
-		
-		let area = this.areas[area_index];
-		
-		let ground_tile = new pnode(240);
-		let prev_ground_tile = ground_tile;
-
-		//let new_ground = ground;
-		for (let i=0; i<20; i++) {
-		  let new_ground_tile = new pnode(240+(i%2));
-			let next_x = rnd(1,7);
-			let next_y = rnd(-2, 3);
-		  prev_ground_tile.setNext(new_ground_tile, next_x, next_y);
-		  prev_ground_tile = new_ground_tile;
-		}
-		//console.log(ground.info());
-		
-		// view
-		
-		let temp = ground_tile;
-		let x_ = 3;
-		let y_ = 16;
-		while (temp.hasNext()) {
-		  //console.log(temp.ptype+" "+x+" "+y);
-			if (x_ < area["width"] && y_ < area["height"]) {
-				if (area["grid"][y_][x_] <= 9){ // don't paste over edge
-					area["grid"][y_][x_] = 1;
+		let exits_ = Object.keys(area["exits"]).map(e => area["exits"][e].type);
+		//console.log("      area "+a);
+		for (let j=0; j<cmap.length; j++) {
+			let print_row = j+"";
+			for (let i=0; i<cmap[0].length; i++) {
+				let c_ = cmap[j][i] ? cmap[j][i] : "  ";
+				if ((j === ucy && i === ucx) || (j === dcy && i === dcx)) {
+					print_row += "["+c_;
+				} else {
+					if ((j === ucy && i-1 === ucx) || (j === dcy && i-1 === dcx)){
+						print_row += "]"+c_;
+					} else {
+						print_row += " "+c_;
+					}
+					
 				}
-				area["image"].set(x_, y_, temp.ptype); // ***** USE DOT *****
 				
-			} else {
-				console.log("oob! "+x_+" "+y_);
+			}
+			console.log(print_row);
+		}
+		/*
+		if (bcx > 0) {
+			let bottom_exit = "  ";
+			for (let bx_=0; bx_<bcx; bx_++) {
+				bottom_exit += "   ";
+			}
+			bottom_exit += "↓↓";
+			console.log(bottom_exit);
+		}*/
+		console.log();
+	}
+	
+	
+	createChunkMap(area_index) {
+		
+		let area = this.areas[area_index];
+		let aH = area["height"]; // area height
+		let aW = area["width"]; // area width
+		let bH = aH+2; // border height
+		let bW = aW+2; // border width
+		let gbtm = aH-1; // grid bottom
+		let bbtm = aH; // border bottom
+		let b0 = 1;
+		let terrain_grid = [...Array(aH)].map(_ => Array(aW).fill(0));
+		let terrain_img = [...Array(bH)].map(_ => Array(bW).fill(0));
+		let terrain_img_behind = [...Array(bH)].map(_ => Array(bW).fill(0));
+		let terrain_img_front = [...Array(bH)].map(_ => Array(bW).fill(0));
+		
+		
+		for (let x=0; x<bW; x++) { // top and bottom edges
+			terrain_img[0][x] = 49;
+			terrain_img[bH-1][x] = 17;
+			terrain_img_behind[0][x] = 49;
+			terrain_img_behind[bH-1][x] = 17;
+			terrain_img_front[0][x] = 49;
+			terrain_img_front[bH-1][x] = 17;
+		}
+		for (let y=0; y<bH; y++) { // left and right edges
+			terrain_img[y][0] = 34;
+			terrain_img[y][bW-1] = 32;
+			terrain_img_behind[y][0] = 34;
+			terrain_img_behind[y][bW-1] = 32;
+			terrain_img_front[y][0] = 34;
+			terrain_img_front[y][bW-1] = 32;
+		}
+		terrain_img[0][0] = 25; // corners
+		terrain_img[0][bW-1] = 27;
+		terrain_img[bH-1][0] = 57;
+		terrain_img[bH-1][bW-1] = 59;
+		terrain_img_behind[0][0] = 25; // corners
+		terrain_img_behind[0][bW-1] = 27;
+		terrain_img_behind[bH-1][0] = 57;
+		terrain_img_behind[bH-1][bW-1] = 59;
+		terrain_img_front[0][0] = 25; // corners
+		terrain_img_front[0][bW-1] = 27;
+		terrain_img_front[bH-1][0] = 57;
+		terrain_img_front[bH-1][bW-1] = 59;
+		
+		
+		
+		
+		
+		let chx_max = area["xscreens"]*4; // number of chunks across
+		let chy_max = area["yscreens"]*3; // number of chunks down
+		
+		let is_underground = ["underground"].includes(area.terrain);
+		let is_sky = ["sky"].includes(area.terrain);
+		let is_aboveground = ["aboveground"].includes(area.terrain);
+		let is_castle = ["insidetowertop", "insidetower", "insidetowerground"].includes(area.terrain);
+		
+		
+		let no_floor = ["aboveground", "sky"].includes(area.terrain);
+		let fill_in_ceiling = [
+			"insidecavetop", 
+			"insidecave", 
+			"underground", 
+			//"insidetower", 
+			//"insidetowertop", 
+			//"insidetowerground", 
+			"basement",
+			"caveground",
+			"mountain"
+		].includes(area.terrain);
+		
+		let is_peak = ["peak"].includes(area.terrain);
+		let is_mountain = ["mountain"].includes(area.terrain);
+		let is_cave = ["caveground"].includes(area.terrain);
+		let is_peak_right = ["peakright"].includes(area.terrain); 
+		let is_cliff_right = ["cliffright"].includes(area.terrain);
+		let is_cave_right = ["caveright"].includes(area.terrain);
+		let is_peak_left = ["peakleft"].includes(area.terrain);
+		let is_cliff_left = ["cliffleft"].includes(area.terrain);
+		let is_cave_left = ["caveleft"].includes(area.terrain);
+		
+		let is_roof_left = ["roofleft"].includes(area.terrain);
+		let is_roof_right = ["roofright"].includes(area.terrain);
+		let is_roof = ["roof"].includes(area.terrain);
+		let is_tower_left = ["towerleft"].includes(area.terrain);
+		let is_tower_right = ["towerright"].includes(area.terrain);
+		let is_tower = ["tower"].includes(area.terrain);
+		let is_towerground_left = ["towergroundleft"].includes(area.terrain);
+		let is_towerground_right = ["towergroundright"].includes(area.terrain);
+		let is_towerground = ["towerground"].includes(area.terrain);
+		
+		let is_inside_tower = ["insidetowertop", "insidetower", "insidetowerground"].includes(area.terrain);
+		
+		//let is_r = ["peakright", "cliffright"].includes(area.terrain);
+		//let is_7 = ["peakleft", "cliffleft"].includes(area.terrain);
+		
+		
+		let toff = 0;
+		switch (area.terrain) {
+			case "towergroundleft":
+				toff = 64 * 6;
+				break;
+			case "towergroundright":
+				toff = 64 * 6;
+				break;
+			case "towerground":
+				toff = 64 * 6;
+				break;
+			case "underground":
+				toff = 64 * 2;
+				break;
+			case "insidetowerground":
+				toff = 64 * 6;
+				break;
+		}
+		
+		console.log(area_index+" "+area.terrain);
+		//let fill_terrain = is_underground ? "HH" : "" ;
+		let chunks_map = [...Array(chy_max)].map(_ => Array(chx_max).fill(""));
+		let chi = area["right_to_left"] ? chx_max-1 : 0; // starting chunk x position
+		let chj = rnd(1, chy_max); // starting chunk y position (was chy_max-2)
+		// left and right exit locations
+		
+		let lft_cx = 0;
+		let lft_cy = chj;
+		let rgt_cx = chx_max-1;
+		let rgt_cy = chj;
+		//let srt_edge_cy = chj;
+		//let end_edge_cy = chj;
+		
+		//player starting locations (these will only change if area_index == 0)
+		let psxc = -1; // player start x chunk
+		let psyc = -1;
+		
+		let chunk_type = "__";
+		let chunk_types = [];
+		
+		let HH = ["HH", "Hh", "hH", "hh"];
+		
+		
+		
+		// ------------ exit dictionary, only doors. exit chunk locations -----------
+		let door_exits = Object.keys(area["exits"]).reduce(function (door_exits, key) {
+		    if (area["exits"][key].type === 4) {
+					door_exits[key] = area["exits"][key];
+				}
+		    return door_exits;
+		}, {});
+		
+		
+		
+		
+		
+		// ------ x chunk positions for doors -- Why not create list of tuples from terrain trail?
+		//let door_exit_locs = this.shuffleArray([...Array(chx_max-2).keys()].map(k => k+1)).splice(0, Object.keys(door_exits).length).sort();
+		
+		
+		//console.log(door_exit_locs);
+		// we need to map each x chunk location with one of the door exit objects, so that
+		//    door info is accessed by x chunk position rather than by area_index.
+		//    just need the y position when the x position is found
+		
+		/*
+		let ddd = {};
+		let dexlc = 0;
+		for (let [k, door_info] of Object.entries(door_exits)) { // k is the area_index
+			//let dk = door_exit_locs[dexlc]; // dk is the x location for that door in door_exit_locs
+			door_info["cx"] = -1;
+			door_info["cy"] = -1; //initialize 
+			door_exits[k] = door_info;
+			dexlc++;
+			ddd[dk] = door_info; // set x position as key in ddd dictionary
+			
+		}*/
+		//console.log(door_exits);
+		
+		let terrain_trail_for_doors = []; // if run out, create a new path in that area for the outlier door
+		//console.log(ddd);
+		
+		
+		// if caveright, caveleft, cliffright, cliffleft, peakright, peakleft, then either of these might be set
+		let door_x_set = -1; // cave right
+		let door_y_set = -1;
+		//console.log("door exits based on x chunk:");
+		//console.log(ddd);
+		//console.log("door exits based on area index:");
+		
+		let exit_up_x = -1; let exit_up_y = 0;
+		let exit_rt_y = -1; let exit_rt_x = chx_max-1;
+		let exit_dn_x = -1; let exit_dn_y = chy_max-1;
+		let exit_lf_y = -1; let exit_lf_x = 0;
+		
+		//let snake_up = [];
+		
+		let exits_ = Object.keys(area["exits"]).map(e => area["exits"][e].type); //
+		
+		
+		
+		const MAX_ZIGZAG = {"left": -4, "right": 4};
+		
+		
+		// ------------------ bottom exit and path  ----------------
+		let btm_cx = -1;
+		let btm_cy = -1;
+		// this is the location of the path entrance to the exit on the terrain surface [__]
+		let down_cx = -1;
+		let down_cy = -1;
+		
+		// ------------------ top exit and path ----------------
+		let top_cx = -1;
+		let top_cy = -1;
+		// this is the start of the path upward to get to the top exit
+		let up_cx = -1;
+		let up_cy = -1;
+		
+		
+		
+		// ------------- START main chunkmap shape 
+		// fill chunk map terrain across (above ground, not for caves) -----------
+		// cliffs, peaks, and roofs should be covered here
+		// doors are also placed here? else statements
+		
+		
+		
+		let change_vertical = 0;
+		let last_chunk = "__";
+		
+			
+		if (is_peak_right) { // ------- TERRAIN TYPE: peakright *** *** ***
+			
+			let chy_r = chy_max-1;
+			let start_bot_x_max = chx_max - Math.floor(chx_max/4); // need at least some terrain on the right side
+			let start_bot = rnd(1, start_bot_x_max);
+			for (let cx=start_bot; cx<chx_max; cx++) {
+				chunks_map[chy_r][cx] = chunk_type;
+				for (let below=chy_r+1; below<chy_max; below++) {
+					chunks_map[below][cx] = "HH";//HH[rnd(0, HH.length)];
+				}
+				if (chy_r > 1) {
+					chunk_type = chunk_type === "__" ? "-<" : "__";
+				} else {
+					let chunk_types = CHUNKS["rules"][chunk_type]["R"];
+					chunk_type = chunk_types[rnd(0, chunk_types.length)];
+				}
+				if (cx < chx_max-1) {
+					if (start_bot < cx && chy_r > 1) {
+						terrain_trail_for_doors.push([cx,chy_r]);
+					}
+					chy_r = chunk_type === "__"  && chy_r > 1 ? chy_r-1 : chy_r; // move up
+				}
+			}
+			
+			// right exit and bottom exit (change chunk here ?)
+			if (exits_.includes(11)) {
+				exit_rt_y = chy_r;
+				switch (chunks_map[exit_rt_y][exit_rt_x]) {
+					case "__":
+						chunks_map[exit_rt_y][exit_rt_x] = "_>";
+						break;
+					case "-<":
+						chunks_map[exit_rt_y][exit_rt_x] = "->";
+						break;
+					case ">-":
+						chunks_map[exit_rt_y][exit_rt_x] = ">>";
+						break;
+				}
+			}
+			if (exits_.includes(12)) {
+				exit_dn_x = start_bot;
+				switch (chunks_map[exit_dn_y][exit_dn_x]) {
+					case "__":
+						chunks_map[exit_dn_y][exit_dn_x] = "v_";
+						break;
+					case "-<":
+						chunks_map[exit_dn_y][exit_dn_x] = "v<";
+						break;
+					case ">-":
+						chunks_map[exit_dn_y][exit_dn_x] = ">v";
+						break;
+				}
+			}
+			
+			// left exit
+			if (exits_.includes(10)) {
+				let snake_left_i = rnd(0, terrain_trail_for_doors.length);
+				let snake_left = terrain_trail_for_doors[snake_left_i]; // x and y
+				//console.log(snake_left);
+				terrain_trail_for_doors.splice(snake_left_i, 1); // remove from terrain trail
+				
+				terrain_trail_for_doors = terrain_trail_for_doors.filter((sxy) => { 
+					//console.log(sxy[0]+" > "+snake_left[0]+" ?");
+					//console.log(sxy[0] > snake_left[0]);
+					return sxy[0] > snake_left[0];
+				});
+				
+				// change start of snake to one of these   _^  ^_  >^  ^<
+				switch (chunks_map[snake_left[1]][snake_left[0]]) {
+					case "__":
+						chunks_map[snake_left[1]][snake_left[0]] = "^_";
+						break;
+					case "-<":
+						chunks_map[snake_left[1]][snake_left[0]] = "^<";
+						break;
+					case ">-":
+						chunks_map[snake_left[1]][snake_left[0]] = ">^";
+						break;
+				}
+				
+				// go up first
+				let scurrx = snake_left[0];
+				let scurry = snake_left[1]-1;
+				//console.log(snake_left);
+				if (scurry > 1) {
+					chunks_map[scurry][scurrx] = "^^";
+					scurry-=1;
+				}
+				chunks_map[scurry][scurrx] = "-7";
+				terrain_trail_for_doors.push([scurrx,scurry]);
+				scurrx-=1;
+				
+				for (; scurrx>0; scurrx--) {
+					chunks_map[scurry][scurrx] = "--";
+					terrain_trail_for_doors.push([scurrx,scurry]);
+					// TODO: instead of straight across to the left, zigzag up and down
+				}
+				chunks_map[scurry][scurrx] = "<-";
+				//console.log(terrain_trail_for_doors);
+			
+			}
+			
+			// top exit
+			if (exits_.includes(13)) {
+				let snake_top_i = rnd(0, terrain_trail_for_doors.length);
+				let snake_top = terrain_trail_for_doors[snake_top_i]; // x and y
+				
+				let scurrtx = snake_top[0];
+				let scurrty = snake_top[1];
+				for (; scurrty>=0; scurrty--) {
+					chunks_map[scurrty][scurrtx] = "^^";
+				}
+			}
+			//console.log(terrain_trail_for_doors);
+			
+			
+			
+		} else if (is_peak_left) { // ------- TERRAIN TYPE: peakleft *** *** ***
+			
+			let chy_7 = chy_max-1;
+			let start_bot_x_min = 0 + Math.floor(chx_max/4); // need at least some terrain on the left side
+			let start_bot = rnd(start_bot_x_min, chx_max-1);
+			for (let cx=start_bot; cx>=0; cx--) { // even though left to right, filling in from right to left
+				chunks_map[chy_7][cx] = chunk_type;
+				for (let below=chy_7+1; below<chy_max; below++) {
+					chunks_map[below][cx] = "HH";//HH[rnd(0, HH.length)];
+				}
+				if (chy_7 > 1) {
+					chunk_type = chunk_type === "__" ? ">-" : "__";
+				} else {
+					let chunk_types = CHUNKS["rules"][chunk_type]["L"];
+					chunk_type = chunk_types[rnd(0, chunk_types.length)];
+				}
+				
+				if (cx > 0) {
+					if (cx < start_bot && chy_7 > 1) {
+						terrain_trail_for_doors.push([cx,chy_7]);
+					}
+					chy_7 = chunk_type === "__" && chy_7 > 1 ? chy_7-1 : chy_7; // ensure space to go left
+				}
 			}
 			
 			
-		  x_ += temp.next_gap;
-		  y_ += temp.next_height;
-		  temp = temp.next_pnode;
+			// left exit and bottom exit
+			if (exits_.includes(10)) {
+				exit_lf_y = chy_7;
+				switch (chunks_map[exit_lf_y][exit_lf_x]) {
+					case "__":
+						chunks_map[exit_lf_y][exit_lf_x] = "<_";
+						break;
+					case "-<":
+						chunks_map[exit_lf_y][exit_lf_x] = "<-";
+						break;
+					case ">-":
+						chunks_map[exit_lf_y][exit_lf_x] = "<<";
+						break;
+				}
+			}
+			if (exits_.includes(12)) {
+				exit_dn_x = start_bot;
+				switch (chunks_map[exit_dn_y][exit_dn_x]) {
+					case "__":
+						chunks_map[exit_dn_y][exit_dn_x] = "_v";
+						break;
+					case "-<":
+						chunks_map[exit_dn_y][exit_dn_x] = "v<";
+						break;
+					case ">-":
+						chunks_map[exit_dn_y][exit_dn_x] = ">v";
+						break;
+				}
+			}
+			
+			// right exit
+			if (exits_.includes(11)) {
+				let snake_right_i = rnd(0, terrain_trail_for_doors.length);
+				let snake_right = terrain_trail_for_doors[snake_right_i]; // x and y
+				
+				terrain_trail_for_doors.splice(snake_right_i, 1); // remove from terrain trail
+				
+				terrain_trail_for_doors = terrain_trail_for_doors.filter((sxy) => { 
+					//console.log(sxy[0]+" > "+snake_left[0]+" ?");
+					//console.log(sxy[0] > snake_left[0]);
+					return sxy[0] > snake_right[0];
+				});
+				
+				// change start of snake to one of these   _^  ^_  >^  ^<
+				switch (chunks_map[snake_right[1]][snake_right[0]]) {
+					case "__":
+						chunks_map[snake_right[1]][snake_right[0]] = "_^";
+						break;
+					case "-<":
+						chunks_map[snake_right[1]][snake_right[0]] = "^<";
+						break;
+					case ">-":
+						chunks_map[snake_right[1]][snake_right[0]] = ">^";
+						break;
+				}
+				
+				// go up first
+				let scurrx = snake_right[0];
+				let scurry = snake_right[1]-1;
+				
+				if (scurry > 1) {
+					chunks_map[scurry][scurrx] = "^^";
+					scurry-=1;
+				}
+				chunks_map[scurry][scurrx] = "r-";
+				terrain_trail_for_doors.push([scurrx,scurry]);
+				scurrx+=1;
+				
+				for (; scurrx<chx_max-1; scurrx++) {
+					chunks_map[scurry][scurrx] = "--";
+					terrain_trail_for_doors.push([scurrx,scurry]);
+					// TODO: instead of straight across to the left, zigzag up and down
+				}
+				chunks_map[scurry][scurrx] = "->";
+				console.log("scurrx "+scurrx+" scurry "+scurry);
+				
+				//console.log(terrain_trail_for_doors);
+			
+			}
+			
+			// top exit
+			if (exits_.includes(13)) {
+				let snake_top_i = rnd(0, terrain_trail_for_doors.length);
+				let snake_top = terrain_trail_for_doors[snake_top_i]; // x and y
+				
+				let scurrtx = snake_top[0];
+				let scurrty = snake_top[1];
+				for (; scurrty>=0; scurrty--) {
+					chunks_map[scurrty][scurrtx] = "^^";
+				}
+			}
+			//console.log(terrain_trail_for_doors);
+			
+			
+			
+		} else if (is_cliff_right) { // ------- TERRAIN TYPE: cliffright *** *** ***
+			
+			let start_top_x = rnd(chx_max/2, chx_max-(chx_max/4)); // if min=2 max=3  then  possible indices: 2
+			let cx = start_top_x;
+			let cy = 0;
+			let change_chunk = 0;
+			for (; cy<chy_max; cy++) { // snake down toward left, without going past the bottom
+				if (cy > 0) {
+					let shift_left = rnd(0,2);
+					if (shift_left) {
+						//cx--;
+						change_chunk = rnd(0,2);
+					}
+					if (cy < chy_max-1) {
+						terrain_trail_for_doors.push([cx,cy]);
+					}
+				}
+				chunks_map[cy][cx] = change_chunk ? "-<" : "_|";
+				
+				for (let rx=cx+1; rx<chx_max; rx++) { // fill to the right
+					chunks_map[cy][rx] = "HH";
+				}
+				cx = change_chunk ? cx-1 : cx;
+				change_chunk = 0; // reset
+			}
+			
+			//console.log(terrain_trail_for_doors);
+			
+			// bottom exit and top exit
+			if (exits_.includes(12)) {
+				exit_dn_x = cx;
+				switch (chunks_map[exit_dn_y][exit_dn_x]) {
+					case "_|":
+						chunks_map[exit_dn_y][exit_dn_x] = "v|";
+						break;
+					case "-<":
+						chunks_map[exit_dn_y][exit_dn_x] = "v<";
+						break;
+				}
+			}
+				
+			if (exits_.includes(13)) {
+				exit_up_x = start_top_x;
+				switch (chunks_map[exit_up_y][exit_up_x]) {
+					case "_|":
+						chunks_map[exit_up_y][exit_up_x] = "^|";
+						break;
+					case "-<":
+						chunks_map[exit_up_y][exit_up_x] = "^|";
+						break;
+				}
+			}
+			
+			// left exit
+			if (exits_.includes(10)) {
+				let snake_left_i = rnd(0, terrain_trail_for_doors.length);
+				let snake_left = terrain_trail_for_doors[snake_left_i]; // x and y
+				
+				terrain_trail_for_doors.splice(snake_left_i, 1); // remove from terrain trail
+				
+				let scurrx = snake_left[0]-1;
+				let scurry = snake_left[1];
+				chunks_map[scurry][scurrx] = "-.";
+				
+				for (scurrx--; scurrx>0; scurrx--) {
+					chunks_map[scurry][scurrx] = "--";
+					terrain_trail_for_doors.push([scurrx,scurry]);
+				}
+				chunks_map[scurry][scurrx] = "<-";
+				
+			}
+			
+			// right exit
+			if (exits_.includes(11)) {
+				let snake_right_i = rnd(0, terrain_trail_for_doors.length);
+				let snake_right = terrain_trail_for_doors[snake_right_i]; // x and y
+				
+				terrain_trail_for_doors.splice(snake_right_i, 1); // remove from terrain trail
+				
+				chunks_map[snake_right[1]][snake_right[0]] = "_!";
+				
+				let scurrx = snake_right[0]+1;
+				let scurry = snake_right[1];
+				chunks_map[scurry][scurrx] = "=="; // TODO: fix
+				
+				for (; scurrx<chx_max-1; scurrx++) {
+					chunks_map[scurry][scurrx] = "==";
+					terrain_trail_for_doors.push([scurrx,scurry]);
+				}
+				chunks_map[scurry][scurrx] = "=>";
+				
+			}
+			
+			
+			
+			
+		} else if (is_cliff_left) { // ------- TERRAIN TYPE: cliffleft *** *** ***
+			
+			
+			let start_top_x = rnd(chx_max/4, (chx_max/2)); // if min=1 max=2  then  possible indices: 1
+			let cx = start_top_x;
+			let cy = 0;
+			let change_chunk = 0;
+			for (; cy<chy_max; cy++) { // snake down toward right, without going past the bottom
+				if (cy > 0) {
+					let shift_right = rnd(0,2);
+					if (shift_right) {
+						//cx++;
+						change_chunk = rnd(0,2);
+					}
+					if (cy < chy_max-1) {
+						terrain_trail_for_doors.push([cx,cy]);
+					}
+				}
+				chunks_map[cy][cx] = change_chunk ? ">-" : "|_";
+				for (let rx=cx-1; rx>=0; rx--) { // fill to the left
+					chunks_map[cy][rx] = "HH";
+				}
+				cx = change_chunk ? cx+1 : cx;
+				change_chunk = 0; // reset
+				
+			}
+			
+			//console.log(terrain_trail_for_doors);
+			
+			// bottom exit and top exit
+			if (exits_.includes(12)) {
+				exit_dn_x = cx;
+				switch (chunks_map[exit_dn_y][exit_dn_x]) {
+					case "|_":
+						chunks_map[exit_dn_y][exit_dn_x] = "|v";
+						break;
+					case ">-":
+						chunks_map[exit_dn_y][exit_dn_x] = ">v";
+						break;
+				}
+			}
+				
+			if (exits_.includes(13)) {
+				exit_up_x = start_top_x;
+				switch (chunks_map[exit_up_y][exit_up_x]) {
+					case "|_":
+						chunks_map[exit_up_y][exit_up_x] = "|^";
+						break;
+					case ">-":
+						chunks_map[exit_up_y][exit_up_x] = "|^";
+						break;
+				}
+			}
+			
+			
+			// left exit
+			if (exits_.includes(10)) {
+				let snake_left_i = rnd(0, terrain_trail_for_doors.length);
+				let snake_left = terrain_trail_for_doors[snake_left_i]; // x and y
+				
+				terrain_trail_for_doors.splice(snake_left_i, 1); // remove from terrain trail
+				
+				chunks_map[snake_left[1]][snake_left[0]] = "!_";
+				let scurrx = snake_left[0]-1;
+				let scurry = snake_left[1];
+				chunks_map[scurry][scurrx] = "==";
+				
+				for (; scurrx>0; scurrx--) {
+					chunks_map[scurry][scurrx] = "==";
+					terrain_trail_for_doors.push([scurrx,scurry]);
+				}
+				chunks_map[scurry][scurrx] = "<=";
+				
+			}
+			
+			// right exit
+			if (exits_.includes(11)) {
+				let snake_right_i = rnd(0, terrain_trail_for_doors.length);
+				let snake_right = terrain_trail_for_doors[snake_right_i]; // x and y
+				
+				terrain_trail_for_doors.splice(snake_right_i, 1); // remove from terrain trail
+				
+				let scurrx = snake_right[0]+1;
+				let scurry = snake_right[1];
+				chunks_map[scurry][scurrx] = ".-";
+				
+				for (scurrx++; scurrx<chx_max-1; scurrx++) {
+					chunks_map[scurry][scurrx] = "--";
+					terrain_trail_for_doors.push([scurrx,scurry]);
+				}
+				chunks_map[scurry][scurrx] = "->";
+				
+			}
+			
+			
+			
+			
+			
+			
+		} else if (is_cave_right) { // ------- TERRAIN TYPE: caveright *** *** ***
+			
+			let start_top_x = rnd(chx_max/2, chx_max-(chx_max/4)); // if min=2 max=3  then  possible indices: 2
+			let cx = start_top_x;
+			let cy = 0;
+			let change_chunk = 0;
+			
+			for (; cy<chy_max-1; cy++) { // snake down toward left, without going past the bottom
+				if (cy > 0) {
+					let shift_left = rnd(0,2);
+					if (shift_left) {
+						//cx--;
+						change_chunk = rnd(0,2);
+					}
+					if (cx > 0 && cy > 0) {
+						terrain_trail_for_doors.push([cx,cy]); // dont include top exit
+					}
+				}
+				chunks_map[cy][cx] = change_chunk ? "-<" : "_|";
+				for (let rx=cx+1; rx<chx_max; rx++) { // fill to the right
+					chunks_map[cy][rx] = "HH";
+				}
+				cx = change_chunk ? cx-1 : cx;
+				change_chunk = 0; // reset
+			}
+			
+			// determine right exit here instead
+			if (exits_.includes(11)) {
+				let snake_right_i = rnd(0, terrain_trail_for_doors.length);
+				let snake_right = terrain_trail_for_doors[snake_right_i]; // x and y
+				terrain_trail_for_doors.splice(snake_right_i, 1); // remove from terrain trail
+				
+				// remove any above and below the right exit
+				terrain_trail_for_doors = terrain_trail_for_doors.filter((xy) => xy[1] === chy_max-1);
+				
+				chunks_map[snake_right[1]][snake_right[0]] = "_!";
+				
+				let scurrx = snake_right[0]+1;
+				let scurry = snake_right[1];
+				chunks_map[scurry][scurrx] = "=="; // TODO: fix
+				
+				for (; scurrx<chx_max-1; scurrx++) {
+					chunks_map[scurry][scurrx] = "==";
+					terrain_trail_for_doors.push([scurrx,scurry]);
+				}
+				chunks_map[scurry][scurrx] = "=>";
+				
+			}
+			
+			// bottom row
+			for (let rx=cx+1; rx<chx_max; rx++) { // fill to the right
+				chunks_map[cy][rx] = "HH";
+			}
+			chunks_map[cy][cx] = "-<";
+			
+			for (cx-=1; cx>=0; cx--) { // fill to the left and fill downward
+				chunk_types = CHUNKS["rules"][last_chunk]["L"];
+				last_chunk = chunk_types[rnd(0, chunk_types.length)];
+				chunks_map[cy][cx] = last_chunk;
+				if (cx > 0) {
+					terrain_trail_for_doors.push([cx,cy]);
+				}
+				for (let fill_down=cy+1; fill_down<chy_max; fill_down++) {
+					chunks_map[cy][cx] = "HH";
+				}
+			}
+			
+			
+			
+			// left exit
+			if (exits_.includes(10)) {
+				//exit_lf_y = cy;
+				exit_lf_y = cy;
+				switch (chunks_map[exit_lf_y][exit_lf_x]) {
+					case "__":
+						chunks_map[exit_lf_y][exit_lf_x] = "<_";
+						break;
+					case "-<":
+						chunks_map[exit_lf_y][exit_lf_x] = "<-";
+						break;
+					case ">-":
+						chunks_map[exit_lf_y][exit_lf_x] = "<<";
+						break;
+				}
+			}
+			
+			// top exit
+			if (exits_.includes(13)) {
+				exit_up_x = start_top_x;
+				switch (chunks_map[exit_up_y][exit_up_x]) {
+					case "_|":
+						chunks_map[exit_up_y][exit_up_x] = "^|";
+						break;
+					case "-<":
+						chunks_map[exit_up_y][exit_up_x] = "^|";
+						break;
+				}
+			}
+			
+			// bottom exit
+			if (exits_.includes(12)) {
+				let snake_down_i = rnd(0, terrain_trail_for_doors.length);
+				let snake_down = terrain_trail_for_doors[snake_down_i]; // x and y
+			
+				terrain_trail_for_doors.splice(snake_down_i, 1); // remove from terrain trail
+				
+				
+				if (chunks_map[snake_down[1]][snake_down[0]] === "==") { // inside mountain
+					chunks_map[snake_down[1]][snake_down[0]] = "TT";
+					for (let scurry=snake_down[1]+1; scurry<chy_max; scurry++) {
+						chunks_map[scurry][snake_down[0]] = "vv";
+					}
+				} else {
+					switch (chunks_map[snake_down[1]][snake_down[0]]) { // outside mountain, on bottom row
+						case "__":
+							chunks_map[snake_down[1]][snake_down[0]] = "v_";
+							break;
+						case "-<":
+							chunks_map[snake_down[1]][snake_down[0]] = "v<";
+							break;
+						case ">-":
+							chunks_map[snake_down[1]][snake_down[0]] = ">v";
+							break;
+						case "_|":
+							chunks_map[snake_down[1]][snake_down[0]] = "v|";
+							break;
+					}
+				}
+			}
+			
+			//console.log(terrain_trail_for_doors);
+			
+			
+			
+			
+			
+			
+			
+			
+			
+		} else if (is_cave_left) { // ------- TERRAIN TYPE: caveleft *** *** ***
+			
+			//console.log("...cl");
+			let start_top_x = rnd(chx_max/4, (chx_max/2)); // if min=1 max=2  then  possible indices: 1
+			let cx = start_top_x;
+			let cy = 0;
+			let change_chunk = 0;
+			for (; cy<chy_max-1; cy++) { // snake down toward right, without going past the bottom
+				if (cy > 0) {
+					let shift_right = rnd(0,2);
+					if (shift_right) {
+						//cx++;
+						change_chunk = rnd(0,2);
+					}
+					if (cx < chx_max-1 && cy > 0) {
+						terrain_trail_for_doors.push([cx,cy]);
+					}
+				}
+				chunks_map[cy][cx] = change_chunk ? ">-" : "|_";
+				for (let rx=cx-1; rx>=0; rx--) { // fill to the left
+					chunks_map[cy][rx] = "HH";
+				}
+				cx = change_chunk ? cx+1 : cx;
+				change_chunk = 0; // reset
+				
+			}
+			
+			
+			
+			// determine left exit here instead
+			if (exits_.includes(10)) {
+				let snake_left_i = rnd(0, terrain_trail_for_doors.length);
+				let snake_left = terrain_trail_for_doors[snake_left_i]; // x and y
+				
+				terrain_trail_for_doors.splice(snake_left_i, 1); // remove from terrain trail
+				
+				// remove any above and below the left exit
+				terrain_trail_for_doors = terrain_trail_for_doors.filter((xy) => xy[1] === chy_max-1);
+				
+				chunks_map[snake_left[1]][snake_left[0]] = "!_";
+				let scurrx = snake_left[0]-1;
+				let scurry = snake_left[1];
+				chunks_map[scurry][scurrx] = "==";
+				
+				for (; scurrx>0; scurrx--) {
+					chunks_map[scurry][scurrx] = "==";
+					terrain_trail_for_doors.push([scurrx,scurry]);
+				}
+				chunks_map[scurry][scurrx] = "<=";
+				
+			}
+			
+			for (let rx=cx-1; rx>=0; rx--) { // fill to the left
+				chunks_map[cy][rx] = "HH";
+			}
+			chunks_map[cy][cx] = ">-";
+			for (cx+=1; cx<chx_max; cx++) { // fill to the right and fill downward
+				chunk_types = CHUNKS["rules"][last_chunk]["R"];
+				last_chunk = chunk_types[rnd(0, chunk_types.length)];
+				chunks_map[cy][cx] = last_chunk;
+				if (cx < chx_max-1) {
+					terrain_trail_for_doors.push([cx,cy]);
+				}
+				for (let fill_down=cy+1; fill_down<chy_max; fill_down++) {
+					chunks_map[cy][cx] = "HH";
+				}
+			}
+			
+			
+			// right exit
+			if (exits_.includes(11)) {
+				exit_rt_y = cy;
+				switch (chunks_map[exit_rt_y][exit_rt_x]) {
+					case "__":
+						chunks_map[exit_rt_y][exit_rt_x] = "_>";
+						break;
+					case "-<":
+						chunks_map[exit_rt_y][exit_rt_x] = "->";
+						break;
+					case ">-":
+						chunks_map[exit_rt_y][exit_rt_x] = ">>";
+						break;
+				}
+			}
+			
+			// top exit
+			if (exits_.includes(13)) {
+				exit_up_x = start_top_x;
+				switch (chunks_map[exit_up_y][exit_up_x]) {
+					case "_|":
+						chunks_map[exit_up_y][exit_up_x] = "^|";
+						break;
+					case "-<":
+						chunks_map[exit_up_y][exit_up_x] = "^|";
+						break;
+				}
+			}
+			
+			
+			// bottom exit
+			if (exits_.includes(12)) {
+				let snake_down_i = rnd(0, terrain_trail_for_doors.length);
+				let snake_down = terrain_trail_for_doors[snake_down_i]; // x and y
+			
+				terrain_trail_for_doors.splice(snake_down_i, 1); // remove from terrain trail
+				
+				
+				if (chunks_map[snake_down[1]][snake_down[0]] === "==") { // inside mountain
+					chunks_map[snake_down[1]][snake_down[0]] = "TT";
+					for (let scurry=snake_down[1]+1; scurry<chy_max; scurry++) {
+						chunks_map[scurry][snake_down[0]] = "vv";
+					}
+				} else {
+					switch (chunks_map[snake_down[1]][snake_down[0]]) { // outside mountain, on bottom row
+						case "__":
+							chunks_map[snake_down[1]][snake_down[0]] = "_v";
+							break;
+						case "-<":
+							chunks_map[snake_down[1]][snake_down[0]] = "v<";
+							break;
+						case ">-":
+							chunks_map[snake_down[1]][snake_down[0]] = ">v";
+							break;
+						case "_|":
+							chunks_map[snake_down[1]][snake_down[0]] = "|v";
+							break;
+					}
+				}
+			}
+		} 
+
+
+
+	
+/*
+		
+Outside tower
+		
+		           ^^                        ^^               ^^
+               ^^		                     ^^               ^^
+               ^^                        ^^               ^^          
+<- -- -. rc _c c^ _c c>   <c _c _c .. _c c^ _c c>   <c _c c^ c7 .- -- -- -> 
+         .C CC CC CC CC   CC CC CC vv CC CC CC CC   CC CC CC C. 
+         vC CC CC CC CC   CC CC CC vv CC CC CC CC   CC CC CC Cv 
+
+         ^C CC CC CC CC   CC CC ^^ CC CC CC CC CC   CC CC CC C^ 
+         .C cc cc cc c>   CC CC ^^ CC CC CC CC CC   CC CC CC C. 
+<- -- -. .C CC CC CC CC   CC CC ^^ CC CC CC CC CC   <c cc cc C. 
+         .C CC CC CC CC   <c cc c^ cc cc .. cc c>   CC CC CC C. .- -- -- ->
+         .C CC CC CC CC   CC CC CC CC CC vv CC CC   CC CC CC C. 
+         vC CC CC CC CC   CC CC CC CC CC vv CC CC   CC CC CC Cv 
+
+         ^C CC CC CC CC   CC CC CC c^ CC CC CC CC   CC CC CC C^ 
+         .C CC CC CC CC   CC CC CC ^^ CC CC CC CC   CC CC CC C. 
+         .C CC CC CC CC   CC CC CC ^^ CC CC CC CC   CC CC CC C. 
+         .C CC CC CC CC   CC CC CC ^^ CC CC CC CC   CC CC CC C. 
+<_ .. __ _C cc cc cc c>   <c cc cc c^ .. cc cc c>   <c cc .. C_ __ __ __ _>
+HH vv HH HH HH HH HH HH   HH HH HH HH vv HH HH HH   HH HH vv HH HH HH HH HH
+	
+*/		
+		
+		else if (is_roof_left) {
+			let c7x = rnd(2, chx_max-1);
+			let c7y = rnd(1, chy_max-1);
+			chunks_map[c7y][c7x] = "c7";
+			for (let chj=c7y+1; chj<chy_max; chj++) {
+				chunks_map[chj][c7x] = "C.";
+			}
+			for (let chi=c7x-1; chi>=0; chi--) {
+				chunks_map[c7y][chi] = "_c";
+				if (0 < chi && chi < chx_max-1) {
+					terrain_trail_for_doors.push([chi, c7y]);
+				}
+				for (let chj=c7y+1; chj<chy_max; chj++) {
+					chunks_map[chj][chi] = "CC";
+				}
+			}
+			
+			if (exits_.includes(10)) {
+				chunks_map[c7y][0] = "<c";
+			}
+			
+			if (exits_.includes(11)) {
+				for (let chi=c7x+1; chi<chx_max-1; chi++) {
+					chunks_map[c7y][chi] = "--";
+				}
+				chunks_map[c7y][chx_max-1] = "->";
+			}
+			
+			// top exit
+			if (exits_.includes(13)) {
+				let snake_up_i = rnd(0, terrain_trail_for_doors.length);
+				let snake_up = terrain_trail_for_doors[snake_up_i]; // x and y
+				terrain_trail_for_doors.splice(snake_up_i, 1); // remove from terrain trail
+				
+				chunks_map[snake_up[1]][snake_up[0]] = "c^";
+				for (let chjj=snake_up[1]-1; chjj>=0; chjj--) {
+					chunks_map[chjj][snake_up[0]] = "^^";
+				}
+				
+				exit_up_x = snake_up[0];
+			}
+			
+			// bottom exit
+			if (exits_.includes(12)) {
+				chunks_map[chy_max-1][c7x] = "Cv";
+				exit_dn_x = c7x;
+			}
+			
+			// in case no places left for doors
+			if (terrain_trail_for_doors.length < 1) {
+				for (let ccj=0; ccj<chy_max; ccj++) {
+					if (chunks_map[ccj][c7x] === "C.") {
+						terrain_trail_for_doors.push([c7x, ccj]);
+					}
+				}
+			}
+			
+			// background castle wall
+			for (let csy=c7y*8+4; csy<bH; csy++) {
+				for (let csx=0; csx<c7x*8+4; csx++) {
+					dot_(terrain_img_behind, csx+1, csy+1);
+				}
+			}
+			
+			
+			
+		} else if (is_roof_right) {
+			let rcx = rnd(1, chx_max-2);
+			let rcy = rnd(1, chy_max-1);
+			//console.log(rcx+"/"+chx_max+" "+rcy+"/"+chy_max);
+			chunks_map[rcy][rcx] = "rc";
+			for (let chj=rcy+1; chj<chy_max; chj++) {
+				chunks_map[chj][rcx] = ".C";
+			}
+			for (let chi=rcx+1; chi<chx_max; chi++) {
+				chunks_map[rcy][chi] = "_c";
+				//console.log(chi+" "+rcy); //?
+				if (0 < chi && chi < chx_max-1) {
+					//console.log("push "+chi+" "+rcy); //?
+					terrain_trail_for_doors.push([chi, rcy]);
+					//console.log(terrain_trail_for_doors.length);
+				}
+				for (let chj=rcy+1; chj<chy_max; chj++) {
+					chunks_map[chj][chi] = "CC";
+				}
+			}
+			
+			if (exits_.includes(11)) {
+				chunks_map[rcy][chx_max-1] = "c>";
+			}
+			
+			if (exits_.includes(10)) {
+				for (let chi=rcx-1; chi>0; chi--) {
+					chunks_map[rcy][chi] = "--";
+				}
+				chunks_map[rcy][0] = "<-";
+			}
+			
+			//console.log(terrain_trail_for_doors.length);
+			// top exit
+			if (exits_.includes(13)) {
+				let snake_up_i = rnd(0, terrain_trail_for_doors.length);
+				
+				let snake_up = terrain_trail_for_doors[snake_up_i]; // x and y
+				terrain_trail_for_doors.splice(snake_up_i, 1); // remove from terrain trail
+				
+				chunks_map[snake_up[1]][snake_up[0]] = "c^";
+				for (let chjj=snake_up[1]-1; chjj>=0; chjj--) {
+					chunks_map[chjj][snake_up[0]] = "^^";
+				}
+				
+				exit_up_x = snake_up[0];
+			}
+			
+			// bottom exit
+			if (exits_.includes(12)) {
+				chunks_map[chy_max-1][rcx] = "vC";
+				exit_dn_x = rcx;
+			}
+			
+			// in case no places left for doors
+			if (terrain_trail_for_doors.length < 1) {
+				for (let ccj=0; ccj<chy_max; ccj++) {
+					if (chunks_map[ccj][rcx] === ".C") {
+						terrain_trail_for_doors.push([rcx, ccj]);
+					}
+				}
+			}
+			
+			// background castle wall
+			for (let csy=rcy*8+4; csy<bH; csy++) {
+				for (let csx=rcx*8+4; csx<bW; csx++) {
+					dot_(terrain_img_behind, csx+1, csy+1);
+				}
+			}
+			
+		} else if (is_roof) {
+			let topy = rnd(1, chy_max-1);
+			for (let chi=0; chi<chx_max; chi++) {
+				chunks_map[topy][chi] = "_c";
+				if (0 < chi && chi < chx_max-1) {
+					terrain_trail_for_doors.push([chi, topy]);
+				}
+				for (let chj=topy+1; chj<chy_max; chj++) {
+					chunks_map[chj][chi] = "CC";
+				}
+			}
+			
+			if (exits_.includes(10)) {
+				chunks_map[topy][0] = "<c";
+			}
+			if (exits_.includes(11)) {
+				chunks_map[topy][chx_max-1] = "c>";
+			}
+			
+			// top exit
+			if (exits_.includes(13)) {
+				let snake_up_i = rnd(0, terrain_trail_for_doors.length);
+				let snake_up = terrain_trail_for_doors[snake_up_i]; // x and y
+				terrain_trail_for_doors.splice(snake_up_i, 1); // remove from terrain trail
+				
+				chunks_map[snake_up[1]][snake_up[0]] = "c^";
+				for (let chjj=snake_up[1]-1; chjj>=0; chjj--) {
+					chunks_map[chjj][snake_up[0]] = "^^";
+				}
+				
+				exit_up_x = snake_up[0];
+			}
+			
+			// bottom exit
+			if (exits_.includes(12)) {
+				let snake_down_i = rnd(0, terrain_trail_for_doors.length);
+				let snake_down = terrain_trail_for_doors[snake_down_i]; // x and y
+				terrain_trail_for_doors.splice(snake_down_i, 1); // remove from terrain trail
+				
+				chunks_map[snake_down[1]][snake_down[0]] = "..";
+				//chunks_map[snake_down[1]+1][snake_down[0]] = "vv";
+				for (let chjj=snake_down[1]+1; chjj<chy_max; chjj++) {
+					chunks_map[chjj][snake_down[0]] = "vv";
+				}
+				
+				exit_dn_x = snake_down[0];
+			}
+			
+			// background castle wall
+			for (let csy=topy*8+4; csy<bH; csy++) {
+				for (let csx=0; csx<bW; csx++) {
+					dot_(terrain_img_behind, csx+1, csy+1);
+				}
+			}
+			
+			
+		} else if (is_tower_left) {
+			
+			let entryx = rnd(1, chx_max-1);
+			for (let chi=0; chi<entryx; chi++) {
+				for (let chj=0; chj<chy_max; chj++) {
+					chunks_map[chj][chi] = "CC";
+				}
+			}
+			for (let chj=0; chj<chy_max; chj++) {
+				chunks_map[chj][entryx] = "C.";
+			}
+			
+			if (exits_.includes(13)) {
+				chunks_map[0][entryx] = "C^";
+				exit_up_x = entryx;
+			}
+			
+			if (exits_.includes(12)) {
+				chunks_map[chy_max-1][entryx] = "Cv";
+				exit_dn_x = entryx;
+			}
+			
+			if (exits_.includes(10)) {
+				let go_left = rnd(1, chy_max-1);
+				for (let chi=entryx-1; chi>0; chi--) {
+					chunks_map[go_left][chi] = "cc";
+					if (0 < chi && chi < chx_max-1) {
+						terrain_trail_for_doors.push([chi, go_left]);
+					}
+				}
+				chunks_map[go_left][0] = "<c";
+			}
+			
+			if (exits_.includes(11)) {
+				let go_right = rnd(1, chy_max-1);
+				for (let chi=entryx+1; chi<chx_max-1; chi++) {
+					chunks_map[go_right][chi] = "--";
+				}
+				chunks_map[go_right][chx_max-1] = "->";
+			}
+			
+			if (terrain_trail_for_doors.length < 3) {
+				for (let chj=1; chj<chy_max-1; chj++) {
+					terrain_trail_for_doors.push([entryx, chj]);
+				}
+			}
+			
+			// background castle wall
+			for (let csy=0; csy<bH; csy++) {
+				for (let csx=0; csx<entryx*8+4; csx++) {
+					dot_(terrain_img_behind, csx+1, csy+1);
+				}
+			}
+			
+		} else if (is_tower_right) {
+			
+			let entryx = rnd(1, chx_max-1);
+			for (let chj=0; chj<chy_max; chj++) {
+				chunks_map[chj][entryx] = ".C";
+			}
+			
+			for (let chi=entryx+1; chi<chx_max; chi++) {
+				for (let chj=0; chj<chy_max; chj++) {
+					chunks_map[chj][chi] = "CC";
+				}
+			}
+			
+			if (exits_.includes(13)) {
+				chunks_map[0][entryx] = "^C";
+				exit_up_x = entryx;
+			}
+			
+			if (exits_.includes(12)) {
+				chunks_map[chy_max-1][entryx] = "vC";
+				exit_dn_x = entryx;
+				console.log("down exit tower right");
+			}
+			
+			if (exits_.includes(10)) {
+				let go_left = rnd(1, chy_max-1);
+				for (let chi=entryx-1; chi>0; chi--) {
+					chunks_map[go_left][chi] = "--";
+				}
+				chunks_map[go_left][0] = "<-";
+			}
+			
+			if (exits_.includes(11)) {
+				let go_right = rnd(1, chy_max-1);
+				for (let chi=entryx+1; chi<chx_max-1; chi++) {
+					chunks_map[go_right][chi] = "cc";
+				}
+				chunks_map[go_right][chx_max-1] = "c>";
+			}
+			
+			if (terrain_trail_for_doors.length < 3) {
+				for (let chj=1; chj<chy_max-1; chj++) {
+					terrain_trail_for_doors.push([entryx, chj]);
+				}
+			}
+			
+			// background castle wall
+			for (let csy=0; csy<bH; csy++) {
+				for (let csx=entryx*8+4; csx<bW; csx++) {
+					dot_(terrain_img_behind, csx+1, csy+1);
+				}
+			}
+			
+		} else if (is_tower) {
+			
+			for (let chi=0; chi<chx_max; chi++) {
+				for (let chj=0; chj<chy_max; chj++) {
+					chunks_map[chj][chi] = "CC";
+				}
+			}
+			
+			// place tower ledge across anyway, will need even if only one exit
+			// can have multiple entries into the tower
+			let entryy = rnd(1, chy_max-1);
+			for (let chi=0; chi<chx_max; chi++) {
+				chunks_map[entryy][chi] = "cc";
+				if (0 < chi && chi < chx_max-1) {
+					terrain_trail_for_doors.push([chi,entryy]);
+				}
+			}
+			
+			
+			if (exits_.includes(10)) {
+				chunks_map[entryy][0] = "<c";
+			}
+			
+			if (exits_.includes(11)) {
+				chunks_map[entryy][chx_max-1] = "c>";
+			}
+			
+			// top exit
+			if (exits_.includes(13)) {
+				let snake_up_i = rnd(0, terrain_trail_for_doors.length);
+				let snake_up = terrain_trail_for_doors[snake_up_i]; // x and y
+				terrain_trail_for_doors.splice(snake_up_i, 1); // remove from terrain trail
+				
+				chunks_map[snake_up[1]][snake_up[0]] = "c^";
+				for (let chjj=snake_up[1]-1; chjj>=0; chjj--) {
+					chunks_map[chjj][snake_up[0]] = "^^";
+				}
+				
+				exit_up_x = snake_up[0];
+			}
+			
+			// bottom exit
+			if (exits_.includes(12)) {
+				let snake_down_i = rnd(0, terrain_trail_for_doors.length);
+				let snake_down = terrain_trail_for_doors[snake_down_i]; // x and y
+				terrain_trail_for_doors.splice(snake_down_i, 1); // remove from terrain trail
+				
+				chunks_map[snake_down[1]][snake_down[0]] = "..";
+				chunks_map[snake_down[1]+1][snake_down[0]] = "vv";
+				
+				exit_dn_x = snake_down[0];
+			}
+			
+			// background castle wall
+			for (let csy=0; csy<bH; csy++) {
+				for (let csx=0; csx<bW; csx++) {
+					dot_(terrain_img_behind, csx+1, csy+1);
+				}
+			}
+			
+		} else if (is_towerground_left) {
+			// literally just sweeping across the chunk map and filling it in
+			// doors can be scattered across the wall, by changing some of the "CC" chunks to "Cc" or "cC"
+			let entryx = rnd(1, chx_max-1);
+			for (let chi=0; chi<entryx; chi++) {
+				for (let chj=0; chj<chy_max-2; chj++) {
+					chunks_map[chj][chi] = "CC";
+				}
+				chunks_map[chy_max-2][chi] = "cc";
+				if (0 < chi && chi < chx_max-1) {
+					terrain_trail_for_doors.push([chi, chy_max-2]);
+				}
+				chunks_map[chy_max-1][chi] = "HH";
+			}
+			
+			for (let chj=0; chj<chy_max-2; chj++) {
+				chunks_map[chj][entryx] = "C.";
+			}
+			chunks_map[chy_max-2][entryx] = "C_";
+			chunks_map[chy_max-1][entryx] = "HH";
+			
+			for (let chi=entryx+1; chi<chx_max; chi++) {
+				chunks_map[chy_max-2][chi] = "__";
+				if (0 < chi && chi < chx_max-1) {
+					terrain_trail_for_doors.push([chi, chy_max-2]);
+				}
+				chunks_map[chy_max-1][chi] = "HH";
+			}
+			
+			// background castle wall
+			for (let csy=0; csy<bH; csy++) {
+				for (let csx=0; csx<entryx*8+4; csx++) {
+					dot_(terrain_img_behind, csx+1, csy+1);
+				}
+			}
+			
+			// top exit
+			if (exits_.includes(13)) {
+				
+				/*
+				let snake_up_i = rnd(0, terrain_trail_for_doors.length);
+				let snake_up = terrain_trail_for_doors[snake_up_i]; // x and y
+				terrain_trail_for_doors.splice(snake_up_i, 1); // remove from terrain trail
+				
+				switch (chunks_map[snake_up[1]][snake_up[0]]) {
+					case "__":
+						chunks_map[snake_up[1]][snake_up[0]] = "^_";
+						break;
+					case "cc":
+						chunks_map[snake_up[1]][snake_up[0]] = "c^";
+						break;
+				}
+				for (let chjj=snake_up[1]-1; chjj>=0; chjj--) {
+					chunks_map[chjj][snake_up[0]] = "^^";
+				}
+				*/
+				chunks_map[0][entryx] = "C^";
+				exit_up_x = entryx;//snake_up[0];
+			}
+			
+			// bottom exit
+			if (exits_.includes(12)) {
+				let snake_down_i = rnd(0, terrain_trail_for_doors.length);
+				let snake_down = terrain_trail_for_doors[snake_down_i]; // x and y
+				terrain_trail_for_doors.splice(snake_down_i, 1); // remove from terrain trail
+				
+				switch (chunks_map[snake_down[1]][snake_down[0]]) {
+					case "__":
+						chunks_map[snake_down[1]][snake_down[0]] = "v_";
+						break;
+					case "cc":
+						chunks_map[snake_down[1]][snake_down[0]] = "cv";
+						break;
+				}
+				chunks_map[snake_down[1]+1][snake_down[0]] = "vv";
+				
+				exit_dn_x = snake_down[0];
+			}
+			
+			
+			
+			
+		} else if (is_towerground_right) {
+			// literally just sweeping across the chunk map and filling it in
+			// doors can be scattered across the wall, by changing some of the "CC" chunks to "Cc" or "cC"
+			let entryx = rnd(1, chx_max-1);
+			for (let chi=0; chi<entryx; chi++) {
+				chunks_map[chy_max-2][chi] = "__";
+				if (0 < chi && chi < chx_max-1) {
+					terrain_trail_for_doors.push([chi, chy_max-2]);
+				}
+				chunks_map[chy_max-1][chi] = "HH";
+			}
+			for (let chj=0; chj<chy_max-1; chj++) {
+				chunks_map[chj][entryx] = ".C";
+				// dot_(terrain_img_behind, new_x+1, new_y+1); // <---- 
+			}
+			chunks_map[chy_max-2][entryx] = "_C"; // avoid putting down exit on this one
+			chunks_map[chy_max-1][entryx] = "HH";
+			for (let chi=entryx+1; chi<chx_max; chi++) {
+				for (let chj=0; chj<chy_max-2; chj++) {
+					chunks_map[chj][chi] = "CC";
+				}
+				chunks_map[chy_max-2][chi] = "cc";
+				if (0 < chi && chi < chx_max-1) {
+					terrain_trail_for_doors.push([chi, chy_max-2]);
+				}
+				chunks_map[chy_max-1][chi] = "HH";
+			}
+			
+			// background castle wall
+			for (let csy=0; csy<bH; csy++) {
+				for (let csx=entryx*8+4; csx<bW; csx++) {
+					dot_(terrain_img_behind, csx+1, csy+1);
+				}
+			}
+			
+			// top exit
+			if (exits_.includes(13)) {
+				/*
+				let snake_up_i = rnd(0, terrain_trail_for_doors.length);
+				let snake_up = terrain_trail_for_doors[snake_up_i]; // x and y
+				terrain_trail_for_doors.splice(snake_up_i, 1); // remove from terrain trail
+				
+				switch (chunks_map[snake_up[1]][snake_up[0]]) {
+					case "__":
+						chunks_map[snake_up[1]][snake_up[0]] = "_^";
+						break;
+					case "cc":
+						chunks_map[snake_up[1]][snake_up[0]] = "c^";
+						break;
+				}
+				for (let chjj=snake_up[1]-1; chjj>=0; chjj--) {
+					chunks_map[chjj][snake_up[0]] = "^^";
+				}
+				*/
+				chunks_map[0][entryx] = "^C";
+				exit_up_x = entryx;//snake_up[0];
+			}
+			
+			// bottom exit
+			if (exits_.includes(12)) {
+				let snake_down_i = rnd(0, terrain_trail_for_doors.length);
+				let snake_down = terrain_trail_for_doors[snake_down_i]; // x and y
+				terrain_trail_for_doors.splice(snake_down_i, 1); // remove from terrain trail
+				
+				switch (chunks_map[snake_down[1]][snake_down[0]]) {
+					case "__":
+						chunks_map[snake_down[1]][snake_down[0]] = "_v";
+						break;
+					case "cc":
+						chunks_map[snake_down[1]][snake_down[0]] = "..";
+						break;
+				}
+				chunks_map[snake_down[1]+1][snake_down[0]] = "vv";
+				
+				exit_dn_x = snake_down[0];
+			}
+			
+			
+			
+		} else if (is_towerground) {
+			for (let chi=0; chi<chx_max; chi++) {
+				for (let chj=0; chj<chy_max-2; chj++) {
+					chunks_map[chj][chi] = "CC";
+				}
+				chunks_map[chy_max-2][chi] = "cc";
+				if (0 < chi && chi < chx_max-1) {
+					terrain_trail_for_doors.push([chi, chy_max-2]);
+				}
+				
+				chunks_map[chy_max-1][chi] = "HH";
+			}
+			
+			// background castle wall
+			for (let csy=0; csy<bH; csy++) {
+				for (let csx=0; csx<bW; csx++) {
+					dot_(terrain_img_behind, csx+1, csy+1);
+				}
+			}
+			
+			
+			// top exit
+			if (exits_.includes(13)) {
+				let snake_up_i = rnd(0, terrain_trail_for_doors.length);
+				let snake_up = terrain_trail_for_doors[snake_up_i]; // x and y
+				terrain_trail_for_doors.splice(snake_up_i, 1); // remove from terrain trail
+				
+				chunks_map[snake_up[1]][snake_up[0]] = "c^";
+				for (let chjj=snake_up[1]-1; chjj>=0; chjj--) {
+					chunks_map[chjj][snake_up[0]] = "^^";
+				}
+				
+				exit_up_x = snake_up[0];
+			}
+			
+			// bottom exit
+			if (exits_.includes(12)) {
+				let snake_down_i = rnd(0, terrain_trail_for_doors.length);
+				let snake_down = terrain_trail_for_doors[snake_down_i]; // x and y
+				terrain_trail_for_doors.splice(snake_down_i, 1); // remove from terrain trail
+				
+				chunks_map[snake_down[1]][snake_down[0]] = "..";
+				chunks_map[snake_down[1]+1][snake_down[0]] = "vv";
+				
+				exit_dn_x = snake_down[0];
+			}
+		
+/*
+			
+	inside tower has different chunk layout		
+			
+			
+*/			
+		
+		
+		}	else if (is_inside_tower) {
+			
+			
+			
+			for (let Dj=0; Dj<chy_max; Dj+=3) {
+				let stairs = rnd(2, parseInt((chx_max-2)/2));
+				for (let Di=0; Di<chx_max; Di+=2) {
+					if (parseInt(Di/2) === stairs && Dj+3 < chy_max) {
+						
+						chunks_map[Dj][Di] = "D|";
+						if (Dj+3 < chy_max) {
+							chunks_map[Dj+3][Di] = "D|";
+						}
+					} else if (chunks_map[Dj][Di] !== "D|") {
+						
+						chunks_map[Dj][Di] = "D-";
+					}
+					
+					// testing
+					/*if (area_index === 0 && Di === 0) {
+						psxc = chi;
+						psyc = chj;
+						chunk_type = "ss";
+					}/**/
+					
+					terrain_trail_for_doors.push([Di, Dj+1]);
+				}
+			}
+			
+			if (exits_.includes(10)) {
+				let left_exit = rnd(0, parseInt(chy_max/3));
+				chunks_map[left_exit*3][0] = "D<";
+			}
+			
+			if (exits_.includes(11)) {
+				let right_exit = rnd(0, parseInt(chy_max/3));
+				chunks_map[right_exit*3][chx_max-2] = "D>";
+			}
+			
+			
+			
+			
+			
 			
 		}
-		/**/
+		
+		
+/*	
+   regular ground
+		
+		
+*/
+		else if (area["right_to_left"]) {
+			
+			
+			
+			for (let chi=chx_max-1; chi>=0; chi--) {
+				chunk_types = CHUNKS["rules"][chunk_type]["L"];
+				chunk_type = chunk_types[rnd(0, chunk_types.length)];
+				change_vertical = rnd(-1,2); // -1 0 1 
+				if (
+					change_vertical === -1 && 
+					chj > 1 &&
+					last_chunk === ">-"
+				) {
+					chj--; lft_cy--; //end_edge_cy--;
+					chunk_type = "__";
+				} else if (
+					change_vertical === 1 && 
+					chj < chy_max-1 &&
+					last_chunk === "__"
+				) {
+					chj++; lft_cy++; //end_edge_cy++;
+					chunk_type = "-<";
+				}
+				
+				if (!no_floor) {
+					// could do holes as well, do it 
+					for (let below=chj+1; below<chy_max; below++) {
+						chunks_map[below][chi] = "HH";// HH[rnd(0, HH.length)];
+					}
+				}
+		
+				if (area_index === 0 && chi === chx_max-1) {
+					psxc = chi;
+					psyc = chj;
+					chunk_type = "ss";
+				}
+		
+				// place door. get door info based off chunk x position
+				/*if (door_exit_locs.includes(chi)){
+					let dc = door_exit_locs[door_exit_locs.indexOf(chi)];
+					ddd[dc]["cy"] = chj;
+				}/**/
+		
+				chunks_map[chj][chi] = chunk_type;
+				if (0 < chi && chi < chx_max-1) {
+					terrain_trail_for_doors.push([chi,chj]);
+				}
+				last_chunk = chunk_type;
+			}
+			
+			
+			if (exits_.includes(12)) {
+				let snake_down_i = rnd(0, terrain_trail_for_doors.length);
+				let snake_down = terrain_trail_for_doors[snake_down_i]; // x and y
+				
+				terrain_trail_for_doors.splice(snake_down_i, 1); // remove from terrain trail
+				
+				switch (chunks_map[snake_down[1]][snake_down[0]]) {
+					case "__":
+						chunks_map[snake_down[1]][snake_down[0]] = "..";
+						break;
+					case "-<":
+						chunks_map[snake_down[1]][snake_down[0]] = ".<";
+						break;
+					case ">-":
+						chunks_map[snake_down[1]][snake_down[0]] = ">.";
+						break;
+				}
+				let scurrx=snake_down[0]; // TODO: change via zigzag
+				let scurry=snake_down[1]+1;
+				for (; scurry<chy_max; scurry++) {
+					chunks_map[scurry][snake_down[0]] = "vv";
+				}
+				exit_dn_x = scurrx;
+				//btm_cy = scurry;
+				//console.log("btm exit set");
+			}
+			
+			if (exits_.includes(13)) {
+				let snake_up_i = rnd(0, terrain_trail_for_doors.length);
+				let snake_up = terrain_trail_for_doors[snake_up_i]; // x and y
+		
+				terrain_trail_for_doors.splice(snake_up_i, 1); // remove from terrain trail
+				
+				switch (chunks_map[snake_up[1]][snake_up[0]]) {
+					case "__":
+						chunks_map[snake_up[1]][snake_up[0]] = "^_";
+						break;
+					case "-<":
+						chunks_map[snake_up[1]][snake_up[0]] = "^<";
+						break;
+					case ">-":
+						chunks_map[snake_up[1]][snake_up[0]] = ">^";
+						break;
+				}
+				let scurrx=snake_up[0]; // TODO: change via zigzag
+				let scurry=snake_up[1]-1;
+				for (; scurry>=0; scurry--) {
+					chunks_map[scurry][snake_up[0]] = "^^";
+				}
+				exit_up_x = scurrx;
+				//top_cy = scurry;
+				//console.log("top exit set");
+			}
+			
+		} else {
+			
+			for (let chi=0; chi<chx_max; chi++) {
+				chunk_types = CHUNKS["rules"][chunk_type]["R"];
+				chunk_type = chunk_types[rnd(0, chunk_types.length)];
+				change_vertical = rnd(-1,2); //rnd(-1,2); // -1 rise, 0, 1     
+				if (
+					change_vertical === -1 && 
+					chj > 1 &&
+					last_chunk === "-<"
+				) {
+					chj--; rgt_cy--; //end_edge_cy--;
+					chunk_type = "__";
+				} else if (
+					change_vertical === 1 && 
+					chj < chy_max-1 &&
+					last_chunk === "__"
+				) {
+					chj++; rgt_cy++; //end_edge_cy++;
+					chunk_type = ">-";
+				}
+		
+				if (!no_floor) { // this will have to change as more terrain types are structured
+					for (let below=chj+1; below<chy_max; below++) {
+						chunks_map[below][chi] = "HH";//HH[rnd(0, HH.length)];
+					}
+				}
+				if (is_underground) {
+					/*
+					for (let below=chj-2; below>=0; below--) {
+						chunks_map[below][chi] = HH[rnd(0, HH.length)];
+					}*/
+				}
+		
+				if (area_index === 0 && chi === 0) {
+					psxc = chi;
+					psyc = chj;
+					chunk_type = "ss";
+				}
+		
+				chunks_map[chj][chi] = chunk_type;
+				if (0 < chi && chi < chx_max-1) {
+					terrain_trail_for_doors.push([chi,chj]);
+				}
+				last_chunk = chunk_type;
+			}
+			
+			
+			if (exits_.includes(12)) {
+				let snake_down_i = rnd(0, terrain_trail_for_doors.length);
+				let snake_down = terrain_trail_for_doors[snake_down_i]; // x and y
+		
+				terrain_trail_for_doors.splice(snake_down_i, 1); // remove from terrain trail
+				
+				switch (chunks_map[snake_down[1]][snake_down[0]]) {
+					case "__":
+						chunks_map[snake_down[1]][snake_down[0]] = "..";
+						break;
+					case "-<":
+						chunks_map[snake_down[1]][snake_down[0]] = ".<";
+						break;
+					case ">-":
+						chunks_map[snake_down[1]][snake_down[0]] = ">.";
+						break;
+				}
+				let scurrx=snake_down[0]; // TODO: change via zigzag
+				let scurry=snake_down[1]+1;
+				for (; scurry<chy_max; scurry++) {
+					chunks_map[scurry][snake_down[0]] = "vv";
+				}
+				exit_dn_x = scurrx;
+				//btm_cy = scurry;
+				//console.log("btm exit set");
+			}
+			
+			if (exits_.includes(13)) {
+				let snake_up_i = rnd(0, terrain_trail_for_doors.length);
+				let snake_up = terrain_trail_for_doors[snake_up_i]; // x and y
+		
+				terrain_trail_for_doors.splice(snake_up_i, 1); // remove from terrain trail
+				
+				switch (chunks_map[snake_up[1]][snake_up[0]]) {
+					case "__":
+						chunks_map[snake_up[1]][snake_up[0]] = "_^";
+						break;
+					case "-<":
+						chunks_map[snake_up[1]][snake_up[0]] = "^<";
+						break;
+					case ">-":
+						chunks_map[snake_up[1]][snake_up[0]] = ">^";
+						break;
+				}
+				
+				let scurrx=snake_up[0]; // TODO: change via zigzag
+				let scurry=snake_up[1]-1;
+				for (; scurry>=0; scurry--) {
+					chunks_map[scurry][snake_up[0]] = "^^";
+				}
+				exit_up_x = scurrx;
+				//top_cy = scurry;
+				//console.log("top exit set");
+			}
+				
+		}
+		
+		//console.log(door_exits);
+		
+		//console.log(terrain_trail_for_doors);
+		let d_locs = [];
+		
+		
+		// -------------- END main chunkmap shape
+		
+		//let shf_d = this.shuffleArray(terrain_trail_for_doors);
+		
+		for (let k of Object.keys(door_exits)) { // k is the area.
+			let get_d_i = rnd(0, terrain_trail_for_doors.length);
+			let get_d = terrain_trail_for_doors[get_d_i]; // x and y
+			terrain_trail_for_doors.splice(get_d, 1); // remove from terrain trail
+			
+			door_exits[k]["cx"] = get_d[0]; 
+			door_exits[k]["cy"] = get_d[1];
+			
+			d_locs.push(get_d);
+			//console.log(door_exits[k]);
+		}
+		
+		// check the chunk, then 
+		
+		//console.log(door_exits);
+		//console.log(d_locs);
+		//console.log("---------");
+		
+		//console.log(d_locs.map(xy => xy[0]));
+		// terrain_trail_for_doors
+		//console.log(terrain_trail_for_doors);
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		//if (area["right_to_left"]) {
+		//	console.log(end_edge_cy+" "+srt_edge_cy);
+		//} else {
+		//	console.log(srt_edge_cy+" "+end_edge_cy);
+		//}
+		
+		
+		
+		
+		
+		//console.log(ddd);
+		
+		
+		// where to put them?
+		
+		
+		// reset if exit not available
+		if (!exits_.includes(10)) {
+			lft_cx = -1;
+			lft_cy = -1;
+		}
+		if (!exits_.includes(11)) {
+			rgt_cx = -1;
+			rgt_cy = -1;
+		}
+		
+		
+		
+		
+		// add to terrain_trail_for_doors after 
+		
+		
+		
+		/*
+		if (exits_.includes(12) && !(is_cave_left || is_cave_right || is_cliff_left || is_cliff_right || is_peak_left || is_peak_right)) {
+			//console.log("... "+area.terrain+ "   checking if bottom exit");
+			btm_cx = rnd(1, chx_max-1);
+			btm_cy = chy_max-1;
+			
+			
+			if (["HH", "Hh", "hH", "hh"].includes(chunks_map[btm_cy][btm_cx])) {
+				// if underground, snake upward until surface TODO: change to snake downward instead
+				let curr_bx = btm_cx;
+				let curr_by = btm_cy;
+				let curr_chunk = chunks_map[curr_by][curr_bx];
+				
+				while (!["__", "-<", ">-"].includes(curr_chunk) && curr_by > 0) {
+					let go_left = 0;
+					let go_right = 0;
+					//if (chunks_map[curr_by][curr_bx])
+					while (["HH", "Hh", "hH", "hh"].includes(chunks_map[curr_by][curr_bx+go_left]) && curr_bx+go_left > 0 && go_left > MAX_ZIGZAG["left"]) { 
+						go_left--; 
+					}
+					while (["HH", "Hh", "hH", "hh"].includes(chunks_map[curr_by][curr_bx+go_right]) && curr_bx+go_right < chx_max && go_right < MAX_ZIGZAG["right"]) { 
+						go_right++; 
+					}
+					let go_x = rnd(go_left, go_right);
+					if (go_x < 0) {
+						chunks_map[curr_by][curr_bx] = "=7";
+						for (let xx=-1; go_x<xx; xx--) { chunks_map[curr_by][curr_bx+xx] = "=="; }
+						if (["__", "-<", ">-"].includes(chunks_map[curr_by][curr_bx+go_x])) {
+							chunks_map[curr_by][curr_bx+go_x] = "L=";
+							curr_bx += go_x;
+							//curr_by--;
+							break;
+						} else {
+							chunks_map[curr_by][curr_bx+go_x] = "L=";
+						}
+					} else if (0 < go_x) {
+						chunks_map[curr_by][curr_bx] = "r=";
+						for (let xx=1; xx<go_x; xx++) { chunks_map[curr_by][curr_bx+xx] = "=="; }
+						if (["__", "-<", ">-"].includes(chunks_map[curr_by][curr_bx+go_x])) {
+							chunks_map[curr_by][curr_bx+go_x] = "=J";
+							curr_bx += go_x;
+							//curr_by--;
+							break;
+						} else {
+							chunks_map[curr_by][curr_bx+go_x] = "=J";
+						}
+					} else {
+						//console.log("put vv "+curr_by+" "+curr_bx);
+						chunks_map[curr_by][curr_bx] = "vv";
+					}
+					curr_bx += go_x;
+					curr_by--;
+					if (curr_by < 0) {
+						console.log("curr_by < 0   "+curr_by+" "+curr_bx)
+						//throw 0;
+						break;
+					}
+					try {
+						curr_chunk = chunks_map[curr_by][curr_bx];
+					} catch(err) {
+						console.log(curr_by+" "+curr_bx);
+						throw err;
+						break;
+					}
+					
+				}
+				
+				down_cx = curr_bx;
+				down_cy = curr_by;
+				
+			} else if (["__", "-<", ">-"].includes(chunks_map[btm_cy][btm_cx])) {
+				// if exit is already on surface, then out_c and btm_c are the same
+				down_cx = btm_cx;
+				down_cy = btm_cy;
+				console.log(" exit already on surface")
+			} else if (no_floor) {
+				
+			}
+			
+		} /**/
+		
+		
+		
+		/*
+		if (exits_.includes(13) && !(is_cave_left || is_cave_right || is_cliff_left || is_cliff_right || is_peak_left || is_peak_right)) {
+			top_cx = rnd(1, chx_max-1);
+			top_cy = 0;
+			
+			if (chunks_map[top_cy][top_cx] === "") {
+				// if in the sky, snake downward until surface
+				let curr_tx = top_cx;
+				let curr_ty = top_cy;
+				let curr_chunk = chunks_map[curr_ty][curr_tx];
+				while (!["__", "-<", ">-"].includes(curr_chunk) && curr_ty < chy_max-1) {
+					let go_left = 0;
+					let go_right = 0;
+					while (
+						chunks_map[curr_ty][curr_tx+go_left] === "" && 
+						chunks_map[curr_ty+1][curr_tx+go_left] === "" &&
+						curr_tx+go_left > 1 && 
+						go_left > MAX_ZIGZAG["left"]
+					) { 
+						go_left--; 
+					}
+					while (
+						chunks_map[curr_ty][curr_tx+go_right] === "" && 
+						chunks_map[curr_ty+1][curr_tx+go_right] === "" &&
+						curr_tx+go_right < chx_max-1 && 
+						go_right < MAX_ZIGZAG["right"]
+					) { 
+						go_right++; 
+					}
+					let go_x = rnd(go_left, go_right);
+					if (go_x < 0) {
+						chunks_map[curr_ty][curr_tx] = "-J";
+						for (let xx=-1; go_x<xx; xx--) { chunks_map[curr_ty][curr_tx+xx] = "--"; }
+						if (["__", "-<", ">-"].includes(chunks_map[curr_ty][curr_tx+go_x])) {
+							chunks_map[curr_ty][curr_tx+go_x] = "r-";
+							curr_tx += go_x;
+							//curr_by--;
+							break;
+						} else {
+							chunks_map[curr_ty][curr_tx+go_x] = "r-";
+						}
+					} else if (0 < go_x) {
+						chunks_map[curr_ty][curr_tx] = "L-";
+						for (let xx=1; xx<go_x; xx++) { chunks_map[curr_ty][curr_tx+xx] = "--"; }
+						if (["__", "-<", ">-"].includes(chunks_map[curr_ty][curr_tx+go_x])) {
+							chunks_map[curr_ty][curr_tx+go_x] = "-7";
+							curr_tx += go_x;
+							//curr_by--;
+							break;
+						} else {
+							chunks_map[curr_ty][curr_tx+go_x] = "-7";
+						}
+					} else {
+						chunks_map[curr_ty][curr_tx] = "^^";
+					}
+					curr_tx += go_x;
+					curr_ty++;
+					try {
+						curr_chunk = chunks_map[curr_ty][curr_tx];
+					} catch(err) {
+						console.log(curr_ty+" "+curr_tx);
+						break;
+					}
+				}
+				
+				up_cx = curr_tx;
+				up_cy = curr_ty;
+				
+			} else if (["__", "-<", ">-"].includes(chunks_map[top_cy][top_cx])) {
+				// if exit is already on terrain, then up_c and top_c are the same
+				up_cx = top_cx;
+				up_cy = top_cy;
+				
+			}
+			
+		} /**/
+		
+		
+		
+		// --- fill in ceiling if underground type
+		// insidecavetop, insidecave, underground, insidetower, insidetowertop, insidetowerground, basement
+		if (fill_in_ceiling) {
+			for (let cx=0; cx<chx_max; cx++) {
+				let top_exit_path = false;
+				for (let cy=0; cy<chy_max-2; cy++) {
+					if (["r-", "-7", "-J", "L-", "--", "vv"].includes(chunks_map[cy][cx])) {
+						top_exit_path = true;
+					}
+					if (chunks_map[cy][cx] === "" && chunks_map[cy+1][cx] === "") {
+						//if (chunks_map[cy+2][cx] === "") {
+						if (top_exit_path) {
+							let okay_fill_in_i_guess = rnd(0,3);
+							if (okay_fill_in_i_guess === 0) {
+								if (cy >= 1 && chunks_map[cy-1][cx] === "jj") {
+									chunks_map[cy-1][cx] = "ii";
+								}
+								chunks_map[cy][cx] = "jj";
+							}
+						} else {
+							if (cy >= 1 && chunks_map[cy-1][cx] === "jj") {
+								chunks_map[cy-1][cx] = "ii";
+							}
+							chunks_map[cy][cx] = "jj";
+						}
+					}
+				}
+			}
+		}
+		
+		// change platforms if a sky or aboveground area
+		if (no_floor) {
+			for (let cy=0; cy<chy_max; cy++) {
+				for (let cx=1; cx<chx_max-1; cx++) {
+					switch (chunks_map[cy][cx]) {
+						case "__":
+							chunks_map[cy][cx] = "--";
+						  break;
+						case "-<":
+							chunks_map[cy][cx] = "_-";
+						  break;
+						case ">-":
+							chunks_map[cy][cx] = "-_";
+						  break;
+					}
+				}
+			}
+		}
+		
+		
+		
+		// left and right edges
+		//	before
+		//    -<           >- 
+		//    >-           -<
+		//    __           __
+		
+		//	after
+		//    <<           >> 
+		//    <-           ->
+		//    <_           _>
+		
+		// up and down
+		//	before
+		//    -<            
+		//    >-           
+		//    __           
+		
+		//	after
+		//    ^<           
+		//    >^           
+		//    _^ 
+		          
+		
+		// dead ends dont have the above terrain edge type
+		//if (area_index === 7) {
+			//console.log("lr_cy: "+lr_cy);
+			//console.log("end chunk height: "+end_edge_cy);
+			//}
+		
+		if (up_cx >= 0 && up_cy >= 0) {
+			console.log("up!");
+			let replace_chunk = chunks_map[up_cy][up_cx];
+			
+			switch (replace_chunk) {
+				case "-<":
+					chunks_map[up_cy][up_cx] = "^<";
+					break;
+				case ">-":
+					chunks_map[up_cy][up_cx] = ">^";
+					break;
+				case "__":
+					if (chunks_map[up_cy-1][up_cx] === "-7") {
+						chunks_map[up_cy][up_cx] = "_^";
+					} else if (chunks_map[up_cy-1][up_cx] === "r-") {
+						chunks_map[up_cy][up_cx] = "^_";
+					} else if (chunks_map[up_cy-1][up_cx] === "^^") {
+						chunks_map[up_cy][up_cx] = "_^";
+					}
+					
+					break;
+			}
+		}
+		
+		// replace edge terrain with exit types
+		if (lft_cx >= 0 && lft_cy >= 0) {
+			
+			let replace_chunk = chunks_map[lft_cy][lft_cx];
+			
+			//console.log(replace_chunk+"     "+lft_cx+" "+lft_cy+"   "+rgt_cx+" "+rgt_cy);
+			switch (replace_chunk) {
+				case "-<":
+					chunks_map[lft_cy][lft_cx] = "<<";
+					break;
+				case ">-":
+					chunks_map[lft_cy][lft_cx] = "<-";
+					break;
+				case "__":
+					chunks_map[lft_cy][lft_cx] = "<_";
+					break;
+			}
+		}
+		if (rgt_cx >= 0 && rgt_cy >= 0) {
+			let replace_chunk = chunks_map[rgt_cy][rgt_cx];
+			switch (replace_chunk) {
+				case ">-":
+					chunks_map[rgt_cy][rgt_cx] = ">>";
+					break;
+				case "-<":
+					chunks_map[rgt_cy][rgt_cx] = "->";
+					break;
+				case "__":
+					chunks_map[rgt_cy][rgt_cx] = "_>";
+					break;
+			}
+		}
+		
+		// bandaid solution to fix missing edge exit chunks (may be more types, fix later)
+		if (exits_.includes(10)) {
+			//console.log("fixing left exit");
+			for (let cy=0; cy<chy_max; cy++) {
+				if (chunks_map[cy][0] === "-<") {
+					chunks_map[cy][0] = "<<";
+					break;
+				} else if (chunks_map[cy][0] === ">-") {
+					chunks_map[cy][0] = "<-";
+					break;
+				} else if (chunks_map[cy][0] === "__") {
+					chunks_map[cy][0] = "<_";
+					break;
+				} else if (chunks_map[cy][0] === "cc") {
+					chunks_map[cy][0] = "<c";
+					break;
+				}
+			}
+		}
+		
+		if (exits_.includes(11)) {
+			//console.log("fixing right exit");
+			for (let cy=0; cy<chy_max; cy++) {
+				if (chunks_map[cy][chx_max-1] === ">-") {
+					chunks_map[cy][chx_max-1] = ">>";
+					break;
+				} else if (chunks_map[cy][chx_max-1] === "-<") {
+					chunks_map[cy][chx_max-1] = "->";
+					break;
+				} else if (chunks_map[cy][chx_max-1] === "__") {
+					chunks_map[cy][chx_max-1] = "_>";
+					break;
+				} else if (chunks_map[cy][chx_max-1] === "cc") {
+					chunks_map[cy][chx_max-1] = "c>";
+					break;
+				}
+			}
+		}
+		
+		
+		
+		// =================== dot and paint grid, as well as exits OUT ===============
+		
+		// CC  current chunk
+		let CC_list = CHUNKS[chunk_type];
+		let CC_i = 0; //rnd(0, CC_list.length); // current chunk index for list (should be random)
+		let CC = CC_list[CC_i];
+		
+		var num_ps = 0;
+		
+		let chunk_size_y = is_inside_tower ? 24 : 8;
+		let chunk_size_x = is_inside_tower ? 16 : 8;
+		//console.log(chy_max); // 9
+		
+		for (let jj=0; jj<chy_max; jj = is_inside_tower ? jj+3 : jj+1 ) {
+			//console.log("jj "+jj);
+			for (let ii=0; ii<chx_max; ii = is_inside_tower ? ii+2 : ii+1) {
+				
+				chunk_type = chunks_map[jj][ii]; // get number from overall map
+				if (chunk_type === "") {
+					continue;
+				}
+				
+				
+				
+				
+				CC_list = CHUNKS[chunk_type];
+				CC_i = rnd(0, CC_list.length);
+				CC = CC_list[CC_i];
+				
+				if ( tupleExists(d_locs, [ii,jj]) ) {
+				//	// TODO
+				//	console.log(d_locs);
+				//	console.log(door_exits);
+				}
+				
+				
+				
+				for (let j=0; j<chunk_size_y; j++) {
+					//console.log("chsy"+chunk_size_y+"*jj"+jj+" + "+j);
+					for (let i=0; i<chunk_size_x; i++) {
+						
+						let new_x = (8*ii)+i;
+						let new_y = (8*jj)+j;
+						
+						
+						
+						
+						// TODO: all this needs to be organized
+						if (CC[j][i] === 9) {
+							num_ps++;
+							let pmovetype = rnd(0,5);
+							this.create_platform(area_index, new_x*8, new_y*8, pmovetype);
+						} 
+						if (CC[j][i] === 90) { // move left then right
+							num_ps++;
+							this.create_platform(area_index, new_x*8, new_y*8, 0);
+						}
+						if (CC[j][i] === 91) { // move right then left
+							num_ps++;
+							this.create_platform(area_index, new_x*8, new_y*8, 1);
+						}
+						if (CC[j][i] === 92) { // move down then up
+							num_ps++;
+							this.create_platform(area_index, new_x*8, new_y*8, 2);
+						}
+						if (CC[j][i] === 93) { // move up then down
+							num_ps++;
+							this.create_platform(area_index, new_x*8, new_y*8, 3);
+						}
+						if (CC[j][i] === 94) {
+							num_ps++;
+							this.create_platform(area_index, new_x*8, new_y*8, 4);
+						}
+						
+						
+						
+						
+						if (CC[j][i] === 1) {
+							try {
+								terrain_grid[ new_y ][ new_x ] = 1;
+							} catch (err) {
+								//console.log(new_y+" "+new_x); // 78 0
+								//console.log(terrain_grid.length+" "+terrain_grid[0].length); // 72 73
+								
+								throw "pokemon";
+							}
+							
+							dot_(terrain_img, new_x+1, new_y+1); //image is offset by one
+						}
+						
+						if (CC[j][i] === 2) {
+							terrain_grid[ new_y ][ new_x ] = 2;
+							area["image"].set( new_x, new_y, T["climb"]+toff);
+							
+						}
+						
+						if (CC[j][i] === 40) { // ----- <-- door
+							if (tupleExists(d_locs, [ii,jj])) {
+								let ch_ = findElementByValues(door_exits, "cx", ii, "cy", jj);
+								if (ch_) {
+									this.areas[area_index]["exits"][ch_["goto"]]["gx"] = new_x;
+									this.areas[area_index]["exits"][ch_["goto"]]["gy"] = new_y;
+								
+									this.areas[area_index]["exits"][ch_["goto"]]["goto"] = ch_["goto"];
+								
+									area["event_grid"][new_y][new_x] = 4;
+								
+									//make sure other side goes back to this exact spot
+									this.areas[ch_["goto"]]["exits"][area_index]["gotox"] = new_x;
+									this.areas[ch_["goto"]]["exits"][area_index]["gotoy"] = new_y;
+									this.areas[ch_["goto"]]["exits"][area_index]["goto"] = area_index;
+								}
+								
+							} else {
+								terrain_grid[ new_y ][ new_x ] = 1;
+								dot_(terrain_img, new_x+1, new_y+1);
+							}
+							/*let found_door_xy = d_locs.filter(xy => xy[0] === ii && xy[1] === jj);
+							if (found_door_xy.length) {
+								console.log(found_door_xy);
+								console.log(door_exits);
+							}/**/
+							//if (door_exit_locs.includes(ii) && jj === ddd[ii]["cy"] ) {
+								// 
+								//} else {
+								//terrain_grid[ new_y ][ new_x ] = 1;
+								//dot_(terrain_img, new_x+1, new_y+1);
+								//}
+						}
+						
+						if (CC[j][i] === 10) {
+							//console.log("10: "+ii+"="+down_cx+" "+jj+"="+down_cy);
+							if ((jj === down_cy && ii === down_cx) || (jj === btm_cy && ii === btm_cx)) {
+								//console.log("10 found on chunk "+ii+" "+jj);
+								//terrain_grid[ new_y ][ new_x ] = 2;
+								//
+							} else {
+								terrain_grid[ new_y ][ new_x ] = 1;
+								dot_(terrain_img, new_x+1, new_y+1);
+							}
+						}
+						
+						if (CC[j][i] === 21) {
+							
+							if (jj === down_cy && ii === down_cx) { // climb down
+								terrain_grid[ new_y ][ new_x ] = 2;
+								area["image"].set( new_x, new_y, T["climb"]+toff);
+							} else {
+								terrain_grid[ new_y ][ new_x ] = 1;
+								//area["image"].set( new_x, new_y, 1);
+								dot_(terrain_img, new_x+1, new_y+1);
+							}
+						}
+						
+						if (CC[j][i] === 41) { // ------ <- door
+							if (tupleExists(d_locs, [ii,jj])) {
+								let ch_ = findElementByValues(door_exits, "cx", ii, "cy", jj);
+								if (ch_) {
+									this.areas[area_index]["exits"][ch_["goto"]]["gx"] = new_x;
+									this.areas[area_index]["exits"][ch_["goto"]]["gy"] = new_y;
+								
+									this.areas[area_index]["exits"][ch_["goto"]]["goto"] = ch_["goto"];
+								
+									area["event_grid"][new_y][new_x] = 4;
+								
+									//make sure other side goes back to this exact spot
+									this.areas[ch_["goto"]]["exits"][area_index]["gotox"] = new_x;
+									this.areas[ch_["goto"]]["exits"][area_index]["gotoy"] = new_y;
+									this.areas[ch_["goto"]]["exits"][area_index]["goto"] = area_index;
+								}
+								
+							}
+							/*let found_door_xy = d_locs.filter(xy => xy[0] === ii && xy[1] === jj);
+							if (found_door_xy.length) {
+								console.log(found_door_xy);
+								console.log(door_exits);/**/
+								//if (door_exit_locs.includes(ii) && jj === ddd[ii]["cy"] ) {
+								//	terrain_grid[ new_y ][ new_x ] = 1;
+								//	dot_(terrain_img, new_x+1, new_y+1);
+								//}
+						}
+						
+						// fix door info
+						if (CC[j][i] === 4 || CC[j][i] === 14) {
+							if (tupleExists(d_locs, [ii,jj])) {
+								let ch_ = findElementByValues(door_exits, "cx", ii, "cy", jj);
+								if (ch_) {
+									this.areas[area_index]["exits"][ch_["goto"]]["gx"] = new_x;
+									this.areas[area_index]["exits"][ch_["goto"]]["gy"] = new_y;
+								
+									this.areas[area_index]["exits"][ch_["goto"]]["goto"] = ch_["goto"];
+								
+									area["event_grid"][new_y][new_x] = 4;
+								
+									//make sure other side goes back to this exact spot
+									this.areas[ch_["goto"]]["exits"][area_index]["gotox"] = new_x;
+									this.areas[ch_["goto"]]["exits"][area_index]["gotoy"] = new_y;
+									this.areas[ch_["goto"]]["exits"][area_index]["goto"] = area_index;
+								}
+								
+							}
+						}
+						
+						if (jj === top_cy && ii === top_cx || (exit_up_x > -1 && exit_up_x === ii && exit_up_y === jj)) {
+							
+							if (CC[j][i] === 30) {
+								//console.log("top: "+top_cx+" "+top_cy);
+								area["event_grid"][new_y][new_x] = 13;
+								area["event_grid"][new_y][new_x-1] = 13; // around arrow
+								area["event_grid"][new_y][new_x+1] = 13; // around arrow
+								area["image"].set( new_x, new_y, T["up_arrow"]);
+							} else if (CC[j][i] === 33) {
+								//console.log("hello");
+								area["event_grid"][new_y][new_x] = 13;
+								area["image"].set( new_x, new_y, T["climb"]);
+								terrain_grid[ new_y ][ new_x ] = 2;
+							}
+						}
+						
+						
+						
+						// down chunk
+						if (jj === down_cy && ii === down_cx) {
+							if (CC[j][i] === 21) {
+								terrain_grid[ new_y ][ new_x ] = 1;
+								dot_(terrain_img, new_x+1, new_y+1);
+							} else if (CC[j][i] === 12 || CC[j][i] === 122) {
+								terrain_grid[ new_y ][ new_x ] = 2;
+								area["image"].set( new_x, new_y, T["climb"]+toff);
+							}
+						}
+						
+						// bottom exit overrides the down chunk
+						if (jj === btm_cy && ii === btm_cx || (exit_dn_x > -1 && exit_dn_x === ii && exit_dn_y === jj)) {
+							
+							if (CC[j][i] === 20) {
+								//console.log("btm: "+btm_cx+" "+btm_cy);
+								area["event_grid"][new_y][new_x] = 12;
+								area["event_grid"][new_y][new_x-1] = 12; // around arrow
+								area["event_grid"][new_y][new_x+1] = 12; // around arrow
+								area["image"].set( new_x, new_y, T["dn_arrow"]);
+							} else if (CC[j][i] === 21) {
+								area["event_grid"][new_y][new_x] = 12;
+								area["event_grid"][new_y][new_x-1] = 12; // around arrow
+								area["event_grid"][new_y][new_x+1] = 12; // around arrow
+								area["image"].set( new_x, new_y, T["dn_arrow"]);
+							} else if (CC[j][i] === 12) {
+								area["event_grid"][new_y][new_x] = 2;
+								area["image"].set( new_x, new_y, T["climb"]+toff);
+							} else if (CC[j][i] === 122) {
+								area["event_grid"][new_y][new_x] = 12;
+								area["image"].set( new_x, new_y, T["climb"]+toff);
+							} else if (CC[j][i] === 22) {
+								area["event_grid"][new_y][new_x] = 12;
+								area["image"].set( new_x, new_y, T["climb"]+toff);
+							}
+						}
+						
+						// ------ slopes
+						if (CC[j][i] === 51) {
+							terrain_grid[new_y][new_x] = 51;
+							area["image"].set( new_x, new_y, 497 /*T["stairs"]+toff/**/);
+						}
+						if (CC[j][i] === 15) {
+							terrain_grid[new_y][new_x] = 15;
+							area["image"].set( new_x, new_y, 497 /*T["stairs"]+toff/**/, true);
+						}
+						// -------------
+						
+						if (CC[j][i] === 32) {
+							area["event_grid"][new_y][new_x] = 10;
+							area["event_grid"][new_y-1][new_x] = 10; // around arrow
+							area["event_grid"][new_y-2][new_x] = 10; // around arrow
+							area["image"].set( new_x, new_y, T["lf_arrow"]);
+							
+							// TODO: match location on other side of exit
+						}
+						
+						
+						
+						if (CC[j][i] === 23) {
+							area["event_grid"][new_y][new_x] = 11;
+							area["event_grid"][new_y-1][new_x] = 11; // around arrow
+							area["event_grid"][new_y-2][new_x] = 11; // around arrow
+							/*
+							area["event_grid"][new_y-3][new_x] = 11; // around arrow
+							area["event_grid"][new_y-4][new_x] = 11; // around arrow
+							area["event_grid"][new_y-5][new_x] = 11; // around arrow
+							*/
+							area["image"].set( new_x, new_y, T["rt_arrow"]);
+							
+							// TODO: match location on other side of exit
+						}
+						
+						// player start positions
+						if (
+							area_index === 0 && 
+							jj === psyc &&
+							ii === psxc &&
+							CC[j][i] === -1
+						) {
+							p.x = new_x*8; 
+							p.y = (new_y-1)*8;
+							//console.log("found p1 start:"+p.x+" "+p.y);
+						}
+						
+						if (
+							area_index === 0 && 
+							jj === psyc &&
+							ii === psxc &&
+							CC[j][i] === -2
+						) {
+							p2.x = new_x*8; 
+							p2.y = (new_y-1)*8;
+							//console.log("found p2 start"+p2.x+" "+p2.y);
+						}
+						
+						
+						
+						
+					}
+				}
+		  }
+		}
+		
+		
+		this.areas[area_index]["grid"] = terrain_grid;
+		
+		// 8 bright ground
+		// 9 dirt
+		// dark ground
+		//console.log(door_exits);
+		this.printChunks(area_index, chunks_map, down_cx, down_cy, up_cx, up_cy);
+		
+		this.areas[area_index]["cmap"] = chunks_map;
+		
+		
+		
+		
+		
+		
+		
+		// temporary
+		/*
+		if (is_underground) {
+			// back image
+			let rise_up = rnd(8, aH);
+			for (let x=0; x<=aW; x++) {
+				let change_ = rnd(0,3);
+				if (change_ === 2) {
+					rise_up = rnd(8, aH);
+				}
+			
+				for (let y=aH; y>aH-rise_up-1; y--) {
+					dot_(terrain_img_behind, x, y);
+				}
+			}
+		} else {
+			// back image
+			let rise_up = rnd(8, aH);
+			for (let x=0; x<=aW; x++) {
+				let change_ = rnd(0,3);
+				if (change_ === 2) {
+					rise_up = rnd(8, aH);
+				}
+			
+				for (let y=aH; y>aH-rise_up-1; y--) {
+					dot_(terrain_img_behind, x, y);
+				}
+			}
+			
+			this.tillSoil(terrain_img_behind);
+		
+			// front image
+			//let rise_up = rnd(8, aH);
+			for (let x=0; x<=aW; x++) {
+				let change_ = rnd(0,3);
+				if (change_ === 2) {
+					rise_up = rnd(3, aH);
+				}
+			
+				for (let y=aH; y>aH-rise_up-1; y--) {
+					dot_(terrain_img_front, x, y);
+				}
+			}
+			
+		}/**/
+		
+		//console.log(num_ps);
+		//console.log("---------------");
+		
+		if (is_peak_right || is_peak_left || is_peak) {
+			this.placeStructure(terrain_img_behind, area,   -1,   -1,      17,       "image_behind",       0);
+			this.placeStructure(terrain_img, area,   -1,   -1,      16,       "image",       1);
+		} else if (is_cliff_left || is_cliff_right || is_mountain) {
+			this.placeStructure(terrain_img_behind, area,   -1,   -1,      19,       "image_behind",       0);
+			this.placeStructure(terrain_img, area,   -1,   -1,      18,       "image",       1);
+		} else if (is_cave_left || is_cave_right || is_cave) {
+			this.placeStructure(terrain_img_behind, area,   -1,   -1,      21,       "image_behind",       0);
+			this.placeStructure(terrain_img, area,   -1,   -1,      20,       "image",       1);
+		}	else if (is_underground) {
+			this.placeStructure(terrain_img_behind, area,   -1,   -1,      11,       "image_behind",       0);
+			this.placeStructure(terrain_img, area,   -1,   -1,      10,       "image",       1);
+		} else if (is_towerground_right || is_towerground_left || is_towerground) {
+			this.placeStructure(terrain_img_behind, area,   -1,   -1,      T["dark_palace_tile"],       "image_behind",       0);
+			this.placeStructure(terrain_img, area,   -1,   -1,      T["light_palace_tile"],       "image",       1);
+		} else if (is_tower_right || is_tower_left || is_tower || is_roof_left || is_roof_right || is_roof ) {
+			
+			
+			
+			this.placeStructure(terrain_img_behind, area,   -1,   -1,      T["dark_palace_tile"],       "image_behind",       0);
+			this.placeStructure(terrain_img, area,   -1,   -1,      T["light_palace_tile"],       "image",       1);
+		} else if (is_inside_tower) {
+			
+			
+			for (let x=0; x<=aW; x++) {
+				for (let y=0; y<=aH; y++) {
+					dot_(terrain_img_behind, x, y);
+				}
+			}
+			
+			this.placeStructure(terrain_img_behind, area,   -1,   -1,      15,       "image_behind",       0);
+			this.placeStructure(terrain_img, area,   -1,   -1,      14,       "image",       1);
+		} else if (is_sky) { 
+			this.placeStructure(terrain_img_behind, area,   -1,   -1,      13,       "image_behind",       0);
+			this.placeStructure(terrain_img, area,   -1,   -1,      23,       "image",       1);
+			
+		} else if (is_aboveground) {
+			
+			let keep_thickness = rnd(1, 5);
+			for (let x=0; x<aW; x++) {
+				let found_tree = 0;
+				let keep_thickness = rnd(0,4);
+				if (!keep_thickness) {
+					keep_thickness = rnd(1,5);
+				}
+				
+				for (let y=aH-1; y>0; y--) {
+					//terrain_grid[ new_y ][ new_x ] = 1;
+					if (terrain_grid[y][x]) {
+						for (let fill_thickness=0; fill_thickness < keep_thickness; fill_thickness++) {
+							dot_(terrain_img, x+1, y+fill_thickness);
+						}
+						
+						if (x%3) {
+							for (let tree_trunk=0; tree_trunk < aH; tree_trunk++) {
+								dot_(terrain_img_behind, x+1, y+tree_trunk);
+							}
+						}
+						y=0;
+					}
+				}
+			}
+			
+			/*
+			if (!found_tree) {
+				if (terrain_grid[y][x]) { 
+					found_tree = 1; 
+				}
+			} else {
+				if (terrain_grid[y][x] === 0) { found_tree = 2; }
+			}
+			
+			if (found_tree === 2) {
+				for (let fill_thickness=0; fill_thickness < max_thickness; fill_thickness++) {
+					dot_(terrain_img, x+1, y+fill_thickness);
+				}
+				//dot_(terrain_img_behind, x+1, y);
+				
+			}/**/
+			
+			this.placeStructure(terrain_img_behind, area,   -1,   -1,      T["tree_tile"],       "image_behind",       0);
+			this.placeStructure(terrain_img, area,   -1,   -1,      T["tree_tile"],       "image",       1);
+			
+		} else {
+			this.placeStructure(terrain_img_behind, area,   -1,   -1,      9,       "image_behind",       0);
+			this.placeStructure(terrain_img, area,   -1,   -1,      T["tree_tile"],      "image",       1);
+			
+			//this.placeStructure(terrain_img_front, area,   -1,   -1,      10,       "image_front",       0);
+		}/**/
+		//console.log("-------------------------");
+		
+		this.tillSoil(terrain_img);
+	}
+	
+	
+	fixChunkExits(area_index) {
+		
+		let area = this.areas[area_index]; // this.areas[area_index]["exits"][e_i]["gotox"]
+		
+		for (const e_i in area["exits"]) { 
+			let exit_ = area["exits"][e_i];
+			//let type_ = exit_["type"];
+			//let goto_ = exit_["goto"];
+			
+			let next_area = this.areas[exit_["goto"]];
+			//let next_exits = next_area["exits"];
+			let next_grid = next_area["event_grid"]; // not the regular grid
+			
+			
+			if (exit_["type"] === 11) {
+				for (let j=0; j<next_grid.length; j++) {
+					if (next_grid[j][0] === 10) {
+						this.areas[area_index]["exits"][e_i]["gotox"] = 0;
+						this.areas[area_index]["exits"][e_i]["gotoy"] = j;
+					}
+				}
+			} else if (exit_["type"] === 10) {
+				let max_gridx = next_grid[0].length;
+				for (let j=0; j<next_grid.length; j++) {
+					if (next_grid[j][max_gridx-1] === 11) {
+						this.areas[area_index]["exits"][e_i]["gotox"] = max_gridx-1;
+						this.areas[area_index]["exits"][e_i]["gotoy"] = j;
+					}
+				}
+			} else if (exit_["type"] === 13) {
+				let max_gridy = next_grid.length;
+				for (let i=0; i<next_grid[0].length; i++) {
+					if (next_grid[max_gridy-1][i] === 12) {
+						this.areas[area_index]["exits"][e_i]["gotox"] = i;
+						this.areas[area_index]["exits"][e_i]["gotoy"] = max_gridy-1;
+					}
+				}
+			} else if (exit_["type"] === 12) {
+				for (let i=0; i<next_grid[0].length; i++) {
+					if (next_grid[0][i] === 13) {
+						this.areas[area_index]["exits"][e_i]["gotox"] = i;
+						this.areas[area_index]["exits"][e_i]["gotoy"] = 0;
+					}
+				}
+			}
+			
+			/*
+				exit_ :
+						{
+						  "goto": 1,
+						  "gx": 31,
+						  "gy": 30,
+						  "gotox": 0,
+						  "gotoy": 62,
+						  "type": 11,
+						  "status": 0,
+						  "open_images": [
+						    234,
+						    235,
+						    218,
+						    219,
+						    202,
+						    203
+						  ],
+						  "images": [
+						    234,
+						    235,
+						    218,
+						    219,
+						    202,
+						    203
+						  ]
+						}
+			*/
+			
+			
+		
+		}
 		
 	}
 	
-	testPlaceMovingPlatforms(area_index) {
-	  // random moving platforms
-  	let area = this.areas[area_index];
-		let nY = area["height"];
-		let nX = area["width"];
+	
+	
+	
+	
+	tillSoil(terrain_image) {
+		/*
+			16 17 18  19 20 21  22 23 24  25 26 27  28 29 30 31
+		  32 33 34  35 36 37  38 39 40  41 42 43  44 45 46 47
+		  48 49 50  51 52 53  54 55 56  57 58 59  60 61 62 63
+		*/
 		
-	  for (let i=0; i<5; i++) {
+		// fix terrain and add things to make more interesting
+		// already dotted
+		
+		//let area = this.areas[area_index];
+		let aH = terrain_image.length; //area["height"]+2; // area height
+		let aW = terrain_image[0].length; //area["width"]+2; // area width
+		for (let j=0; j<aH; j++) {
+			for (let i=0; i<aW; i++) {
+				let dig = rnd(-1, 2);
+				// 17 32 34
+				
+				if (dig > -1) {
+					
+					if (terrain_image[j][i] === 32) {
+						terrain_image[j][i] = 1+dig;
+					} else if (terrain_image[j][i] === 17) {
+						terrain_image[j][i] = 3+dig;
+					} else if (terrain_image[j][i] === 34) {
+						terrain_image[j][i] = 5+dig;
+					} else if (terrain_image[j][i] === 62) {
+						terrain_image[j][i] = 7+dig;
+					} else if (terrain_image[j][i] === 63) {
+						terrain_image[j][i] = 9+dig;
+					} else if (terrain_image[j][i] === 39) {
+						terrain_image[j][i] = 36;
+					} else if (terrain_image[j][i] === 33) {
+						terrain_image[j][i] = 13+dig;
+					}
+				}
+				
+			}
+		}/**/
+		
+		//console.log("tilled the soil");
+		//this.areas[area_index]["image"] = area_image;
+	}
+	
+	// TODO
+	create_platform(area_index, x, y, movetype, random_phase=true){
+		let plat = {};
+		for (let key in platforms[movetype]){
+			plat[key] = platforms[movetype][key];
+		}
+	
+		let rnd_pl_im = 0;//rnd(0, 3);
+	
+		plat.image = 36+64*8;//226+rnd_pl_im;
+		plat.x = x;
+		plat.y = y-8;
+	
+	  if (random_phase) {
+	    plat.vframe = rnd(0, plat.vx.length-1);
+	  }
+  
+	  //moving_platforms.push(plat);
+		this.areas[area_index]["platforms"].push(plat);
+	}
+	
+	
+	distributeSmallEnemies(area_index) {
+		let area = this.areas[area_index]; // level may have less than 10 
+		for (let n=20; n>0; n--) {
+			//let rnd_area = rnd(0, this.areas.length);
+			//let area = this.areas[rnd_area];
+			
+			// look for empty spot to place item
+			let placex = rnd(16, area["width"]);
+			for (let check_up=area["height"]-2; check_up > 0; check_up--){
+				if (area["grid"][check_up][placex] === 0 && area["grid"][check_up+1][placex] === 1) {
+					//this.areas[rnd_area]["items"].push({ "spice": "pepper", "gx": placex, "gy": check_up, "gathered": false });
+					let enemy = this.create_small_enemy(placex*8, check_up*8, "walkbump", T["small_enemy"]+0*16);
+					
+					this.areas[area_index]["small_enemies"].push(enemy);
+					check_up = 0;
+					break;
+				}
+			}
+		}
+	}
+	
+	create_small_enemy(x,y, move_type="walkbump", image=0, random_phase=true) {
+	  /* 
+	    get hp and other stats from library, depending on name
     
-	    let rx = rnd(0, nX);
-	    let ry = rnd(nY-10, nY);
-			let rm = rnd(0, platforms.length);
+	  */
+  
+  
+	  //[1,0,0,0,2,0,0,0], // [0,0,0,1] // very slow movement
+  
+	  let xmove, ymove, move;// = []; 
+	  let vframe = 0;
+  
+	  if (move_type == "steadyjump") {
     
-	    create_platform(rx*8, ry*8, rm);
+	    let xspeeds = [
+	      [
+	        0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
+	        0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 
+	        1,0,1,0,1,0,1,0,1,0, 1,0,1,0,1,0,1,0,1,0, 1,0,1,0,1,0,1,0,1,0,
+	        1,0,1,0,1,0,1,0,1,0, 1,0,1,0,1,0,1,0,1,0, 1,0,1,0,1,0,1,0,1,0,
+	      ],
+	      [
+	        0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
+	        0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 
+	        1,0,2,0,1,0,2,0,1,0, 2,0,1,0,2,0,1,0,2,0, 1,0,2,0,1,0,2,0,1,0,
+	        2,0,1,0,2,0,1,0,2,0, 1,0,2,0,1,0,2,0,1,0, 2,0,1,0,2,0,1,0,2,0,
+	      ],
+	      [
+	        0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
+	        0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 
+	        1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,
+	        1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,
+	      ],
+	    ];
+	    let rnd_xspeed = rnd(0, 3);
+	    xmove = xspeeds[rnd_xspeed];
+    
+	    ymove = [
+	      0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
+	      0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0, 0, // <- index 59
+	      -3,0,-3,0,-3,0,-2,0,-2,0, -2,0,-1,0,-1,0,-1,0,-1,0, 0,0,0,0,0,0,0,0,0, 0, // <- index 89
+	      0,0,0,0,0,0,0,0,0,0, 1,0,1,0,1,0,1,0,2,0, 2,0,2,0,3,0,3,0,3,0
+	    ];
+	    move = "steady"; // "upjump" 60 <= x && x < 90, "downjump" 90 <= x && x < 120
+    
+	    let rnd_phase = rnd(0, 59);
+	    vframe = rnd_phase;
+    
+    
+	  } else if (move_type == "steadyfly") {
+    
+	    // stationary. could have initial movement
+	    // random direction
+	    xmove = [0];
+	    ymove = [0];
+	    move = "steady";
+     
+	  } else if (move_type == "hone") {
+    
+	    xmove = [0];
+	    ymove = [0];
+	    move = "hone";
+    
+	  } else if (move_type == "walkbump") {
+    
+	    let xspeeds = [
+	      [1,0,0,0,0,2,0,0,0,0], [1,0,0,0,2,0,0,0], [1,0,0,2,0,0], 
+	      [1,0,2,0], [1,0,0,0,0,0,0,0,0,0], [1,1,2], [1,2]
+	    ];
+	    let rnd_xspeed = rnd(0, 6);
+	    xmove = xspeeds[rnd_xspeed];
+	    ymove = [0];//1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,3];
+	    move = "walk";
+    
+	  } else {
+	    // stationary
+	    xmove = [0];
+	    ymove = [0];
+	    move = "steady";
     
 	  }
-		//console.log("E ");
+	  //let rnd_y = 
+  
+  
+  
+  
+  
+	  var enemy = {
+	    image: image, // 0, 
+	    x: x,
+	    y: y-4, //?
+    
+	    HP: 2,
+	    ATK: 1,
+	    SCORE: 50,
+    
+	    move_type: move_type,
+	    move_phase: move, // for honing patterns, etc
+    
+	    vx: xmove,
+	    vy: ymove,
+    
+	    vxframe: vframe,
+	    vyframe: vframe,
+    
+	    fallframe: 0,
+	    fall: [1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,3],
+	    grounded: false,
+    
+	    frames: [0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3],
+	    frame: 0, //should be the index
+    
+	    aframes: [0,1,2,3], // attack frames
+	    aframe: 0,
+	    attacking: false,
+	    going_left: true, // default for most platform games
+    
+	    stuck_in_block: false,
+	    in_screen: true,
+	    dead_frame: 0, // +4 for dead sprite image
+	    dead_frames: -1, // will increment to get flashy effect
+	    alive: true
+    
+	  };
+	  if (random_phase) {
+	    enemy.frame = rnd(0, enemy.frames.length-1);
+	  }
+	
+		return enemy;
+	  //curr_area["small enemies"].push(enemy);
+	}
+	
+	distributeItems() {
+		// Includes keys
+		
+		let graph = {}; // no information, just the node indices
+		for (let i=0; i<this.areas.length; i++) {
+			graph[i] = Object.keys(this.areas[i]["exits"]);
+		}
+		
+		//console.log(this.areas[]);
+		
+		let startingNode = 0;
+		let visitingNodes = {};
+		let depth = -1;
+		let result = [];
+		let stats = {
+			"bossroom": this.finalArea,
+			"deadends": [],
+			"hasdoor": []
+		};
+		
+		
+		let door_exits = []; // 2d array
+		for (let i=0; i<this.areas.length; i++) {
+			let area = this.areas[i]; // 0
+			
+			
+			
+			let dexits = Object.keys(area["exits"]).reduce(function (dexits, key) {
+			    if (area["exits"][key].type == 4) {
+						dexits[key] = area["exits"][key];
+					}
+			    return dexits;
+			}, {});/**/
+			
+			if (Object.keys(dexits).length) {
+				door_exits.push(dexits);
+			}
+		}
+		
+		//console.log(door_exits);
+		
 		/**/
+		
+		// create list of areas with info
+		this.depthFirstSearch(graph, startingNode, visitingNodes, depth, result, stats);
+		
+		// using the above result, distribute keys by backtracking from the area
+		//this.distributeKeys(result);
+		
+		
+		
+		//let area_items = [];
+		let nutmegs = 20; // level may have less than 10 
+		for (let n=nutmegs; n>0; n--) {
+			let rnd_area = rnd(0, this.areas.length);
+			let area = this.areas[rnd_area];
+			
+			// look for empty spot t place item
+			let placex = rnd(0, area["width"]);
+			for (let check_up=area["height"]-2; check_up > 0; check_up--){
+				if (area["grid"][check_up][placex] === 0 && area["grid"][check_up+1][placex] === 1) {
+					this.areas[rnd_area]["items"].push({ "name": "nutmeg", "gx": placex, "gy": check_up, "gathered": false });
+					check_up = 0;
+					break;
+				}
+			}
+		}
+		
+		let peppers = 20; // level may have less than 10 
+		for (let n=peppers; n>0; n--) {
+			let rnd_area = rnd(0, this.areas.length);
+			let area = this.areas[rnd_area];
+			
+			// look for empty spot to place item
+			let placex = rnd(0, area["width"]);
+			for (let check_up=area["height"]-2; check_up > 0; check_up--){
+				if (area["grid"][check_up][placex] === 0 && area["grid"][check_up+1][placex] === 1) {
+					this.areas[rnd_area]["items"].push({ "name": "pepper", "gx": placex, "gy": check_up, "gathered": false });
+					check_up = 0;
+					break;
+				}
+			}
+		}
+		
+		let sugars = 20;
+		let sugar_types = ["sugar_l", "sugar_r", "sugar_dbl"];
+		for (let n=sugars; n>0; n--) {
+			let rnd_area = rnd(0, this.areas.length);
+			let area = this.areas[rnd_area];
+			
+			// look for empty spot to place item
+			let placex = rnd(0, area["width"]);
+			for (let check_up=area["height"]-2; check_up > 0; check_up--){
+				if (area["grid"][check_up][placex] === 0 && area["grid"][check_up+1][placex] === 1) {
+					let sugar_type = rnd(0, 3);
+					this.areas[rnd_area]["items"].push({ "name": sugar_types[sugar_type], "gx": placex, "gy": check_up, "gathered": false });
+					check_up = 0;
+					break;
+				}
+			}
+		}
+		
+		
+		// TESTING -- will change
+		let door_keys = 20; // level may have less than 10 
+		for (let n=door_keys; n>0; n--) {
+			let rnd_area = rnd(0, this.areas.length);
+			let area = this.areas[rnd_area];
+			
+			// look for empty spot to place item
+			let placex = rnd(0, area["width"]);
+			for (let check_up=area["height"]-2; check_up > 0; check_up--){
+				if (area["grid"][check_up][placex] === 0 && area["grid"][check_up+1][placex] === 1) {
+					this.areas[rnd_area]["items"].push({ "name": "door_key", "gx": placex, "gy": check_up, "gathered": false });
+					check_up = 0;
+					break;
+				}
+			}
+		}
+		
+		
+		//console.log(boss);
+		//console.log(result);
+		
+		/*
+​
+			the deeper the area, the better the reward
+		[
+				{ n: "1", depth: 1, status: "mainpath", door_exits: [8, 6] }
+				​{ n: "2", depth: 2, status: "mainpath" }
+				​{ n: "3", depth: 3, status: "mainpath" }
+				​{ n: "4", depth: 4, status: "mainpath" }
+				​{ n: "5", depth: 5, status: "bossroom" }
+				​{ n: "6", depth: 4, status: "deadend" }
+				{ n: "10", depth: 4, status: "deadend" }
+				​{ n: "7", depth: 3, status: "deadend" }
+				​{ n: "9", depth: 3, status: "deadend" }
+				​{ n: "11", depth: 3, status: "deadend" }
+				​{ n: "8", depth: 2, status: "deadend" }
+				​{ n: "12", depth: 2, status: "deadend" }
+		]
+		
+				0: Object { 4: {…}, 8: {…}, 11: {…} }
+				1: Object { 6: {…} }
+				2: Object { 1: {…} }
+				3: Object { 3: {…} }
+				4: Object { 10: {…} }
+				5: Object { 1: {…} }
+				6: Object { 7: {…} }
+				7: Object { 1: {…} }
+		*/
+		
+		
+		
+		// sort based on depth
+		// place keys in farthest places
+		
+		
+		// have a set number of spices at a time per level
+		
+		//this.areas[]
+		//this.areas[area_index]["grid"] = terrain_grid;
+		
+		
+	}
+	
+	depthFirstSearch(graph, node, visited, depth, result, stats) {
+	  if (visited[node]) { return; }
+		
+		depth++;
+	  visited[node] = true;
+		
+		
+		if (node > 0) {
+			if (graph[node].length === 1) {
+				let status_ = node == this.finalArea ? "bossroom" : "deadend";
+				result.push({ 
+					"n": node,
+					//"end": true,
+					"depth": depth,
+					"status": status_,
+					"door_to": []
+				});
+			} else {
+				let status_ = node < this.finalArea ? "mainpath" : "sidepath";
+				result.push({ 
+					"n": node,
+					//"end": false,
+					"depth": depth,
+					"status": status_,
+					"door_to": []
+				});
+			}
+		}
+		
+	  const neighbors = graph[node];
+	  for (const neighbor of neighbors) {
+			this.depthFirstSearch(graph, neighbor, visited, depth, result, stats);
+	  }
+	}
+	
+	distributeLevelGoals() {
+		// key items, bosses, mini bosses
+		// defeat boss
+		// kill all enemies
+		// collect key items
+		//
+	}
+	
+	distributeKeys(graph) {
+		let boss = graph.find(r => r.n == this.finalArea);
+		
+		console.log("BOSS:");
+		console.log(boss);
+		
+		
+		
 	}
 	
 	
 	
 	
 	
-	// 
-	build_areas(terrain_type="ground") {
+	
+	
+	
+	
+	build_areas(terrain_type=DEFAULT_START_TERRAIN) {
 		/*
 			have a category of sizes, possible vertical 'ice climber'/'kid icarus' type levels
 			
@@ -4099,7 +7326,20 @@ class LevelGraph {
 				  "cave"--"outdoor"--------"indoor"      
 				      |       |               |
 				    "underground"------"basement"
-				
+			
+			
+			create chunk map
+		
+			x_screen_size == 4
+			y_screen_size == 3
+			
+			 ____ ____ ____ ____
+			|    |    |    |    |
+			|____|____|____|____|
+			|    |    |    |    |
+			|____|____|____|____|
+			|    |    |    |    |
+			|____|____|____|____|
 		
 		*/
 		
@@ -4108,24 +7348,43 @@ class LevelGraph {
 		this.init_terrain_type = terrain_type;
 		
 		
-		
+		// create level graph
 		for (let i=0; i<this.numAreas; i++) {
-			let x_screen_size = rnd(1,4);
-			let y_screen_size = rnd(1,2);
+			
+			let x_screens = rnd(1 + (i === 0 ? 0 : 1 ), 7); // start area can be one screen, the rest must be at least 2 screens wide
+			let y_screens = 1;
+			let isVertical = false;
+			// tall vs long levels, dont want them too big
+			if (x_screens > 3) {
+				y_screens = rnd(2,3); // 2 screens tall
+			} else {
+				y_screens = rnd(2,5);
+				if (y_screens > 3 && x_screens < 3) {
+					isVertical = true;
+				}
+			}
+			
 			//let is_dungeon = rnd(0,3);
-			this.build_area(i, x_screen_size, y_screen_size);
+			
+			// ------- build_area() adds to the level graph
+			this.build_area(i, x_screens, y_screens, isVertical); // build_area vs testPlaceTerrain
 			//this.build_area(i, 1, 1);
 			
 			
 			if (testing) {
+				/*
+					placeTerrain and placePlatforms need to combine? For edges connecting
 				
+					fill in below each platform
 				
-				this.testPlaceTerrain(i);
-				this.testScatter(i);
+				*/
+				//console.log("area build: "+i);
+				//this.testPlaceTerrain(i); // includes platforms. should be in build_area? or place after
+				//this.testScatter(i);
 				//this.testPlaceFloor(i);
-				this.testPlaceClimbObjects(i);
-				this.testPlaceEnemies(i);
-				this.testPlaceMovingPlatforms(i);
+				//this.testPlaceClimbObjects(i);
+				//this.testPlaceEnemies(i);
+				//this.testPlaceMovingPlatforms(i);
 				
 				//this.fixFloorOob(i);
 				//this.testPlacePlatforms(i);
@@ -4137,698 +7396,90 @@ class LevelGraph {
 			
 		}
 		
+		// --------- level graph is complete.
+		
+		// --------- create chunk map
+		for (let i=0; i<this.numAreas; i++) {
+			this.createChunkMap(i);
+		}
+		
+		// --------- fix exits
+		for (let i=0; i<this.numAreas; i++) {
+			this.fixChunkExits(i);
+		}
+		
+		// --------- distribute keys
+		this.distributeItems();
+		
+		
+		// --------- enemies
+		for (let i=0; i<this.numAreas; i++) {
+			this.distributeSmallEnemies(i);
+		}
+		
+		// --------- fix terrain
+		//for (let i=0; i<this.numAreas; i++) {
+		//	this.tillSoil(i);
+		//}
+		
+		
+		//for (let i=0; i<this.numAreas; i++) {
+			//this.distributeItems(i, );
+			//}
 		
 		
 		
 		
+		
+		
+		//  use terrain info from finished level to create world map (return statement?)
 		
 	}
 	
 	
 	
-	placeStructure(from_img, to_area, ax, ay, toff=0, layer="image") {
+	placeStructure(from_img, to_area, ax=0, ay=0, toff=0, layer="image", ptype=1) {
 		// image_layer -> "image" "image_behind" "image_front"
+		// set ptype = 0 if just an image
+		
 		let tile_offset = toff*64;
 		let to_area_img = to_area[layer];
-		for (let iy=0; iy<from_img.length && ay+iy < to_area["height"]; iy++) {
-			for (let ix=0; ix<from_img[0].length && ax+ix < to_area["width"]; ix++) {
+		for (let iy=0; iy < from_img.length && ay+iy < to_area["height"]; iy++) {
+			for (let ix=0; ix < from_img[0].length && ax+ix < to_area["width"]; ix++) {
 				if (from_img[iy][ix] > 0 && (0 <= ay+iy && 0 <= ax+ix)) {
 					to_area_img.set(ax+ix, ay+iy, from_img[iy][ix]+tile_offset);
+					if (ptype > 0) {
+						to_area["grid"][ay+iy][ax+ix] = ptype;
+					}
 				}
 			}
 		}
 	}
 	
-	
-	testScatter(area_index) {
+	placeOnGrid(from_grid, to_grid, ax, ay) {
+		//console.log("----------");
+		let fh = from_grid.length;
+		let fw = from_grid[0].length;
+		let th = to_grid.length;
+		let tw = to_grid[0].length;
 		
-		let area = this.areas[area_index];
-		//let img = area["image"];
-		
-		
-		/* ---------- TESTING new dot method ----------- */
-		let myStruct = [...Array(30)].map(_ => Array(30).fill(0));
-		
-		this.dot_(myStruct, 1, 4);
-		this.dot_(myStruct, 4, 5);
-		this.dot_(myStruct, 4, 6);
-		this.dot_(myStruct, 5, 6);
-		this.dot_(myStruct, 5, 5);
-		this.dot_(myStruct, 6, 6);
-		this.dot_(myStruct, 6, 7);
-		
-		
-		let behind_floor = [...Array(7)].map(_ => Array(7).fill(0));
-		
-		this.dot_(behind_floor, 3, 1);
-		this.dot_(behind_floor, 2, 2);
-		this.dot_(behind_floor, 3, 2);
-		this.dot_(behind_floor, 4, 2);
-		this.dot_(behind_floor, 1, 3);
-		this.dot_(behind_floor, 2, 3);
-		this.dot_(behind_floor, 3, 3);
-		this.dot_(behind_floor, 4, 3);
-		this.dot_(behind_floor, 5, 3);
-		this.dot_(behind_floor, 2, 4);
-		this.dot_(behind_floor, 3, 4);
-		this.dot_(behind_floor, 4, 4);
-		this.dot_(behind_floor, 3, 5);
-		
-		let myStructBehind = [...Array(30)].map(_ => Array(30).fill(0));
-		let myStructFront = [...Array(30)].map(_ => Array(30).fill(0));
-		/*
-		for (let y=0; y< myGrid.length; y++) {
-			console.log(myGrid[y]);
-		}
-		*/
-		
-		
-		
-		/*
-		this.dot(area_index, 10, 10);
-		this.dot(area_index, 11, 10);
-		this.dot(area_index, 12, 10);
-		this.dot(area_index, 12, 11);
-		this.dot(area_index, 13, 10);
-		this.dot(area_index, 11, 11);
-		*/
-		
-		/*
-		this.dot(area_index, 10, 10);
-		//this.dot(area_index, 10, 12);
-		this.dot(area_index, 10, 11);
-		//this.dot(area_index, 11, 11);
-		this.dot(area_index, 11, 10);
-		this.dot(area_index, 11, 11);
-		//this.dot(area_index, 11, 10);
-		this.dot(area_index, 9, 10);
-		//this.dot(area_index, 10, 9);
-		//this.dot(area_index, 11, 11);
-		//this.dot(area_index, 9, 9);
-		this.dot(area_index, 9, 11);
-		//this.dot(area_index, 11, 9);
-		
-		//this.dot(area_index, 10, 10);
-		
-		
-		this.dot(area_index, 20, 20);
-		this.dot(area_index, 21, 20);
-		this.dot(area_index, 22, 20);
-		
-		this.dot(area_index, 20, 22);
-		this.dot(area_index, 21, 22);
-		this.dot(area_index, 22, 22);
-		
-		this.dot(area_index, 20, 21);
-		//
-		this.dot(area_index, 22, 21);
-		this.dot(area_index, 21, 21);
-		this.dot(area_index, 21, 21);
-		this.dot(area_index, 23, 21);
-		this.dot(area_index, 23, 20);
-		this.dot(area_index, 20, 23);
-		this.dot(area_index, 20, 24);
-		this.dot(area_index, 21, 23);
-		this.dot(area_index, 21, 24);
-		
-		
-		this.dot(area_index, 10, 23);
-		this.dot(area_index, 10, 24);
-		this.dot(area_index, 11, 23);
-		this.dot(area_index, 11, 24);
-		this.dot(area_index, 12, 23);
-		this.dot(area_index, 12, 24);
-		*/
-		
-		//this.dot
-		//this.dot(area_index, 22, 20);
-		
-		let amount = 200;
-		let xx_ = 0;
-		let yy_ = 0;
-		
-		for (let a=0; a<amount; a++) {
-			xx_ = rnd(1, 20);
-			yy_ = rnd(1, 20);
-			
-			this.dot_(myStruct, xx_, yy_);
-			
-		}
-		
-		for (let a=0; a<600; a++) {
-			xx_ = rnd(1, 20);
-			yy_ = rnd(1, 20);
-			
-			this.dot_(myStructBehind, xx_, yy_);
-			
-		}
-		
-		for (let a=0; a<300; a++) {
-			xx_ = rnd(1, 20);
-			yy_ = rnd(1, 20);
-			
-			this.dot_(myStructFront, xx_, yy_);
-			
-		}
-		
-		
-		//this.dot(area_index, 7, 8);
-		/**/
-		
-		//this.dot(area_index, 7, 8);
-		//let area = this.areas[0];
-		//this.placeStructure(myStruct, area, 10, 10, 1);
-		this.placeStructure(myStructFront, area, 5, 5, 0, "image_front");
-		this.placeStructure(myStructBehind, area, 5, 5, 2, "image_behind");
-		
-		
-		//this.placeStructure(behind_floor, area, 10, 28, 0, "image_front");
-		//this.placeImageStructure(myStruct, area, 8, 9, 0);
-		
-		
-	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	dot_(img, i, j) {
-		// return if on corner or edge 
-		// to avoid array index oob errors, 2D img array should 
-		//  be +2 wider and +2 higher than the actual image.
-		// for grid, have correct images already along border before dotting
-		
-		
-		// * * *    imgW = 3, indices: 0, 1, 2   imgW-2 =  1
-		
-		let imgH = img.length;
-		let imgW = img[0].length;
-		
-		if (i <= 0 || i >= imgW-1 || j <= 0 || j >= imgH-1) return;
-		
-		let m = 1;
-		let curr = img[j][i];
-		if (curr) {
-			return;
-		}
-		
-		let tl = img[j-1][i-1];
-		let tl_C = dot_order["tl"][tl.toString()];
-		let tr = img[j-1][i+1];
-		let tr_C = dot_order["tr"][tr.toString()];
-		let bl = img[j+1][i-1];
-		let bl_C = dot_order["bl"][bl.toString()];
-		let br = img[j+1][i+1];
-		let br_C = dot_order["br"][br.toString()];
-		
-		let t_ = img[j-1][i];
-		if (t_) { m *= 2; }
-		let t_C = 0;
-		
-		let _l = img[j][i-1];
-		if (_l) { m *= 3; }
-		let _lC = 0;
-		
-		let b_ = img[j+1][i];
-		if (b_) { m *= 5; }
-		let b_C = 0;
-		
-		let _r = img[j][i+1];
-		if (_r) { m *= 7; }
-		let _rC = 0;
-		
-		
-		let o = 39;
-		let p_ = 1;
-		switch (m) {
-			case (210): // all
-				//p_ = 1;
-				if (br_C) {
-					//img.set(x_+1, y_+1, br_C);
-					img[j+1][i+1] = br_C;
-					p_ *= 2;
-				}
-				if (bl_C) {
-					//img.set(x_-1, y_+1, bl_C);
-					img[j+1][i-1] = bl_C;
-					p_ *= 3;
-				}
-				if (tr_C) {
-					//img.set(x_+1, y_-1, tr_C);
-					img[j-1][i+1] = tr_C;
-					p_ *= 5;
-				}
-				if (tl_C) {
-					//img.set(x_-1, y_-1, tl_C);
-					img[j-1][i-1] = tl_C;
-					p_ *= 7;
-				}
-				switch (p_) {
-					// 210
-					case (210): // tl tr bl br (all)
-						_lC = dot_order["l_m30"][_l.toString()];
-						_rC = dot_order["r_m70"][_r.toString()];
-						b_C = dot_order["b_m105"][b_.toString()];
-						t_C = dot_order["t_m42"][t_.toString()];
-						o = 33;
-						break;
-					case (105): // 3 5 7 bl tr tl
-						t_C = dot_order["t_m42"][t_.toString()];
-						_rC = dot_order["r_m14"][_r.toString()];
-						_lC = dot_order["l_m30"][_l.toString()];
-						b_C = dot_order["b_m15"][b_.toString()];
-						o = 25;
-						break;
-					case (70): // 2 5 7 br tr tl
-						_rC = dot_order["r_m70"][_r.toString()];
-						b_C = dot_order["b_m35"][b_.toString()];
-						t_C = dot_order["t_m42"][t_.toString()];
-						_lC = dot_order["l_m6"][_l.toString()];
-						o = 27;
-						break;
-						
-					case (42): // 2 3 7 br bl tl
-						_rC = dot_order["r_m35"][_r.toString()];
-						b_C = dot_order["b_m105"][b_.toString()];
-						_lC = dot_order["l_m30"][_l.toString()];
-						t_C = dot_order["t_m6"][t_.toString()];
-						o = 57;
-						break;
-					case (30): // 2 3 5 br bl tr
-						t_C = dot_order["t_m14"][t_.toString()];
-						_rC = dot_order["r_m70"][_r.toString()];
-						_lC = dot_order["l_m15"][_l.toString()];
-						b_C = dot_order["b_m105"][b_.toString()];
-						o = 59;
-						break;
-					case (35): // 5 7 tr tl
-						t_C = dot_order["t_m42"][t_.toString()];
-						_lC = dot_order["l_m6"][_l.toString()];
-						_rC = dot_order["r_m14"][_r.toString()];
-						b_C = dot_order["b_"][b_.toString()];
-						o = 52;
-						break;
-					case (21): // 3 7 bl tl
-						t_C = dot_order["t_m6"][t_.toString()];
-						_lC = dot_order["l_m30"][_l.toString()];
-						b_C = dot_order["b_m15"][b_.toString()];
-						_rC = dot_order["_r"][_r.toString()];
-						o = 37;
-						break;
-					case (15): // 5 3 tr bl
-						t_C = dot_order["t_m14"][t_.toString()];
-						_rC = dot_order["r_m14"][_r.toString()];
-						_lC = dot_order["l_m15"][_l.toString()];
-						b_C = dot_order["b_m15"][b_.toString()];
-						o = 61;
-						break;
-					case (14): // 2 7 tl br
-						t_C = dot_order["t_m6"][t_.toString()];
-						_lC = dot_order["l_m6"][_l.toString()];
-						_rC = dot_order["r_m35"][_r.toString()];
-						b_C = dot_order["b_m35"][b_.toString()];
-						o = 60;
-						break;
-					case (10): // 2 5 br tr
-						t_C = dot_order["t_m14"][t_.toString()];
-						_rC = dot_order["r_m70"][_r.toString()];
-						b_C = dot_order["b_m35"][b_.toString()];
-						_lC = dot_order["_l"][_l.toString()];
-						o = 35;
-						break;
-					case (6): // 2 3 br bl
-						_lC = dot_order["l_m15"][_l.toString()];
-						_rC = dot_order["r_m35"][_r.toString()];
-						b_C = dot_order["b_m105"][b_.toString()];
-						t_C = dot_order["t_"][t_.toString()];
-						o = 20;
-						break;
-					case (7): // 7 tl
-						_lC = dot_order["l_m6"][_l.toString()];
-						_rC = dot_order["_r"][_r.toString()];
-						b_C = dot_order["b_"][b_.toString()];
-						t_C = dot_order["t_m6"][t_.toString()];
-						o = 53;
-						break;
-					case (5): // 5 tr
-						_lC = dot_order["_l"][_l.toString()];
-						_rC = dot_order["r_m14"][_r.toString()];
-						b_C = dot_order["b_"][b_.toString()];
-						t_C = dot_order["t_m14"][t_.toString()];
-						o = 51;
-						break;
-					case (3): // 3 bl
-						_lC = dot_order["l_m15"][_l.toString()];
-						_rC = dot_order["_r"][_r.toString()];
-						b_C = dot_order["b_m15"][b_.toString()];
-						t_C = dot_order["t_"][t_.toString()];
-						o = 21;
-						break;
-					case (2): // 2 br
-						_lC = dot_order["_l"][_l.toString()];
-						_rC = dot_order["r_m35"][_r.toString()];
-						b_C = dot_order["b_m35"][b_.toString()];
-						t_C = dot_order["t_"][t_.toString()];
-						o = 19;
-						break;
-					case (1): // 
-						_lC = dot_order["_l"][_l.toString()];
-						_rC = dot_order["_r"][_r.toString()];
-						b_C = dot_order["b_"][b_.toString()];
-						t_C = dot_order["t_"][t_.toString()];
-						o = 42;
-						break;
-				}
-				//img.set(x_+1, y_, _rC);
-				img[j][i+1] = _rC;
-				//img.set(x_-1, y_, _lC);
-				img[j][i-1] = _lC;
-				//img.set(x_, y_-1, t_C);
-				img[j-1][i] = t_C;
-				//img.set(x_, y_+1, b_C);
-				img[j+1][i] = b_C;
-				break;
-			case (105): // 5 3 7 bottom left right
-				//let p_ = 1;
-				if (br_C) {
-					//img.set(x_+1, y_+1, br_C);
-					img[j+1][i+1] = br_C;
-					p_ *= 2;
-				}
-				if (bl_C) {
-					//img.set(x_-1, y_+1, bl_C);
-					img[j+1][i-1] = bl_C;
-					p_ *= 3;
-				}
-				switch (p_){
-					case (6): // br bl
-						_lC = dot_order["l_m15"][_l.toString()];
-						_rC = dot_order["r_m35"][_r.toString()];
-						b_C = dot_order["b_m105"][b_.toString()];
-						o = 17;
-						break;
-					case (3): // bl
-						_lC = dot_order["l_m15"][_l.toString()];
-						b_C = dot_order["b_m15"][b_.toString()];
-						_rC = dot_order["_r"][_r.toString()];
-						o = 29;
-						break;
-					case (2): // br
-						_lC = dot_order["_l"][_l.toString()];
-						_rC = dot_order["r_m35"][_r.toString()];
-						b_C = dot_order["b_m35"][b_.toString()];
-						o = 30;
-						break;
-					case (1): //
-						_lC = dot_order["_l"][_l.toString()];
-						_rC = dot_order["_r"][_r.toString()];
-						b_C = dot_order["b_"][b_.toString()];
-						o = 55;
-						break;
-				}
-				//img.set(x_+1, y_, _rC);
-				img[j][i+1] = _rC;
-				//img.set(x_-1, y_, _lC);
-				img[j][i-1] = _lC;
-				//img.set(x_, y_+1, b_C);
-				img[j+1][i] = b_C;
-				break;
-			case (70): // 2 5 7 top right bottom
-				//let p_ = 1;
-				if (br_C) {
-					//img.set(x_+1, y_+1, br_C);
-					img[j+1][i+1] = br_C;
-					p_ *= 2;
-				}
-				if (tr_C) {
-					//img.set(x_+1, y_-1, tr_C);
-					img[j-1][i+1] = tr_C;
-					p_ *= 3;
-				}
-				switch (p_){
-					case (6): // br tr
-						t_C = dot_order["t_m14"][t_.toString()];
-						_rC = dot_order["r_m70"][_r.toString()];
-						b_C = dot_order["b_m35"][b_.toString()];
-						o = 32;
-						break;
-					case (3): // tr
-						t_C = dot_order["t_m14"][t_.toString()];
-						_rC = dot_order["r_m14"][_r.toString()];
-						b_C = dot_order["b_"][b_.toString()];
-						o = 46;
-						break;
-					case (2): // br
-						t_C = dot_order["t_"][t_.toString()];
-						_rC = dot_order["r_m35"][_r.toString()];
-						b_C = dot_order["b_m35"][b_.toString()];
-						o = 28;
-						break;
-					case (1): // 
-						t_C = dot_order["t_"][t_.toString()];
-						_rC = dot_order["_r"][_r.toString()];
-						b_C = dot_order["b_"][b_.toString()];
-						o = 40;
-						break;
-				}
-				//img.set(x_, y_-1, t_C);
-				img[j-1][i] = t_C;
-				//img.set(x_+1, y_, _rC);
-				img[j][i+1] = _rC;
-				//img.set(x_, y_+1, b_C);
-				img[j+1][i] = b_C;
-				break;
-			case (42): // 2 3 7 top left right
-				//let p_ = 1;
-				if (tr_C) {
-					//img.set(x_+1, y_-1, tr_C);
-					img[j-1][i+1] = tr_C;
-					p_ *= 2;
-				}
-				if (tl_C) {
-					//img.set(x_-1, y_-1, tl_C);
-					img[j-1][i-1] = tl_C;
-					p_ *= 3;
-				}
-				switch (p_){
-					case (6): // tr tl
-						t_C = dot_order["t_m42"][t_.toString()];
-						_lC = dot_order["l_m6"][_l.toString()];
-						_rC = dot_order["r_m14"][_r.toString()];
-						o = 49;
-						break;
-					case (3): // tl
-						t_C = dot_order["t_m6"][t_.toString()];
-						_lC = dot_order["l_m6"][_l.toString()];
-						_rC = dot_order["_r"][_r.toString()];
-						o = 47;
-						break;
-					case (2): // tr
-						t_C = dot_order["t_m14"][t_.toString()];
-						_lC = dot_order["_l"][_l.toString()];
-						_rC = dot_order["r_m14"][_r.toString()];
-						o = 44;
-						break;
-					case (1): // 
-						t_C = dot_order["t_"][t_.toString()];
-						_lC = dot_order["_l"][_l.toString()];
-						_rC = dot_order["_r"][_r.toString()];
-						o = 23;
-						break;
-				}
-				//img.set(x_, y_-1, t_C);
-				img[j-1][i] = t_C;
-				//img.set(x_-1, y_, _lC);
-				img[j][i-1] = _lC;
-				//img.set(x_+1, y_, _rC);
-				img[j][i+1] = _rC;
-				break;
-			case (30): // 2 3 5 top left bottom
-				//let p_ = 1;
-				if (bl_C) {
-					//img.set(x_-1, y_+1, bl_C);
-					img[j+1][i-1] = bl_C;
-					p_ *= 2;
-				}
-				if (tl_C) {
-					//img.set(x_-1, y_-1, tl_C);
-					img[j-1][i-1] = tl_C;
-					p_ *= 3;
-				}
-				switch (p_){
-					case (6): // bl tl
-						t_C = dot_order["t_m6"][t_.toString()];
-						_lC = dot_order["l_m30"][_l.toString()];
-						b_C = dot_order["b_m15"][b_.toString()];
-						o = 34;
-						break;
-					case (3): // tl
-						t_C = dot_order["t_m6"][t_.toString()];
-						_lC = dot_order["l_m6"][_l.toString()];
-						b_C = dot_order["b_"][b_.toString()];
-						o = 45;
-						break;
-					case (2): // bl
-						t_C = dot_order["t_"][t_.toString()];
-						_lC = dot_order["l_m15"][_l.toString()];
-						b_C = dot_order["b_m15"][b_.toString()];
-						o = 31;
-						break;
-					case (1): //
-						t_C = dot_order["t_"][t_.toString()];
-						_lC = dot_order["_l"][_l.toString()];
-						b_C = dot_order["b_"][b_.toString()];
-						o = 38;
-						break;
-				}
-				//img.set(x_, y_-1, t_C);
-				img[j-1][i] = t_C;
-				//img.set(x_-1, y_, _lC);
-				img[j][i-1] = _lC;
-				//img.set(x_, y_+1, b_C);
-				img[j+1][i] = b_C;
-				break;
-
-			case (35): // 5 7 bottom right
-				if (br_C) {
-					_rC = dot_order["r_m35"][_r.toString()];
-					b_C = dot_order["b_m35"][b_.toString()];
-					//img.set(x_+1, y_+1, br_C);
-					img[j+1][i+1] = br_C;
-					o = 16;
-				} else {
-					_rC = dot_order["_r"][_r.toString()];
-					b_C = dot_order["b_"][b_.toString()];
-					o = 22;
-				}
-				//img.set(x_, y_+1, b_C);
-				img[j+1][i] = b_C;
-				//img.set(x_+1, y_, _rC);
-				img[j][i+1] = _rC;
-				break;
-			case (15): // 5 3 bottom left 
-				if (bl_C) {
-					_lC = dot_order["l_m15"][_l.toString()];
-					b_C = dot_order["b_m15"][b_.toString()];
-					//img.set(x_-1, y_+1, bl_C);
-					img[j+1][i-1] = bl_C;
-					o = 18;
-				} else {
-					_lC = dot_order["_l"][_l.toString()];
-					b_C = dot_order["b_"][b_.toString()];
-					o = 24;
-				}
-				//img.set(x_, y_+1, b_C);
-				img[j+1][i] = b_C;
-				//img.set(x_-1, y_, _lC);
-				img[j][i-1] = _lC;
-				break;
-			case (14): // 2 7 top right
-				//console.log("huh?");
-				if (tr_C) {
-					t_C = dot_order["t_m14"][t_.toString()];
-					_rC = dot_order["r_m14"][_r.toString()];
-					//img.set(x_+1, y_-1, tr_C);
-					img[j-1][i+1] = tr_C;
-					o = 48;
-					//console.log("t_: "+t_+"   _r: "+_r+"    ------- t_C: "+t_C+"    ----- _rC: "+_rC);
-				} else {
-					t_C = dot_order["t_"][t_.toString()];
-					_rC = dot_order["_r"][_r.toString()];
-					o = 54;
-					
-				}
-				//img.set(x_, y_-1, t_C);
-				img[j-1][i] = t_C;
-				//img.set(x_+1, y_, _rC);
-				img[j][i+1] = _rC;
-				break;
-
-			case (6): // 2 3 top left
+		for (let jy=0; jy < from_grid.length && ay+jy < to_grid.length && ay+jy>=0; jy++) {
+			for (let ix=0; ix < from_grid[0].length && ax+ix < to_grid[0].length && ax+ix>=0; ix++) {
+				//console.log("to_grid["+(ay+jy)+"]["+(ax+ix)+"] "+th+" "+tw+" = from_grid["+jy+"]["+ix+"] "+fh+" "+fw+" ");
 				
-				if (tl_C) {
-					t_C = dot_order["t_m6"][t_.toString()];
-					_lC = dot_order["l_m6"][_l.toString()];
-					//img.set(x_-1, y_-1, tl_C);
-					img[j-1][i-1] = tl_C;
-					o = 50;
-				} else {
-					t_C = dot_order["t_"][t_.toString()];
-					_lC = dot_order["_l"][_l.toString()];
-					o = 56;
-				}
-				//img.set(x_, y_-1, t_C);
-				img[j-1][i] = t_C;
-				//img.set(x_-1, y_, _lC);
-				img[j][i-1] = _lC;
-				break;
-			case (21): // 3 7 left right
-				_rC = dot_order["_r"][_r.toString()];
-				//img.set(x_+1, y_, _rC);
-				img[j][i+1] = _rC;
-				_lC = dot_order["_l"][_l.toString()];
-				//img.set(x_-1, y_, _lC);
-				img[j][i-1] = _lC;
-				o = 62;
-				break;
-			case (10): // 2 5 top bottom
-				b_C = dot_order["b_"][b_.toString()];
-				//img.set(x_, y_+1, b_C);
-				img[j+1][i] = b_C;
-				t_C = dot_order["t_"][t_.toString()];
-				//img.set(x_, y_-1, t_C);
-				img[j-1][i] = t_C;
-				o = 63;
-				break;
-			case (7): // right
-				_rC = dot_order["_r"][_r.toString()];
-				//img.set(x_+1, y_, _rC);
-				img[j][i+1] = _rC;
-				o = 41;
-				break;
-			case (5): // bottom
-				b_C = dot_order["b_"][b_.toString()];
-				//img.set(x_, y_+1, b_C);
-				img[j+1][i] = b_C;
-				o = 26;
-				break;
-			case (3): // left
-				_lC = dot_order["_l"][_l.toString()];
-				//img.set(x_-1, y_, _lC);
-				img[j][i-1] = _lC;
-				o = 43;
-				break;
-			case (2): // top
-				t_C = dot_order["t_"][t_.toString()];
-				//img.set(x_, y_-1, t_C);
-				img[j-1][i] = t_C;
-				o = 58;
-				break;
+				to_grid[ay+jy][ax+ix] = from_grid[jy][ix];
+			}
 		}
-		
-		//console.log(o+" "+m);
-		if (!curr) {
-			//img.set(x_, y_, o);
-			img[j][i] = o;
-		}
-	
 	}
 	
 	
 	
 	
 	
-
 }
 
 
-/*
- 39 is the 'single' grass block
-*/
+// 2,3,5,7,11,13 //
 
 /*
 	16 17 18  19 20 21  22 23 24  25 26 27  28 29 30 31
@@ -4836,424 +7487,158 @@ class LevelGraph {
   48 49 50  51 52 53  54 55 56  57 58 59  60 61 62 63
 */
 
-const dot_order = {
-	"t_": {
-		"0": 0, 
-		"23": 42, "39": 26, "41": 22, "43": 24, "44": 51, "47": 53, "48": 46, "49": 52, 
-		"50": 45, "54": 40, "56": 38, "58": 63, "62": 55
-	},
-	"t_m6": { // dirt fill top left
-		"0": 0, 
-		"23": 21, "43": 18, "44": 61, "47": 37, "49": 25, 
-		"50": 34, "56": 31, "62": 29
-	},
-	"t_m14": { // dirt fill top right 
-		"0": 0, 
-		"23": 19, "41": 16, "47": 60, "44": 35, "48": 32, "49": 27, "54": 28, "62": 30
-	},
-	"t_m42": { // dirt fill top left and right
-		"0": 0, 
-		"23": 20, "39": 20, "47": 57, "44": 59, "49": 33, "62": 17
-	},
-	"_l": {
-		"0": 0,
-		"18": 29, "24": 55, "26": 22, "31": 21, "34": 37, "38": 42, "39": 41, 
-		"43": 62, "45": 53, "50": 47, "56": 23, "58": 54, "63": 40
-	},
-	"l_m6": { // dirt fill top left
-		"0": 0,
-		"31": 61, "34": 25, "38": 51, "45": 52, "50": 49, "56": 44, "58": 48, "63": 46
-	},
-	"l_m15": { // dirt fill bottom left
-		"0": 0,
-		"18": 17, "24": 30, "26": 16, "31": 20, "34": 57, "38": 19, "45": 60, "63": 28
-	},
-	"l_m30": { // dirt fill top bottom left
-		"0": 0,
-		"31": 59, "34": 33, "38": 35, "45": 27, "63": 32
-	},
-	"b_": {
-		"0": 0,
-		"16": 28, "17": 20, "18": 31, "22": 40, "24": 38, "26": 63, "29": 21, 
-		"30": 19, "39": 58, "41": 54, "43": 56, "55": 42, "62": 23
-	},
-	"b_m15": { // dirt fill bottom left
-		"0": 0,
-		"17": 57, "18": 34, "24": 45, "29": 37, 
-		"30": 60, "43": 50, "55": 53, "62": 47
-	},
-	"b_m35": { // dirt fill bottom right
-		"0": 0,
-		"16": 32, "17": 59, "22": 46, "29": 61, 
-		"30": 35, "41": 48, "55": 51, "62": 44
-	},
-	"b_m105": { // dirt fill bottom left right
-		"0": 0,
-		"17": 33, "29": 25, "30": 27, "55": 52, "62": 49
-	},
-	"_r": {
-		"0": 0,
-		"16": 30, "22": 55, "26": 24, "28": 19, "32": 35, "39": 43, "40": 42, 
-		"41": 62, "46": 51, "48": 44, "54": 23, "58": 56, "63": 38
-	},
-	"r_m14": { // dirt fill top right 
-		"0": 0,
-		"28": 60, "32": 27, "40": 53, "46": 52, "48": 49, "54": 47, "58": 50, "63": 45
-	},
-	"r_m35": { // dirt fill bottom right
-		"0": 0,
-		"16": 17, "22": 29, "26": 18, "28": 20, "32": 59, "40": 21, 
-		"46": 61, "63": 31
-	},
-	"r_m70": { // dirt fill top bottom right
-		"0": 0,
-		"28": 57, "32": 33, "40": 37, "46": 25, "63": 34
-	},
-	"tl": {
-		"0": 0, 
-		"21": 20, "22": 16, "25": 33, "29": 17, "37": 57, "40": 28, "42": 19, 
-		"46": 32, "51": 35, "52": 27, "53": 60, "55": 30, "61": 59
-	},
-	"tr": {
-		"0": 0, 
-		"19": 20, "24": 18, "27": 33, "30": 17, "35": 59, "38": 31, "42": 21, 
-		"45": 34, "51": 61, "52": 25, "53": 37, "55": 29, "60": 57
-	},
-	"bl": {
-		"0": 0, 
-		"19": 35, "20": 59, "21": 61, "23": 44, "28": 32, "37": 25, "40": 46,
-		"42": 51, "47": 49, "53": 52, "54": 48, "57": 33, "60": 27
-	},
-	"br": {
-		"0": 0, 
-		"19": 60, "20": 57, "21": 37, "23": 47, "31": 34, "35": 27, "38": 45,
-		"42": 53, "44": 49, "51": 52, "56": 50, "59": 33, "61": 25
-	},
-	"oob_bottom": {
-		"0": 0,
-		"55": 17, "22": 16, "24": 18
-	},
-	"oob_bl_corner": {
-		"0": 0,
-		"55": 17, "22": 17, "24": 17
-	},
-	"oob_br_corner": {
-		"0": 0,
-		"55": 17, "22": 17, "24": 17
-	}
-	
-}
 
+// testing
 /*
-	16 17 18  19 20 21  22 23 24  25 26 27  28 29 30 31
-  32 33 34  35 36 37  38 39 40  41 42 43  44 45 46 47
-  48 49 50  51 52 53  54 55 56  57 58 59  60 61 62 63
+let p_0 = new pnode();
+let p_1 = new pnode();
+let p_2 = new pnode();
+let p_3 = new pnode();
+let p_4 = new pnode();
+let p_b0 = new pnode();
+let p_b1 = new pnode();
+let p_b2 = new pnode();
+
+p_0.setNext(p_1, 1, 0);
+p_1.setNext(p_2, 2, 1);
+p_2.setNext(p_3, 3, 0);
+p_3.setNext(p_4, 5, -1);
+
+p_2.setBranch(p_b0, 0, 4);
+p_b0.setNext(p_b1, 5, 0);
+
+let chain = p_0.getChain();
+
+console.log(p_0.printChain());
+console.log(chain);
 */
-
-//const up = 0;
-// 26
-// when placing a block on the grid, check the ones around it
-/*
-function dot(x,y, terrain) {
-	//console.log(img_);
-	//level_image_
-	//let xxx = curr_area["image"];//level_image_.get(0, 1);
-	
-	let img = newLevel.areas[current_area]["image"];
-	
-	img.set(x,y, 26) // 26 will be changed
-	
-	//let getim = image_.get(y,y);
-	//console.log(getim);
-	
-	//
-	//let i = xxx.get(x, y);
-	//level_image_
-	//console.log(x+" "+y+" "+i);
-	
-	let tl = img.get(x-1, y-1) ? img.get(x-1, y-1)["sprite"] : -1;
-	let t_ = img.get(x, y-1) ? img.get(x, y-1)["sprite"] : -1;
-	let tr = img.get(x+1, y-1) ? img.get(x+1, y-1)["sprite"] : -1;
-	let _l = img.get(x-1, y) ? img.get(x-1, y)["sprite"] : -1;
-	let _r = img.get(x+1, y) ? img.get(x+1, y)["sprite"] : -1;
-	let bl = img.get(x-1, y+1) ? img.get(x-1, y+1)["sprite"] : -1;
-	let b_ = img.get(x, y+1) ? img.get(x, y+1)["sprite"] : -1;
-	let br = img.get(x+1, y+1) ? img.get(x+1, y+1)["sprite"] : -1;
-	
-	
-	
-	console.log(tl);
-	console.log(t_);
-	console.log(tr);
-	console.log(_l);
-	console.log(_r);
-	console.log(bl);
-	console.log(b_);
-	console.log(br);
-	
-	//+" "+t_+" "+tr+" "+_l+" "+_r+" "+bl+" "+b_+" "+br);
-	
-	throw up;
-	
-}
-*/
-
-/*
-function create_level() {
-	
-	
-	
-	// 
-	
-	return ggg;
-}
-*/
-
-
-
-//console.log(curr_level.info());
-
-//console.log(curr_level.areas[0]);
-
-// 
-
-
-/* ========================= INITIALIZE (can be random) =========================== */
-
-tilesheet(ts_1); // can change tile sheet later on with this
-
-// these are found in the LevelGraph
-//var width = 32; // 32 is one 'screen', 64 is two 'screens' 
-//var height = 32;
-//var rt = width-1;
-//var bm = height-1;
-//var level_pixel_width = width*8;
-
-
-//Math.floor(width/2);
-//var curr_level = create_level();
-
 
 var TileMap = require('pixelbox/TileMap');
 
-// random number of rooms and graph but all the same size 
-// need to randomize room sizes
-let numMainRooms = 3;//rnd(3, 5);
-let numExtra = 7;//rnd(4, 10);
-let newLevel = new LevelGraph(numMainRooms, numExtra);
+/* ========================= INITIALIZE WORLD =========================== */
 
-//console.log();
-
-newLevel.build_areas();
-
-
-//newLevel.build_area(0);
-//newLevel.build_area(1);
-//newLevel.build_area(2);
-
-
-
-//newLevel.testPlaceFloor(0);
-//newLevel.testPlaceFloor(1);
-//newLevel.testPlaceFloor(2);
-//newLevel.build_area(1);
-
-var curr_area = newLevel.areas[current_area];
-
-var level_image_ = curr_area["image"];//new TileMap(width, height);
-var level_image_behind = curr_area["image_behind"];//new TileMap(width, height);
-var level_image_front = curr_area["image_front"];//new TileMap(width, height);
-
-var level_grid_ = curr_area["grid"];//[...Array(height)].map(_ => Array(width).fill(0));
-var level_events_ = curr_area["event_grid"];
-
-//console.log()
-var width = curr_area["width"]; // 32 is one 'screen', 64 is two 'screens' 
-var height = curr_area["height"];
-var rt = width-1;
-var bm = height-1;
-var level_pixel_width = width*8;
-var level_pixel_height = height*8;
-
-
-// ***********
-// TODO: add methods for levelGraph object to place stuff in areas.
-// ***********
-
-/* ==================== TEST MAP ======================
-  This is a test map.
-  Will create a more organized one later on.
-*/
-
-/*
-function test_make_level() {
-	//console.log("A ");
-	level_grid_[bm-1][0] = 10;
-	level_grid_[bm-1][rt] = 11;
-	level_image_.set(0, bm-1, 229);
-	level_image_.set(rt, bm-1, 229);
+if (1) {
+	tilesheet(ts_wmap);
 	
-	// floor
-  for (let i=0; i<32; i++) {
-    level_image_.set(i, bm, 225);
-    level_grid_[bm][i] = 1;
-  }
-  //console.log("B ");
-  
-  // singular blocks
-	/*
-  level_image_.set(0, bm-1, 224);
-  level_grid_[bm-1][0] = 1;
-  
-  level_image_.set(12, bm-1, 224);
-  level_grid_[bm-1][12] = 1;
-	*/
-	// ladders/climbing
-	//level_image_.set(2, bm-1, 228);
-  //level_image_.set(2, bm-2, 228);
-	//level_image_.set(2, bm-3, 228);
 	
-  //level_grid_[bm-1][2] = 2; // 2 is climb, 3 could be water?
-	//level_grid_[bm-2][2] = 2;
-	//level_grid_[bm-3][2] = 2;
-	//console.log("C ");
-	// doors
-	//create_door(0, 7, bm-1, 0, 1, 7, bm-1); //
-	//create_door(0, 14, bm-1, 1, 1, 14, bm-1); //
-	//create_door(0, 19, bm-1, 2, 1, 16, bm-1); //
-	//create_door(0, 27, bm-1, 2, 1, 19, bm-1); //
-	//level_grid_[bm-1][7] = 4; // only need one trigger sprite per door, not 2
-	//level_grid_[bm-1][14] = 4; 
-	//level_grid_[bm-1][19] = 4; 
-	//level_grid_[bm-1][27] = 4; 
 	
-	//console.log("D ");
-	// 10, 11 are left and right screen triggers, to get to next areas
-
-
-  // randomly scattered, randomly coloured blocks
+	
+	// these will be in class object instead
+	// TODO: try creating a gridless world that doesn't need to be stored in memory, based on seed and px py
+	
+	let numWScreensX = 1;
+	let numWScreensY = 1;
+	var w_height = numWScreensY*G_H;
+	var w_width = numWScreensX*G_W;
+	//var world_event_grid = [...Array(w_height)].map(_ => Array(w_width).fill(0));
+	//var world_area_image = new TileMap(w_width, w_height); // multiple areas?
+	const W_IMAGE_SIZE = 18;
+	
 	/*
-  for (let i=0; i<10; i++) {
-    let x = rnd(0, width);
-    let y = rnd(height-8, height);
-    let block_choice = rnd(0, 4);
-    
-    level_image_.set(x, y, 224+block_choice);
-    level_grid_[y][x] = 1;
-  }
-  /**/
-  // random moving platforms
-	/*
-  for (let i=0; i<5; i++) {
-    
-    let rx = rnd(0, width);
-    let ry = rnd(height-10, height);
-		let rm = rnd(0, platforms.length);
-    
-    create_platform(rx*8, ry*8, rm);
-    
-  }
-	//console.log("E ");
+	var render_r = new TileMap(W_IMAGE_SIZE, W_IMAGE_SIZE);
+	var render_T = new TileMap(W_IMAGE_SIZE, W_IMAGE_SIZE);
+	var render_7 = new TileMap(W_IMAGE_SIZE, W_IMAGE_SIZE);
+	var render_E = new TileMap(W_IMAGE_SIZE, W_IMAGE_SIZE);
+	var render_O = new TileMap(W_IMAGE_SIZE, W_IMAGE_SIZE);
+	var render_3 = new TileMap(W_IMAGE_SIZE, W_IMAGE_SIZE);
+	var render_L = new TileMap(W_IMAGE_SIZE, W_IMAGE_SIZE);
+	var render_U = new TileMap(W_IMAGE_SIZE, W_IMAGE_SIZE);
+	var render_J = new TileMap(W_IMAGE_SIZE, W_IMAGE_SIZE);
 	/**/
-  
-  //let mult = 10;
-  // scatter jumping enemies
+	var render_map = new TileMap(50, 50);
 	/*
-  for (let spray_everywhere=0; spray_everywhere<mult; spray_everywhere++) {
-    for (let i=0; i<4; i++) {
-    
-      let rx = rnd(0, width);
-      let ry = rnd(height-20, height);
-      
-      create_small_enemy(rx*8, ry*8, "steadyjump", 0+i*16);
-    
-    }
-  }
-	*/
-  
-  // scatter walking enemies
+	var render_r_m = new TileMap(W_IMAGE_SIZE, W_IMAGE_SIZE);
+	var render_T_m = new TileMap(W_IMAGE_SIZE, W_IMAGE_SIZE);
+	var render_7_m = new TileMap(W_IMAGE_SIZE, W_IMAGE_SIZE);
+	var render_E_m = new TileMap(W_IMAGE_SIZE, W_IMAGE_SIZE);
+	var render_O_m = new TileMap(W_IMAGE_SIZE, W_IMAGE_SIZE);
+	var render_3_m = new TileMap(W_IMAGE_SIZE, W_IMAGE_SIZE);
+	var render_L_m = new TileMap(W_IMAGE_SIZE, W_IMAGE_SIZE);
+	var render_U_m = new TileMap(W_IMAGE_SIZE, W_IMAGE_SIZE);
+	var render_J_m = new TileMap(W_IMAGE_SIZE, W_IMAGE_SIZE);
+	/**/
+	var render_map_m = new TileMap(50, 50);
+	
 	/*
-  for (let spray_everywhere=0; spray_everywhere<mult; spray_everywhere++) {
-    for (let i=0; i<4; i++) {
-      
-      let rx = rnd(0, width);
-      let ry = rnd(height-20, height);
-      
-      create_small_enemy(rx*8, ry*8, "walkbump", 0+i*16);
-    }
-  }
-  */
+	var render_test = new TileMap(16, 16);
+	for (let wy=0; wy<16; wy++) {
+		for (let wx=0; wx<16; wx++) {
+			render_test.set(wx, wy, 0);
+		}
+	}/**/
+	
+	//var world_pixel_width = w_width*8;
+	//var world_pixel_height = w_height*8;
+	/**/
+	
+	
 	/*
-  create_small_enemy(30*8, 30*8, "walkbump", 0+0*16);
-  create_small_enemy(11*8, 30*8, "steadyjump", 0+1*16);
-	//console.log("F ");
+	for (let wy=0; wy<w_height; wy++) {
+		for (let wx=0; wx<w_width; wx++) {
+			world_area_image.set(wx, wy, 0);
+			if (rnd(0,9) === 0) {
+				world_area_image.set(wx,wy, 1);
+				world_event_grid[wy][wx] = 1;
+			}
+		}
+	}*/
 	
 	
 	
-	
-	// ------ pnode attempt ------------
-	var ground = new pnode(224);
-	var prev_ground = ground;
-
-	for (let i=0; i<5; i++) {
-	  let new_ground = new pnode(224);
-		let xx = rnd(1,6);
-		let yy = rnd(-2,3);
-		//console.log(yy);
-		//let xx = rnd(0,4)-4;
-	  prev_ground.setNext(new_ground, xx, yy);
-	  prev_ground = new_ground;
-	}
-  //console.log("G ");
-	var temp = ground;
-	var x_init = 1;
-	var y_init = bm-8;
-	
-	var x = x_init;
-	var y = y_init;
-	//var x_g = 1;
-	//var y_g = bm-8;
-  //console.log("H ");
-
-	let ii = 0;
-	while (temp.hasNext()) {
-		console.log(ii+" x"+x+" y"+y+"  ptype"+temp.ptype);
-	  //console.log(ii+"   curr: ("+x+", "+y+")    next: ("+temp.next_gap+", "+temp.next_height+")");
-		
-		level_image_.set(x, y, temp.ptype);
-	  level_grid_[y][x] = 1;
-		//console.log("J ");
-		x += temp.next_gap;
-		y += temp.next_height;
-
-    //console.log("K ");
-	  temp = temp.next_pnode;
-		ii++;
-		//console.log("L ");
-	}
-	
-	//console.log(ground.info());
-}	/**/
-  
-
-
-
-
-
-/*
-function test_make_level() {
-	let test_ground = new pnode(225);
-	level_image_.set(0, 0, test_ground.ptype);
-  level_grid_[15][0] = 0;
+	//var world_image_ = area["image"].set( new_x, new_y, T["rt_arrow"]);curr_area["image"];//new TileMap(width, height);
 	
 }
 
-*/
-//test_make_level();
 
-// level_graph.build(0);
-// 
 
+/* ========================= INITIALIZE LEVEL =========================== */
+
+
+//
+
+
+
+
+if (0) {
+	tilesheet(ts_1); // can change tile sheet later on with this
+	
+	const DEFAULT_START_TERRAIN = T["starting_terrain"];
+	var current_area = 0;
+	var activated_area = -1;
+
+
+
+	// random number of rooms and graph but all the same size 
+	// need to randomize room sizes
+	let numMainRooms = rnd(3, 5); //3, 10
+	let numExtra = rnd(4, 7); // 4, 15
+	let newLevel = new LevelGraph(numMainRooms, numExtra);
+	newLevel.build_areas();
+
+
+
+	//var current_level = 0;
+	//var exit_choices = ["edge", "edge", "door"];
+	var curr_area = newLevel.areas[current_area];
+
+	var level_image_ = curr_area["image"];//new TileMap(width, height);
+	var level_image_behind = curr_area["image_behind"];//new TileMap(width, height);
+	var level_image_front = curr_area["image_front"];//new TileMap(width, height);
+	var level_grid_ = curr_area["grid"];//[...Array(height)].map(_ => Array(width).fill(0));
+	var level_events_ = curr_area["event_grid"];
+
+	var width = curr_area["width"]; // 32 is one 'screen', 64 is two 'screens' 
+	var height = curr_area["height"]; // 24 ,  48
+	var rt = width-1;
+	var bm = height-1;
+	var level_pixel_width = width*8;
+	var level_pixel_height = height*8;
+
+
+	// start music. should start depending on screen -- title, level, world
+	start_music();
+	/**/
+}
 
 
 
@@ -5292,8 +7677,1207 @@ function update_scene() {
   
 }
 
+
+// TODO: temporary, need build_world()
+//var world_image = 
+
+
+var offset_toggle = 0;
 function update_world() {
+	update_setting_gamepad();
+	/*
+		x y position on world determines seed
+	
+	
+	*/
   
+	player1_world_movement();
+	player1_world_animation();
+	//player1_animation();
+	
+	// animation()
+	//player2_world_movement();
+	
+	cls();
+	
+	
+	// need to calculate difference for right side of screen
+	/*
+	if (world_pixel_width === SCREEN_WIDTH) {
+		l_offset = 0; offset_toggle = 1;
+	} else {
+		if (left_edge == 0) {
+			l_offset = SCREEN_WIDTH-XMID;
+		} else {
+			l_offset = 0;
+		}
+	
+		if (right_edge == 0) {
+			//console.log("right_edge == 0")
+		} else {
+			l_offset = -(world_pixel_width - SCREEN_WIDTH); // ?
+		}
+	}
+	
+	if (world_pixel_height === SCREEN_HEIGHT) {
+		u_offset = 0;
+	} else {
+		if (top_edge == 0) {
+			u_offset = SCREEN_HEIGHT-YMID;
+		} else {
+			u_offset = 0;
+		}
+	
+		if (bottom_edge == 0) {
+		} else {
+			u_offset = -(world_pixel_height - SCREEN_HEIGHT); // ?
+		}
+	}/**/
+	
+	update_world_chunks();
+	draw_world_chunks();
+	//draw(world_area_image, l_offset+(XMID*offset_toggle)-pw.x, u_offset+(YMID*offset_toggle)-pw.y);
+	
+	
+	sprite(pw_sheet_id+(pframe*2), XMID-4-left_edge-XOFFSET+(8*going_left)+right_edge, YMID-top_edge-16+bottom_edge, going_left);
+	sprite(pw_sheet_id+1+(pframe*2), XMID-4-left_edge+8-XOFFSET-(8*going_left)+right_edge, YMID-top_edge-16+bottom_edge, going_left);
+	sprite(pw_sheet_id+16+(pframe*2), XMID-4-left_edge-XOFFSET+(8*going_left)+right_edge, YMID-top_edge-16+bottom_edge+8, going_left);
+	sprite(pw_sheet_id+17+(pframe*2), XMID-4-left_edge+8-XOFFSET-(8*going_left)+right_edge, YMID-top_edge-16+bottom_edge+8, going_left);
+	sprite(pw_sheet_id+32+(pframe*2), XMID-4-left_edge-XOFFSET+(8*going_left)+right_edge, YMID-top_edge-16+bottom_edge+16, going_left);
+	sprite(pw_sheet_id+33+(pframe*2), XMID-4-left_edge+8-XOFFSET-(8*going_left)+right_edge, YMID-top_edge-16+bottom_edge+16, going_left);
+	/**/
+	
+	//sprite(368, XMID-left_edge-XOFFSET+right_edge, YMID-top_edge-4+bottom_edge, going_left);
+  /*sprite(psheet[0]+(pframe*2)+128, XMID-left_edge-XOFFSET+(8*going_left)+right_edge, YMID-top_edge-YOFFSET+bottom_edge-info_box_offset, going_left);
+  sprite(psheet[1]+(pframe*2), XMID-left_edge+8-XOFFSET-(8*going_left)+right_edge, YMID-top_edge-YOFFSET+bottom_edge-info_box_offset, going_left);
+  sprite(psheet[2]+(pframe*2), XMID-left_edge-XOFFSET+(8*going_left)+right_edge, YMID-top_edge+8-YOFFSET+bottom_edge-info_box_offset, going_left);
+  sprite(psheet[3]+(pframe*2), XMID-left_edge+8-XOFFSET-(8*going_left)+right_edge, YMID-top_edge+8-YOFFSET+bottom_edge-info_box_offset, going_left);
+  sprite(psheet[4]+(pframe*2), XMID-left_edge-XOFFSET+(8*going_left)+right_edge, YMID-top_edge+16-YOFFSET+bottom_edge-info_box_offset, going_left);
+  sprite(psheet[5]+(pframe*2), XMID-left_edge+8-XOFFSET-(8*going_left)+right_edge, YMID-top_edge+16-YOFFSET+bottom_edge-info_box_offset, going_left);
+	/**/
+	
+	toggle_speed();
+}
+
+
+
+
+
+
+
+
+
+/*
+
+
+
+g g w
+ggJ w
+w w w
+
+g g g  
+f f g
+w w g
+
+
+g f f
+g w f
+w w w
+
+
+
+
+
+	r,  T,  7,
+	E,	O,  3,
+	L,  U,  J
+
+functions:
+
+	gJ 
+  gL 
+  g7 
+  gr
+	wr 
+  w7 
+  wL 
+  wJ
+	wn 
+  wc 
+  w3 
+  wu
+	wlbns 
+  wlbwe
+	wlhst 
+  wlhet 
+  wlhwt 
+  wlhnt
+
+*/
+
+var grass_terrain_chunk = [...Array(16)].map(_ => Array(16).fill(0));
+var water_terrain_chunk = [...Array(16)].map(_ => Array(16).fill(1));
+var forest_terrain_chunk = [...Array(16)].map(_ => Array(16).fill(2));
+var mountain_terrain_chunk = [...Array(16)].map(_ => Array(16).fill(3));
+var desert_terrain_chunk = [...Array(16)].map(_ => Array(16).fill(4));
+
+
+// each of the 9 3x3 chunks will go through this
+function build_chunk_shape(chs, cid, sp) {
+	
+	//console.log(chs+" "+cid+" "+sp);
+	let events = [...Array(16)].map(_ => Array(16).fill(0));
+	
+	if (["g", "gr", "g7", "gL", "gJ", ].includes(chs) ){
+		//events = grass_terrain_chunk.map( (a,i) => a.slice() );
+		
+	} else if (["f", "fr", "fL", "f7", "fJ", "fn", "f3", "fc", "fu"].includes(chs)) {
+		//events = forest_terrain_chunk.map( (a,i) => a.slice() );
+		/*events[7][7] = 2;
+		events[7][8] = 2;
+		events[7][9] = 2;
+		events[8][7] = 2;
+		events[8][8] = 2;
+		events[8][9] = 2;
+		events[9][7] = 2;
+		events[9][8] = 2;
+		events[9][9] = 2;/**/
+	} else if (["m", "mr", "mL", "m7", "mJ", "mn", "m3", "mc", "mu"].includes(chs)) {
+		//events = mountain_terrain_chunk.map( (a,i) => a.slice() );
+		/*events[7][7] = 3;
+		events[7][8] = 3;
+		events[7][9] = 3;
+		events[8][7] = 3;
+		events[8][8] = 3;
+		events[8][9] = 3;
+		events[9][7] = 3;
+		events[9][8] = 3;
+		events[9][9] = 3;/**/
+	} else if (["d", "dr", "dL", "d7", "dJ", "dn", "d3", "dc", "du"].includes(chs)) {
+		//events = desert_terrain_chunk.map( (a,i) => a.slice() );
+		/*events[7][7] = 4;
+		events[7][8] = 4;
+		events[7][9] = 4;
+		events[8][7] = 4;
+		events[8][8] = 4;
+		events[8][9] = 4;
+		events[9][7] = 4;
+		events[9][8] = 4;
+		events[9][9] = 4;/**/
+	} else {
+		//console.log(chs);
+		//events = water_terrain_chunk.map( (a,i) => a.slice() );
+	}
+	
+	/*
+	console.log(chs);
+	let events = null; //chs === "g" ? 
+	switch (chs) {
+	  case "g":
+		  events = grass_terrain_chunk.map(function(arr) { return arr.slice(); });
+			//console.log(events);
+		  break;
+	  case "w":
+			events = water_terrain_chunk.map(function(arr) { return arr.slice(); });
+			break;
+	}
+	*/
+	
+	
+	
+	let ci = 0;
+	let chunk_seed = PRNG(cid, 64);
+	
+	
+	switch (chs) {
+	  case "f":
+			//events = wu(chunk_seed);
+			//events[1][1] = 4;
+			break;
+		case "g":
+			//events = wn(chunk_seed);
+			//events = grass_terrain_chunk.map(function(arr) { return arr.slice(); });
+			/*
+			for (let v=0; v<20; v++) {
+				let x = Math.floor(chunk_seed[ci]*(15));
+				ci++;
+				let y = Math.floor(chunk_seed[ci]*(15));
+				ci++;
+				events[y][x] = 1;
+			}
+			*/
+			//console.log("g");
+			//events[8][8] = 1;
+			break;
+		case "w":
+			events = water_terrain_chunk;//.map(function(arr) { return arr.slice(); });
+			/*
+			for (let v=0; v<20; v++) {
+				let x = Math.floor(chunk_seed[ci]*(15));
+				ci++;
+				let y = Math.floor(chunk_seed[ci]*(15));
+				ci++;
+				events[y][x] = 1;
+			}*/
+			
+			//events[8][8] = 1;
+			
+			
+			break;
+		case "gJ":
+			events = gJ(chunk_seed);
+			
+			break;
+		case "gL":
+			events = gL(chunk_seed);
+			
+			break;
+		case "g7":
+			events = g7(chunk_seed);
+			
+			break;
+		case "gr":
+			events = gr(chunk_seed);
+			
+			break;
+		case "wr":
+			events = wr(chunk_seed);
+			
+			break;
+		case "w7":
+			events = w7(chunk_seed);
+			
+			break; 
+		case "wL":
+			events = wL(chunk_seed);
+			
+			break;
+		case "wJ":
+			events = wJ(chunk_seed);
+			
+			break;
+		case "wn":
+			console.log("hello")
+			events = wn(chunk_seed);
+			
+			break; 
+		case "wc":
+			//events = [...Array(world_chunk_size)].map(_ => Array(world_chunk_size).fill(3));
+			events[0][0] = 0;
+			events[15][0] = 0;
+			
+			break; 
+		case "w3":
+			//events = [...Array(world_chunk_size)].map(_ => Array(world_chunk_size).fill(3));
+			events[0][15] = 0;
+			events[15][15] = 0;
+			
+			break; 
+		case "wu":
+			events = wu(chunk_seed);
+			
+			break;
+		case "wlbns":
+			/*
+			//events = [...Array(world_chunk_size)].map(_ => Array(world_chunk_size).fill(3));
+			events[0][7] = 0;
+			events[0][8] = 0;
+			events[1][7] = 0;
+			events[1][8] = 0;
+			events[2][7] = 0;
+			events[2][8] = 0;
+			events[3][7] = 0;
+			events[3][8] = 0;
+			events[4][7] = 0;
+			events[4][8] = 0;
+			events[5][7] = 0;
+			events[5][8] = 0;
+			events[6][7] = 0;
+			events[6][8] = 0;
+			events[9][7] = 0;
+			events[9][8] = 0;
+			events[10][7] = 0;
+			events[10][8] = 0;
+			events[12][7] = 0;
+			events[12][8] = 0;
+			events[13][7] = 0;
+			events[13][8] = 0;
+			events[14][7] = 0;
+			events[14][8] = 0;
+			events[15][7] = 0;
+			events[15][8] = 0;
+			
+			/**/
+			
+			
+			
+			break; 
+		case "wlbwe":
+			//events = [...Array(world_chunk_size)].map(_ => Array(world_chunk_size).fill(3));
+			/*
+			events[7][0] = 0;
+			events[8][0] = 0;
+			events[7][1] = 0;
+			events[8][1] = 0;
+			events[7][2] = 0;
+			events[8][2] = 0;
+			events[7][3] = 0;
+			events[8][3] = 0;
+			events[7][4] = 0;
+			events[8][4] = 0;
+			events[7][5] = 0;
+			events[8][5] = 0;
+			events[7][6] = 0;
+			events[8][6] = 0;
+			events[7][9] = 0;
+			events[8][9] = 0;
+			events[7][10] = 0;
+			events[8][10] = 0;
+			events[7][11] = 0;
+			events[8][11] = 0;
+			events[7][12] = 0;
+			events[8][12] = 0;
+			events[7][13] = 0;
+			events[8][13] = 0;
+			events[7][14] = 0;
+			events[8][14] = 0;
+			events[7][15] = 0;
+			events[8][15] = 0;
+			/**/
+			
+			
+			break;
+		case "wlhst":
+			//events = [...Array(world_chunk_size)].map(_ => Array(world_chunk_size).fill(3));
+			/*
+			events[0][7] = 0;
+			events[0][8] = 0;
+			events[1][7] = 0;
+			events[1][8] = 0;
+			events[2][7] = 0;
+			events[2][8] = 0;
+			/**/
+			
+			break; 
+		case "wlhet":
+			//events = [...Array(world_chunk_size)].map(_ => Array(world_chunk_size).fill(3));
+			/*
+			events[7][13] = 0;
+			events[8][13] = 0;
+			events[7][14] = 0;
+			events[8][14] = 0;
+			events[7][15] = 0;
+			events[8][15] = 0;
+			/**/
+			break;
+		case "wlhwt":
+			/*
+			//events = [...Array(world_chunk_size)].map(_ => Array(world_chunk_size).fill(3));
+			events[7][0] = 0;
+			events[8][0] = 0;
+			//events[7][1] = 0;
+			events[8][1] = 0;
+			events[7][2] = 0;
+			events[8][2] = 0;
+			/**/
+			break; 
+  	case "wlhnt":
+			/*
+			//events = [...Array(world_chunk_size)].map(_ => Array(world_chunk_size).fill(3));
+			events[13][7] = 0;
+			events[13][8] = 0;
+			events[14][7] = 0;
+			events[14][8] = 0;
+			events[15][7] = 0;
+			events[15][8] = 0;
+			/**/
+			break;
+	}
+	
+	return events;
+}
+
+
+
+
+var world_chunk_size = 16;
+var chunk_set = {};
+
+var testing_chunk = [
+	[0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0],
+	[0,0,0,1,1,1,1,0, 0,0,0,0,0,0,0,0],
+	[0,0,0,1,0,0,1,0, 0,0,0,0,1,0,0,0],
+	[0,0,0,1,0,0,1,0, 0,0,0,1,0,1,0,0],
+	[0,0,0,1,1,1,1,0, 0,0,1,0,0,0,1,0],
+	[0,0,0,0,0,0,0,0, 0,0,0,1,0,1,0,0],
+	[0,0,0,0,0,0,0,0, 1,0,0,0,1,0,0,0],
+	[0,0,0,1,1,1,1,1, 1,0,0,0,0,0,0,0],
+	
+	[0,0,1,0,0,0,0,1, 1,0,0,0,0,0,0,0],
+	[0,0,1,0,0,0,0,0, 0,0,0,0,0,0,0,0],
+	[0,0,1,1,0,0,0,1, 1,1,0,0,0,0,0,0],
+	[0,0,0,1,0,0,0,0, 0,1,0,0,0,0,0,0],
+	[0,1,1,1,0,0,0,0, 0,1,0,0,0,0,0,0],
+	[0,1,0,0,0,1,1,1, 0,1,0,0,0,0,0,0],
+	[0,1,1,1,1,1,0,1, 1,1,0,0,0,0,0,0],
+	[0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0],
+];
+
+var curr_chunk_ids = {
+	
+	"r": { cid: "-1_-1", x: -1, y: -1, b: {}, s: 0 }, 
+	"T": { cid: "0_-1", x: 0, y: -1, b: {}, s: 0 }, 
+	"7": { cid: "1_-1", x: 1, y: -1, b: {}, s: 0 },
+	"E": { cid: "-1_0", x: -1, y: 0, b: {}, s: 0 }, 
+	"O": { cid: "0_0", x: 0, y: 0, b: {}, s: 0 }, 
+	"3": { cid: "1_0", x: 1, y: 0, b: {}, s: 0 },
+	"L": { cid: "-1_1", x: -1, y: 1, b: {}, s: 0 }, 
+	"U": { cid: "0_1", x: 0, y: 1, b: {}, s: 0 }, 
+	"J": { cid: "1_1", x: 1, y: 1, b: {}, s: 0 },
+	
+	"rr": { cid: "-2_-2", x: -2, y: -2, b: {}, s: 0 },
+	"rT": { cid: "-1_-2", x: -1, y: -2, b: {}, s: 0 },
+	"TT": { cid: "0_-2", x: 0, y: -2, b: {}, s: 0 },
+	"T7": { cid: "1_-2", x: 1, y: -2, b: {}, s: 0 },
+	"77": { cid: "2_-2", x: 2, y: -2, b: {}, s: 0 },
+	"Er": { cid: "-2_-1", x: -2, y: -1, b: {}, s: 0 }, 
+	"EE": { cid: "-2_0", x: -2, y: 0, b: {}, s: 0 }, 
+	"EL": { cid: "-2_1", x: -2, y: 1, b: {}, s: 0 }, 
+	"73": { cid: "2_-1", x: 2, y: -1, b: {}, s: 0 }, 
+	"33": { cid: "2_0", x: 2, y: 0, b: {}, s: 0 }, 
+	"J3": { cid: "2_1", x: 2, y: 1, b: {}, s: 0 }, 
+	"LL": { cid: "-2_2", x: -2, y: 2, b: {}, s: 0 }, 
+	"LU": { cid: "-1_2", x: -1, y: 2, b: {}, s: 0 }, 
+	"UU": { cid: "0_2", x: 0, y: 2, b: {}, s: 0 }, 
+	"UJ": { cid: "1_2", x: 1, y: 2, b: {}, s: 0 }, 
+	"JJ": { cid: "2_2", x: 2, y: 2, b: {}, s: 0 }, 
+	
+};
+
+/*
+function check_9(chx, chy) {
+	return 
+		curr_chunk_ids["r"].cid === (chx-1)+"_"+(chy-1) &&
+		curr_chunk_ids["T"].cid === chx+"_"+(chy-1) &&
+		curr_chunk_ids["7"].cid === (chx+1)+"_"+(chy-1) &&
+		curr_chunk_ids["E"].cid === (chx-1)+"_"+chy &&
+		curr_chunk_ids["3"].cid === (chx+1)+"_"+chy &&
+		curr_chunk_ids["L"].cid === (chx-1)+"_"+(chy+1) &&
+		curr_chunk_ids["U"].cid === chx+"_"+(chy+1) &&
+		curr_chunk_ids["J"].cid === (chx+1)+"_"+(chy+1)
+	;
+	
+}/**/
+
+
+
+var chunk_count = 0;
+var curr_chunk = chunk_set[curr_chunk_ids["O"].cid];
+
+var main_map = []
+
+const noiseMax = 10;
+const noiseThres = 8;
+
+//var update_chunk_render = 0;
+function update_world_chunks() {
+	
+	// current player position
+	let pwx = pw.x < 0 ? pw.x-1 : pw.x;
+	let pwy = pw.y < 0 ? pw.y-1 : pw.y;
+	
+	let chunkx = Math.floor((pwx/8)/world_chunk_size);
+	let chunky = Math.floor((pwy/8)/world_chunk_size);
+	
+	let cidO = chunkx+"_"+chunky;
+	pw.cx = chunkx;
+	pw.cy = chunky;
+	
+	// check the current chunk location -- if player steps into a new chunk, do the necessary changes
+	if (curr_chunk_ids["O"].cid != cidO || Object.keys(chunk_set).length < 2) {
+		
+		curr_chunk_ids["O"].cid = cidO;
+		curr_chunk_ids["O"].x = chunkx;
+		curr_chunk_ids["O"].y = chunky;
+		curr_chunk_ids["O"].b = get_biome_info(chunkx, chunky);
+		
+		let cidr = (chunkx-1)+"_"+(chunky-1);
+		curr_chunk_ids["r"].cid = cidr;
+		curr_chunk_ids["r"].x = chunkx-1;
+		curr_chunk_ids["r"].y = chunky-1;
+		curr_chunk_ids["r"].b = get_biome_info(chunkx-1, chunky-1);
+		
+		let cidT = chunkx+"_"+(chunky-1);
+		curr_chunk_ids["T"].cid = cidT;
+		curr_chunk_ids["T"].x = chunkx;
+		curr_chunk_ids["T"].y = chunky-1;
+		curr_chunk_ids["T"].b = get_biome_info(chunkx, chunky-1);
+		
+		let cid7 = (chunkx+1)+"_"+(chunky-1);
+		curr_chunk_ids["7"].cid = cid7;
+		curr_chunk_ids["7"].x = chunkx+1;
+		curr_chunk_ids["7"].y = chunky-1;
+		curr_chunk_ids["7"].b = get_biome_info(chunkx+1, chunky-1);
+		
+		let cidE = (chunkx-1)+"_"+chunky;
+		curr_chunk_ids["E"].cid = cidE;
+		curr_chunk_ids["E"].x = chunkx-1;
+		curr_chunk_ids["E"].y = chunky;
+		curr_chunk_ids["E"].b = get_biome_info(chunkx-1, chunky);
+		
+		let cid3 = (chunkx+1)+"_"+chunky;
+		curr_chunk_ids["3"].cid = cid3;
+		curr_chunk_ids["3"].x = chunkx+1;
+		curr_chunk_ids["3"].y = chunky;
+		curr_chunk_ids["3"].b = get_biome_info(chunkx+1, chunky);
+		
+		let cidL = (chunkx-1)+"_"+(chunky+1);
+		curr_chunk_ids["L"].cid = cidL;
+		curr_chunk_ids["L"].x = chunkx-1;
+		curr_chunk_ids["L"].y = chunky+1;
+		curr_chunk_ids["L"].b = get_biome_info(chunkx-1, chunky+1);
+		
+		let cidU = chunkx+"_"+(chunky+1);
+		curr_chunk_ids["U"].cid = cidU;
+		curr_chunk_ids["U"].x = chunkx;
+		curr_chunk_ids["U"].y = chunky+1;
+		curr_chunk_ids["U"].b = get_biome_info(chunkx, chunky+1);
+		
+		let cidJ = (chunkx+1)+"_"+(chunky+1);
+		curr_chunk_ids["J"].cid = cidJ;
+		curr_chunk_ids["J"].x = chunkx+1;
+		curr_chunk_ids["J"].y = chunky+1;
+		curr_chunk_ids["J"].b = get_biome_info(chunkx+1, chunky+1);
+		
+		
+		
+		// info about far chunks -- this will help with the shape of the close chunks
+		curr_chunk_ids["rr"].b = get_biome_info(chunkx-2, chunky-2);
+		curr_chunk_ids["rT"].b = get_biome_info(chunkx-1, chunky-2);
+		curr_chunk_ids["TT"].b = get_biome_info(chunkx, chunky-2);
+		curr_chunk_ids["T7"].b = get_biome_info(chunkx+1, chunky-2);
+		curr_chunk_ids["77"].b = get_biome_info(chunkx+2, chunky-2);
+		
+		curr_chunk_ids["Er"].b = get_biome_info(chunkx-2, chunky-1);
+		curr_chunk_ids["EE"].b = get_biome_info(chunkx-2, chunky);
+		curr_chunk_ids["EL"].b = get_biome_info(chunkx-2, chunky+1);
+		
+		curr_chunk_ids["73"].b = get_biome_info(chunkx+2, chunky-1);
+		curr_chunk_ids["33"].b = get_biome_info(chunkx+2, chunky);
+		curr_chunk_ids["J3"].b = get_biome_info(chunkx+2, chunky+1);
+		
+		curr_chunk_ids["LL"].b = get_biome_info(chunkx-2, chunky+2);
+		curr_chunk_ids["LU"].b = get_biome_info(chunkx-1, chunky+2);
+		curr_chunk_ids["UU"].b = get_biome_info(chunkx, chunky+2);
+		curr_chunk_ids["UJ"].b = get_biome_info(chunkx+1, chunky+2);
+		curr_chunk_ids["JJ"].b = get_biome_info(chunkx+2, chunky+2);
+		
+		
+		
+		
+		/*
+		let chunk_events_O = [...Array(world_chunk_size)].map(_ => Array(world_chunk_size).fill(0));
+		let chunk_image_O = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
+		let chunk_image_mid_O = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
+		*/
+		//let chunk_seed = PRNG(cidJ, 256);
+		
+		
+		
+		
+		// re-shapes 5x5 minimap, changes curr_chunk_ids["_"].s
+		get_chunk_shapes(curr_chunk_ids);
+		
+		
+		
+		
+		
+		// use curr_chunk_ids["_"].s
+		
+		
+		/*
+		for (let chy=0; chy<world_chunk_size; chy++) {
+			for (let chx=0; chx<world_chunk_size; chx++) {
+			
+				// TESTING PURPOSES (value)
+			
+			  let value = 0 + Math.floor(chunk_seed[csi]*(noiseMax)); // 0, 1
+			  csi++;
+			  if (csi >= chunk_seed.length) {
+			    csi=0;
+			  }
+				value = value > noiseThres ? 15 : 0;//0+2*(chunk_count%2); 
+			
+				//let value = testing_chunk[chy][chx];
+				// -------------------------------- 
+			
+				chunk_events[chy][chx] = value > 0 ? 1 : 0;
+			
+			}
+		}
+		*/
+		
+		//console.log(curr_chunk_ids["O"].b["biome"]);
+		//print(curr_chunk_ids["J"].b["biome"],0,0);
+		
+		
+		// deep copy -- will these point to the same 2d array?
+		// 'b' is the biome type (w, g, f, etc.)
+		// 's' is the biome shape (wr, gJ, wlhst, etc.)
+		
+		// TODO: don't need the chunk images after all, just the events for each of the surrounding chunks
+		//                   
+		let chunk_events_r = build_chunk_shape(curr_chunk_ids["r"].s, curr_chunk_ids["r"].cid);
+		//let chunk_image_r = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
+		//let chunk_image_mid_r = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
+		chunk_set[cidr] = { 
+			"event": chunk_events_r, 
+			//"image_low": chunk_image_r, 
+			//"image_mid": chunk_image_mid_r, 
+			"b": curr_chunk_ids["r"].b
+		};
+		
+		let chunk_events_T = build_chunk_shape(curr_chunk_ids["T"].s, curr_chunk_ids["T"].cid);
+		//let chunk_image_T = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
+		//let chunk_image_mid_T = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
+		chunk_set[cidT] = { 
+			"event": chunk_events_T, 
+			//"image_low": chunk_image_T, 
+			//"image_mid": chunk_image_mid_T,
+			"b": curr_chunk_ids["T"].b
+		};
+		
+		let chunk_events_7 = build_chunk_shape(curr_chunk_ids["7"].s, curr_chunk_ids["7"].cid);
+		//let chunk_image_7 = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
+		//let chunk_image_mid_7 = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
+		chunk_set[cid7] = { 
+			"event": chunk_events_7, 
+			//"image_low": chunk_image_7, 
+			//"image_mid": chunk_image_mid_7,
+			"b": curr_chunk_ids["7"].b
+		};
+		
+		let chunk_events_E = build_chunk_shape(curr_chunk_ids["E"].s, curr_chunk_ids["E"].cid);
+		//let chunk_image_E = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
+		//let chunk_image_mid_E = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
+		chunk_set[cidE] = { 
+			"event": chunk_events_E, 
+			//"image_low": chunk_image_E, 
+			//"image_mid": chunk_image_mid_E,
+			"b": curr_chunk_ids["E"].b
+		};
+		
+		let chunk_events_O = build_chunk_shape(curr_chunk_ids["O"].s, curr_chunk_ids["O"].cid);
+		//let chunk_image_O = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
+		//let chunk_image_mid_O = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
+		chunk_set[cidO] = { 
+			"event": chunk_events_O, 
+			//"image_low": chunk_image_O, 
+			//"image_mid": chunk_image_mid_O,
+			"b": curr_chunk_ids["O"].b
+		};
+		
+		let chunk_events_3 = build_chunk_shape(curr_chunk_ids["3"].s, curr_chunk_ids["3"].cid);
+		//let chunk_image_3 = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
+		//let chunk_image_mid_3 = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
+		chunk_set[cid3] = { 
+			"event": chunk_events_3, 
+			//"image_low": chunk_image_3, 
+			//"image_mid": chunk_image_mid_3,
+			"b": curr_chunk_ids["3"].b
+		};
+		
+		let chunk_events_L = build_chunk_shape(curr_chunk_ids["L"].s, curr_chunk_ids["L"].cid);
+		//let chunk_image_L = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
+		//let chunk_image_mid_L = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
+		chunk_set[cidL] = { 
+			"event": chunk_events_L, 
+			//"image_low": chunk_image_L, 
+			//"image_mid": chunk_image_mid_L,
+			"b": curr_chunk_ids["L"].b
+		};
+		
+		let chunk_events_U = build_chunk_shape(curr_chunk_ids["U"].s, curr_chunk_ids["U"].cid);
+		//let chunk_image_U = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
+		//let chunk_image_mid_U = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
+		chunk_set[cidU] = { 
+			"event": chunk_events_U, 
+			//"image_low": chunk_image_U, 
+			//"image_mid": chunk_image_mid_U,
+			"b": curr_chunk_ids["U"].b
+		};
+		
+		let chunk_events_J = build_chunk_shape(curr_chunk_ids["J"].s, curr_chunk_ids["J"].cid);
+		//let chunk_image_J = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
+		//let chunk_image_mid_J = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
+		chunk_set[cidJ] = { 
+			"event": chunk_events_J, 
+			//"image_low": chunk_image_J, 
+			//"image_mid": chunk_image_mid_J, 
+			"b": curr_chunk_ids["J"].b 
+		};
+		
+		
+		
+		let chunk_events = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
+		
+		// grass and water
+		main_map["image_ground"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
+		main_map["image_forest"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
+		main_map["image_mountain"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
+		main_map["image_desert"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
+		main_map["event"] = chunk_events;
+		
+		// UPDATE current chunk (middle)
+		curr_chunk = chunk_set[cidO];
+		
+		// chunk_events
+		
+		
+		
+		
+		
+		/* ------ 2. DOT the 9 tiles ------ 
+		
+			OR
+		
+			DOT the bigger 3x3 tilemap
+		
+		
+		*/
+		
+		/*
+		TODO: for forest, can just put the trunk down. Then, wherever that trunk exists, place sprites on top as an image you can walk under
+			
+		
+		/*
+		
+		0 = grass (walkable)
+		1 = water (solid)
+		2 = forest (solid)
+		3 = rocks/mountain (solid, |__| can go thru from top, or |^^| can go thru from bottom, but still u-shaped and n-shaped dotting)
+		4 = desert (walkable)
+		2 = above (cloud, treetop, cliff-behind, gate, underbridge, etc)
+		
+		*/
+		
+		for (let chy=0; chy<world_chunk_size; chy++) {
+			for (let chx=0; chx<world_chunk_size; chx++) {
+				
+				// add + 1 to offset 18-sized chunk image
+				
+				
+				
+				
+				if (chunk_set[cidO]["event"][chy][chx]) {
+					main_map["event"][chy+16+1][chx+16+1] = chunk_set[cidO]["event"][chy][chx];
+					if (chunk_set[cidO]["event"][chy][chx] === 1) { // water
+						dot_w( main_map["image_ground"], chx+16+1, chy+16+1);
+					} else if (chunk_set[cidO]["event"][chy][chx] === 2) { // forest
+						dot_w( main_map["image_forest"], chx+16+1, chy+16+1);
+					} else if (chunk_set[cidO]["event"][chy][chx] === 3) { // mountain
+						dot_w( main_map["image_mountain"], chx+16+1, chy+16+1);
+					} else if (chunk_set[cidO]["event"][chy][chx] === 4) { // mountain
+						dot_w( main_map["image_desert"], chx+16+1, chy+16+1);
+					}
+				} 
+				
+				if (chunk_set[cidr]["event"][chy][chx]) {
+					main_map["event"][chy+1][chx+1] = chunk_set[cidr]["event"][chy][chx];
+					if (chunk_set[cidr]["event"][chy][chx] === 1) {
+						dot_w( main_map["image_ground"], chx+1, chy+1);
+					}	else if (chunk_set[cidr]["event"][chy][chx] === 2) {
+						dot_w( main_map["image_forest"], chx+1, chy+1);
+					} else if (chunk_set[cidr]["event"][chy][chx] === 3) {
+						dot_w( main_map["image_mountain"], chx+1, chy+1);
+					} else if (chunk_set[cidr]["event"][chy][chx] === 4) {
+						dot_w( main_map["image_desert"], chx+1, chy+1);
+					}
+				}
+				if (chunk_set[cidT]["event"][chy][chx]) {
+					main_map["event"][chy+1][chx+16+1] = chunk_set[cidT]["event"][chy][chx];
+					if (chunk_set[cidT]["event"][chy][chx] === 1) {
+						dot_w( main_map["image_ground"], chx+16+1, chy+1);
+					} else if (chunk_set[cidT]["event"][chy][chx] === 2) {
+						dot_w( main_map["image_forest"], chx+16+1, chy+1);
+					} else if (chunk_set[cidT]["event"][chy][chx] === 3) {
+						dot_w( main_map["image_mountain"], chx+16+1, chy+1);
+					} else if (chunk_set[cidT]["event"][chy][chx] === 4) {
+						dot_w( main_map["image_desert"], chx+16+1, chy+1);
+					}
+				}
+				if (chunk_set[cid7]["event"][chy][chx]) {
+					main_map["event"][chy+1][chx+32+1] = chunk_set[cid7]["event"][chy][chx];
+					if (chunk_set[cid7]["event"][chy][chx] === 1) {
+						dot_w( main_map["image_ground"], chx+32+1, chy+1);
+					} else if (chunk_set[cid7]["event"][chy][chx] === 2) {
+						dot_w( main_map["image_forest"], chx+32+1, chy+1);
+					} else if (chunk_set[cid7]["event"][chy][chx] === 3) {
+						dot_w( main_map["image_mountain"], chx+32+1, chy+1);
+					} else if (chunk_set[cid7]["event"][chy][chx] === 4) {
+						dot_w( main_map["image_desert"], chx+32+1, chy+1);
+					}
+				}
+				if (chunk_set[cidE]["event"][chy][chx]) {
+					main_map["event"][chy+16+1][chx+1] = chunk_set[cidE]["event"][chy][chx];
+					if (chunk_set[cidE]["event"][chy][chx] === 1) {
+						dot_w( main_map["image_ground"], chx+1, chy+16+1);
+					} else if (chunk_set[cidE]["event"][chy][chx] === 2) {
+						dot_w( main_map["image_forest"], chx+1, chy+16+1);
+					} else if (chunk_set[cidE]["event"][chy][chx] === 3) {
+						dot_w( main_map["image_mountain"], chx+1, chy+16+1);
+					} else if (chunk_set[cidE]["event"][chy][chx] === 4) {
+						dot_w( main_map["image_desert"], chx+1, chy+16+1);
+					}
+				}
+				if (chunk_set[cid3]["event"][chy][chx]) {
+					main_map["event"][chy+16+1][chx+32+1] = chunk_set[cid3]["event"][chy][chx];
+					if (chunk_set[cid3]["event"][chy][chx] === 1) {
+						dot_w( main_map["image_ground"], chx+32+1, chy+16+1);
+					} else if (chunk_set[cid3]["event"][chy][chx] === 2) {
+						dot_w( main_map["image_forest"], chx+32+1, chy+16+1);
+					} else if (chunk_set[cid3]["event"][chy][chx] === 3) {
+						dot_w( main_map["image_mountain"], chx+32+1, chy+16+1);
+					} else if (chunk_set[cid3]["event"][chy][chx] === 4) {
+						dot_w( main_map["image_desert"], chx+32+1, chy+16+1);
+					}
+				}
+				if (chunk_set[cidL]["event"][chy][chx]) {
+					main_map["event"][chy+32+1][chx+1] = chunk_set[cidL]["event"][chy][chx];
+					if (chunk_set[cidL]["event"][chy][chx] === 1) {
+						dot_w( main_map["image_ground"], chx+1, chy+32+1);
+					} else if (chunk_set[cidL]["event"][chy][chx] === 2) {
+						dot_w( main_map["image_forest"], chx+1, chy+32+1);
+					} else if (chunk_set[cidL]["event"][chy][chx] === 3) {
+						dot_w( main_map["image_mountain"], chx+1, chy+32+1);
+					} else if (chunk_set[cidL]["event"][chy][chx] === 4) {
+						dot_w( main_map["image_desert"], chx+1, chy+32+1);
+					}
+					
+				}
+				if (chunk_set[cidU]["event"][chy][chx]) {
+					main_map["event"][chy+32+1][chx+16+1] = chunk_set[cidU]["event"][chy][chx];
+					if (chunk_set[cidU]["event"][chy][chx] === 1) {
+						dot_w( main_map["image_ground"], chx+16+1, chy+32+1);
+					} else if (chunk_set[cidU]["event"][chy][chx] === 2) {
+						dot_w( main_map["image_forest"], chx+16+1, chy+32+1);
+					} else if (chunk_set[cidU]["event"][chy][chx] === 3) {
+						dot_w( main_map["image_mountain"], chx+16+1, chy+32+1);
+					} else if (chunk_set[cidU]["event"][chy][chx] === 4) {
+						dot_w( main_map["image_desert"], chx+16+1, chy+32+1);
+					}
+				}
+				if (chunk_set[cidJ]["event"][chy][chx]) {
+					main_map["event"][chy+32+1][chx+32+1] = chunk_set[cidJ]["event"][chy][chx];
+					if (chunk_set[cidJ]["event"][chy][chx] === 1) {
+						dot_w( main_map["image_ground"], chx+32+1, chy+32+1);
+					} else if (chunk_set[cidJ]["event"][chy][chx] === 2) {
+						dot_w( main_map["image_forest"], chx+32+1, chy+32+1);
+					} else if (chunk_set[cidJ]["event"][chy][chx] === 3) {
+						dot_w( main_map["image_mountain"], chx+32+1, chy+32+1);
+					} else if (chunk_set[cidJ]["event"][chy][chx] === 4) {
+						dot_w( main_map["image_desert"], chx+32+1, chy+32+1);
+					}
+				}
+			
+				// again
+				
+				/*
+				if (chunk_set[cidO]["event"][chy][chx] !== 1) {
+					main_map["event"][chy+16+1][chx+16+1] = chunk_set[cidO]["event"][chy][chx];
+					dot_w( main_map["image_forest"], chx+16+1, chy+16+1);
+				} 
+				
+				if (chunk_set[cidr]["event"][chy][chx] === 1) {
+					main_map["event"][chy+1][chx+1] = chunk_set[cidr]["event"][chy][chx];
+					dot_w( main_map["image_ground"], chx+1, chy+1);
+				}
+				if (chunk_set[cidT]["event"][chy][chx] === 1) {
+					main_map["event"][chy+1][chx+16+1] = chunk_set[cidT]["event"][chy][chx];
+					dot_w( main_map["image_ground"], chx+16+1, chy+1);
+				}
+				if (chunk_set[cid7]["event"][chy][chx] === 1) {
+					main_map["event"][chy+1][chx+32+1] = chunk_set[cid7]["event"][chy][chx];
+					dot_w( main_map["image_ground"], chx+32+1, chy+1);
+				}
+				if (chunk_set[cidE]["event"][chy][chx] === 1) {
+					main_map["event"][chy+16+1][chx+1] = chunk_set[cidE]["event"][chy][chx];
+					dot_w( main_map["image_ground"], chx+1, chy+16+1);
+				}
+				if (chunk_set[cid3]["event"][chy][chx] === 1) {
+					main_map["event"][chy+16+1][chx+32+1] = chunk_set[cid3]["event"][chy][chx];
+					dot_w( main_map["image_ground"], chx+32+1, chy+16+1);
+				}
+				if (chunk_set[cidL]["event"][chy][chx] === 1) {
+					main_map["event"][chy+32+1][chx+1] = chunk_set[cidL]["event"][chy][chx];
+					dot_w( main_map["image_ground"], chx+1, chy+32+1);
+				}
+				if (chunk_set[cidU]["event"][chy][chx] === 1) {
+					main_map["event"][chy+32+1][chx+16+1] = chunk_set[cidU]["event"][chy][chx];
+					dot_w( main_map["image_ground"], chx+16+1, chy+32+1);
+				}
+				if (chunk_set[cidJ]["event"][chy][chx] === 1) {
+					main_map["event"][chy+32+1][chx+32+1] = chunk_set[cidJ]["event"][chy][chx];
+					dot_w( main_map["image_ground"], chx+32+1, chy+32+1);
+				}
+				/**/
+				
+				
+				
+				/*
+				if ([3].includes(chunk_set[cidO]["event"][chy][chx])) {
+					//dot_w(chunk_set[cidO]["image_low"], chx+1, chy+1);
+					dot_w( main_map["image_ground"], chx+16+1, chy+16+1);
+				} 
+				if ([3].includes(chunk_set[cidr]["event"][chy][chx])) {
+					//dot_w(chunk_set[cidr]["image_low"], chx+1, chy+1);
+					dot_w( main_map["image_ground"], chx+1, chy+1);
+				}
+				if ([3].includes(chunk_set[cidT]["event"][chy][chx])) {
+					//dot_w(chunk_set[cidT]["image_low"], chx+1, chy+1);
+					dot_w( main_map["image_forest"], chx+16+1, chy+1);
+				}
+				if ([3].includes(chunk_set[cid7]["event"][chy][chx])) {
+					//dot_w(chunk_set[cid7]["image_low"], chx+1, chy+1);
+					dot_w( main_map["image_forest"], chx+32+1, chy+1);
+				}
+				if ([3].includes(chunk_set[cidE]["event"][chy][chx])) {
+					//dot_w(chunk_set[cidE]["image_low"], chx+1, chy+1);
+					dot_w( main_map["image_forest"], chx+1, chy+16+1);
+				}
+				if ([3].includes(chunk_set[cid3]["event"][chy][chx])) {
+					//dot_w(chunk_set[cid3]["image_low"], chx+1, chy+1);
+					dot_w( main_map["image_forest"], chx+32+1, chy+16+1);
+				}
+				if ([3].includes(chunk_set[cidL]["event"][chy][chx])) {
+					//dot_w(chunk_set[cidL]["image_low"], chx+1, chy+1);
+					dot_w( main_map["image_forest"], chx+1, chy+32+1);
+				}
+				if ([3].includes(chunk_set[cidU]["event"][chy][chx])) {
+					//dot_w(chunk_set[cidU]["image_low"], chx+1, chy+1);
+					dot_w( main_map["image_forest"], chx+16+1, chy+32+1);
+				}
+				if ([3].includes(chunk_set[cidJ]["event"][chy][chx])) {
+					//dot_w(chunk_set[cidJ]["image_low"], chx+1, chy+1);
+					dot_w( main_map["image_forest"], chx+32+1, chy+32+1);
+				}/**/
+				
+				/*
+				if ([1, 2].includes(chunk_set[cidO]["event"][chy][chx])) {
+					//dot_image(chunk_set[cidO]["image"], chx, chy, chunkx, chunky);
+					dot_w
+				}
+				if ([1, 2].includes(chunk_set[cidr]["event"][chy][chx])) {
+					//dot_image(chunk_set[cidr]["image"], chx, chy, chunkx-1, chunky-1);
+				}
+				if ([1, 2].includes(chunk_set[cidT]["event"][chy][chx])) {
+					//dot_image(chunk_set[cidT]["image"], chx, chy, chunkx, chunky-1);
+				}
+				if ([1, 2].includes(chunk_set[cid7]["event"][chy][chx])) {
+					//dot_image(chunk_set[cid7]["image"], chx, chy, chunkx+1, chunky-1);
+				}
+				if ([1, 2].includes(chunk_set[cidE]["event"][chy][chx])) {
+					dot_image(chunk_set[cidE]["image"], chx, chy, chunkx-1, chunky);
+				}
+				if ([1, 2].includes(chunk_set[cid3]["event"][chy][chx])) {
+					dot_image(chunk_set[cid3]["image"], chx, chy, chunkx+1, chunky);
+				}
+				if ([1, 2].includes(chunk_set[cidL]["event"][chy][chx])) {
+					dot_image(chunk_set[cidL]["image"], chx, chy, chunkx-1, chunky+1);
+				}
+				if ([1, 2].includes(chunk_set[cidU]["event"][chy][chx])) {
+					dot_image(chunk_set[cidU]["image"], chx, chy, chunkx, chunky+1);
+				}
+				if ([1, 2].includes(chunk_set[cidJ]["event"][chy][chx])) {
+					dot_image(chunk_set[cidJ]["image"], chx, chy, chunkx+1, chunky+1);
+				}/**/
+				
+				/*
+				if ([3, 4].includes(chunk_set[cidO]["event"][chy][chx])) {
+					dot_image(chunk_set[cidO]["image_mid"], chx, chy, chunkx, chunky);
+				}
+				if ([3, 4].includes(chunk_set[cidr]["event"][chy][chx])) {
+					dot_image(chunk_set[cidr]["image_mid"], chx, chy, chunkx-1, chunky-1);
+				}
+				if ([3, 4].includes(chunk_set[cidT]["event"][chy][chx])) {
+					dot_image(chunk_set[cidT]["image_mid"], chx, chy, chunkx, chunky-1);
+				}
+				if ([3, 4].includes(chunk_set[cid7]["event"][chy][chx])) {
+					dot_image(chunk_set[cid7]["image_mid"], chx, chy, chunkx+1, chunky-1);
+				}
+				if ([3, 4].includes(chunk_set[cidE]["event"][chy][chx])) {
+					dot_image(chunk_set[cidE]["image_mid"], chx, chy, chunkx-1, chunky);
+				}
+				if ([3, 4].includes(chunk_set[cid3]["event"][chy][chx])) {
+					dot_image(chunk_set[cid3]["image_mid"], chx, chy, chunkx+1, chunky);
+				}
+				if ([3, 4].includes(chunk_set[cidL]["event"][chy][chx])) {
+					dot_image(chunk_set[cidL]["image_mid"], chx, chy, chunkx-1, chunky+1);
+				}
+				if ([3, 4].includes(chunk_set[cidU]["event"][chy][chx])) {
+					dot_image(chunk_set[cidU]["image_mid"], chx, chy, chunkx, chunky+1);
+				}
+				if ([3, 4].includes(chunk_set[cidJ]["event"][chy][chx])) {
+					dot_image(chunk_set[cidJ]["image_mid"], chx, chy, chunkx+1, chunky+1);
+				}
+				/**/
+			}
+		}
+		
+		/* ------ 3. SET dotted image for 3x3 map ------ 
+		need to add +16*T["w_forest_tileset"] or whatever to each of these
+		
+		*/
+		
+		
+		
+		for (let chy=0; chy<3*world_chunk_size; chy++) {
+			for (let chx=0; chx<3*world_chunk_size; chx++) {
+				
+				let tile_ = main_map["event"][chy+1][chx+1];
+				if (tile_ <= 1) {
+					render_map.set(chx+0, chy+0, main_map["image_ground"][chy+1][chx+1]);
+				} else if (tile_ === 2) {
+					render_map.set(chx+0, chy+0, main_map["image_forest"][chy+1][chx+1]+64);
+				} else if (tile_ === 3) {
+					render_map.set(chx+0, chy+0, main_map["image_mountain"][chy+1][chx+1]+128);
+				} else if (tile_ === 4) {
+					render_map.set(chx+0, chy+0, main_map["image_desert"][chy+1][chx+1]+192);
+				}
+			}
+		}
+		
+		/*
+		for (let chy=0; chy<3*world_chunk_size; chy++) {
+			for (let chx=0; chx<3*world_chunk_size; chx++) {
+				//let tile_ = main_map["image_ground"][chy+1][chx+1];
+				render_map.set(chx+0, chy+0, main_map["image_forest"][chy+1][chx+1]);
+				//render_map_m.set(chx+0, chy+0, main_map["image_forest"][chy+1][chx+1]); // need to change to sprites if we want to be able to walk under them
+			}
+		}/**/
+		
+		
+		
+		
+		/*
+		for (let chy=0; chy<world_chunk_size; chy++) {
+			for (let chx=0; chx<world_chunk_size; chx++) {
+				
+				
+				//render_O.set(chx, chy, 33);//chunk_set[cidO]["image"][chy][chx]);
+				//render_r.set(chx, chy, 33);//chunk_set[cidr]["image"][chy][chx]);
+				//render_T.set(chx, chy, 33);//chunk_set[cidT]["image"][chy][chx]);
+				//render_7.set(chx, chy, 33);//chunk_set[cid7]["image"][chy][chx]);
+				//render_E.set(chx, chy, 33);//chunk_set[cidE]["image"][chy][chx]);
+				//render_3.set(chx, chy, 33);//chunk_set[cid3]["image"][chy][chx]);
+				//render_L.set(chx, chy, 33);//chunk_set[cidL]["image"][chy][chx]);
+				//render_U.set(chx, chy, 33);//chunk_set[cidU]["image"][chy][chx]);
+				//render_J.set(chx, chy, 33);//chunk_set[cidJ]["image"][chy][chx]);
+				
+				
+				
+				
+				render_O.set(chx, chy, chunk_set[cidO]["image_low"][chy+1][chx+1]);
+				render_r.set(chx, chy, chunk_set[cidr]["image_low"][chy+1][chx+1]);
+				render_T.set(chx, chy, chunk_set[cidT]["image_low"][chy+1][chx+1]);
+				render_7.set(chx, chy, chunk_set[cid7]["image_low"][chy+1][chx+1]);
+				render_E.set(chx, chy, chunk_set[cidE]["image_low"][chy+1][chx+1]);
+				render_3.set(chx, chy, chunk_set[cid3]["image_low"][chy+1][chx+1]);
+				render_L.set(chx, chy, chunk_set[cidL]["image_low"][chy+1][chx+1]);
+				render_U.set(chx, chy, chunk_set[cidU]["image_low"][chy+1][chx+1]);
+				render_J.set(chx, chy, chunk_set[cidJ]["image_low"][chy+1][chx+1]);
+				
+				
+				render_O_m.set(chx, chy, chunk_set[cidO]["image_mid"][chy+1][chx+1]+16*4);
+				render_r_m.set(chx, chy, chunk_set[cidr]["image_mid"][chy+1][chx+1]+16*4);
+				render_T_m.set(chx, chy, chunk_set[cidT]["image_mid"][chy+1][chx+1]+16*4);
+				render_7_m.set(chx, chy, chunk_set[cid7]["image_mid"][chy+1][chx+1]+16*4);
+				render_E_m.set(chx, chy, chunk_set[cidE]["image_mid"][chy+1][chx+1]+16*4);
+				render_3_m.set(chx, chy, chunk_set[cid3]["image_mid"][chy+1][chx+1]+16*4);
+				render_L_m.set(chx, chy, chunk_set[cidL]["image_mid"][chy+1][chx+1]+16*4);
+				render_U_m.set(chx, chy, chunk_set[cidU]["image_mid"][chy+1][chx+1]+16*4);
+				render_J_m.set(chx, chy, chunk_set[cidJ]["image_mid"][chy+1][chx+1]+16*4);
+				
+				
+				
+				
+				
+				
+				
+				
+				//render_O.set(chx, chy, chunk_set[cidO]["image"][chy][chx] + 16*T["w_forest_tiles"]);
+				//render_r.set(chx, chy, chunk_set[cidr]["image"][chy][chx] + 16*T["w_forest_tiles"]);
+			  //render_T.set(chx, chy, chunk_set[cidT]["image"][chy][chx] + 16*T["w_forest_tiles"]);
+				//render_7.set(chx, chy, chunk_set[cid7]["image"][chy][chx] + 16*T["w_forest_tiles"]);
+				//render_E.set(chx, chy, chunk_set[cidE]["image"][chy][chx] + 16*T["w_forest_tiles"]);
+				//render_3.set(chx, chy, chunk_set[cid3]["image"][chy][chx] + 16*T["w_forest_tiles"]);
+				//render_L.set(chx, chy, chunk_set[cidL]["image"][chy][chx] + 16*T["w_forest_tiles"]);
+				//render_U.set(chx, chy, chunk_set[cidU]["image"][chy][chx] + 16*T["w_forest_tiles"]);
+				//render_J.set(chx, chy, chunk_set[cidJ]["image"][chy][chx] + 16*T["w_forest_tiles"]);
+				
+				
+				//render_O.set(chx, chy, chunk_set[cidO]["image"][chy][chx] + 16*T["w_water_tiles"]);
+				//render_r.set(chx, chy, chunk_set[cidr]["image"][chy][chx] + 16*T["w_water_tiles"]);
+				//render_T.set(chx, chy, chunk_set[cidT]["image"][chy][chx] + 16*T["w_water_tiles"]);
+				//render_7.set(chx, chy, chunk_set[cid7]["image"][chy][chx] + 16*T["w_water_tiles"]);
+				//render_E.set(chx, chy, chunk_set[cidE]["image"][chy][chx] + 16*T["w_water_tiles"]);
+				//render_3.set(chx, chy, chunk_set[cid3]["image"][chy][chx] + 16*T["w_water_tiles"]);
+				//render_L.set(chx, chy, chunk_set[cidL]["image"][chy][chx] + 16*T["w_water_tiles"]);
+				//render_U.set(chx, chy, chunk_set[cidU]["image"][chy][chx] + 16*T["w_water_tiles"]);
+				//render_J.set(chx, chy, chunk_set[cidJ]["image"][chy][chx] + 16*T["w_water_tiles"]);
+				
+				
+			}
+		}
+		/**/
+		
+		
+	}
+	
+	
+	
+	
+	
+	//console.log(chunk_count);
+	
+	flush_chunk_set(chunkx, chunky);
+	
+}
+
+
+
+
+
+
+// this is to prevent too much memory being used
+function flush_chunk_set(cx, cy) {
+	//let chunkO = cx+"_"+cy;
+  //[ "0_0", "-1_-1", "0_-1", "1_-1", "-1_0", "1_0", "-1_1", "0_1", "1_1" ]
+	
+	//for (let cxmin=cx)
+	// create list of ones to remove
+	//let keys = Object.keys(chunk_set);
+	
+	/*
+	const filteredArray = keys.filter(item => {
+	  const [x, y] = item.split('_').map(num => parseInt(num));
+	  return cx-2 <= x && x <= cx+2 && cy-2 <= y && y <= cy+2;
+	});
+	*/
+	//let new_chunk_set = {};
+	
+	let render_distance = 3;
+	
+	for (const [key, value] of Object.entries(chunk_set)) {
+		const [x, y] = key.split('_').map(num => parseInt(num));
+	  if (!(cx-render_distance <= x && x <= cx+render_distance && cy-render_distance <= y && y <= cy+render_distance)) {
+	    delete chunk_set[key];
+		}
+	}
+	
+	//chunk_set = new_chunk_set;
+	//console.log(new_chunk_set);
+	
 }
 
 
@@ -5306,26 +8890,200 @@ function update_world() {
 
 
 
+function mini_map(sp_id) {
+	let sprite_id = 330;
+	switch (sp_id) {
+		case "w": 
+			sprite_id = 320;
+			break;
+		case "g":
+			sprite_id = 321;
+			break;
+		case "d":
+			sprite_id = 322;
+			break;
+		case "m":
+			sprite_id = 323;
+			break;
+		case "f":
+			sprite_id = 324;
+			break;
+	}
+	return sprite_id;
+}
 
 
+var CHUNK_X_OFFSET = 0;
+var CHUNK_Y_OFFSET = 32;
+
+function draw_world_chunks() {
+	
+	let n_x = pw.x < 0 ? 128 : 0;
+	let n_y = pw.y < 0 ? 128 : 0;
+	
+	
+	
+	/*
+	draw(render_r, 0-(pw.x%128+n_x), 0-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
+	draw(render_T, 128-(pw.x%128+n_x), 0-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
+	draw(render_7, 256-(pw.x%128+n_x), 0-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
+	draw(render_E, 0-(pw.x%128+n_x), 128-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
+	draw(render_O, 128-(pw.x%128+n_x), 128-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
+	draw(render_3, 256-(pw.x%128+n_x), 128-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
+	draw(render_L, 0-(pw.x%128+n_x), 256-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
+	draw(render_U, 128-(pw.x%128+n_x), 256-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
+	draw(render_J, 256-(pw.x%128+n_x), 256-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
+	/**/
+	draw(render_map, 0-(pw.x%128+n_x), 0-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
+	//draw(render_map_m, 0-(pw.x%128+n_x), 0-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
+	
+	/*
+	draw(render_r_m, 0-(pw.x%128+n_x), 0-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
+	draw(render_T_m, 128-(pw.x%128+n_x), 0-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
+	draw(render_7_m, 256-(pw.x%128+n_x), 0-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
+	draw(render_E_m, 0-(pw.x%128+n_x), 128-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
+	draw(render_O_m, 128-(pw.x%128+n_x), 128-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
+	draw(render_3_m, 256-(pw.x%128+n_x), 128-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
+	draw(render_L_m, 0-(pw.x%128+n_x), 256-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
+	draw(render_U_m, 128-(pw.x%128+n_x), 256-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
+	draw(render_J_m, 256-(pw.x%128+n_x), 256-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
+	/**/
+			
+	
+	//draw(visible_world, XMID-pw.x, YMID-pw.y);
+	
+	let pwx8 = Math.floor(pw.x/8);
+	let pwy8 = Math.floor(pw.y/8);
+	
+	print("x y  : "+pw.x+" "+pw.y, 8, 8);
+	print("grid : "+pwx8+" "+pwy8, 8, 16);
+	print("chunk: "+pw.cx+" "+pw.cy+"  (total: "+Object.keys(chunk_set).length+")", 8, 24);
+	print("type: "+curr_chunk_ids["O"].s, 8, 32);
+	//console.log(curr_chunk_ids["O"]);
+	
+	
+	
+	// MINI MAP
+	let sprite_id = 330;
+	sprite_id = mini_map(curr_chunk_ids["O"].b.biome);
+	sprite(sprite_id, 202, 22);
+	sprite_id = mini_map(curr_chunk_ids["r"].b.biome);
+	sprite(sprite_id, 200, 20);
+	sprite_id = mini_map(curr_chunk_ids["T"].b.biome);
+	sprite(sprite_id, 202, 20);
+	sprite_id = mini_map(curr_chunk_ids["7"].b.biome);
+	sprite(sprite_id, 204, 20);
+	sprite_id = mini_map(curr_chunk_ids["E"].b.biome);
+	sprite(sprite_id, 200, 22);
+	sprite_id = mini_map(curr_chunk_ids["3"].b.biome);
+	sprite(sprite_id, 204, 22);
+	sprite_id = mini_map(curr_chunk_ids["L"].b.biome);
+	sprite(sprite_id, 200, 24);
+	sprite_id = mini_map(curr_chunk_ids["U"].b.biome);
+	sprite(sprite_id, 202, 24);
+	sprite_id = mini_map(curr_chunk_ids["J"].b.biome);
+	sprite(sprite_id, 204, 24);
+	
+	sprite_id = mini_map(curr_chunk_ids["rr"].b.biome);
+	sprite(sprite_id, 198, 18);
+	sprite_id = mini_map(curr_chunk_ids["rT"].b.biome);
+	sprite(sprite_id, 200, 18);
+	sprite_id = mini_map(curr_chunk_ids["TT"].b.biome);
+	sprite(sprite_id, 202, 18);
+	sprite_id = mini_map(curr_chunk_ids["T7"].b.biome);
+	sprite(sprite_id, 204, 18);
+	sprite_id = mini_map(curr_chunk_ids["77"].b.biome);
+	sprite(sprite_id, 206, 18);
+	
+	sprite_id = mini_map(curr_chunk_ids["Er"].b.biome);
+	sprite(sprite_id, 198, 20);
+	sprite_id = mini_map(curr_chunk_ids["EE"].b.biome);
+	sprite(sprite_id, 198, 22);
+	sprite_id = mini_map(curr_chunk_ids["EL"].b.biome);
+	sprite(sprite_id, 198, 24);
+	
+	sprite_id = mini_map(curr_chunk_ids["73"].b.biome);
+	sprite(sprite_id, 206, 20);
+	sprite_id = mini_map(curr_chunk_ids["33"].b.biome);
+	sprite(sprite_id, 206, 22);
+	sprite_id = mini_map(curr_chunk_ids["J3"].b.biome);
+	sprite(sprite_id, 206, 24);
+	
+	sprite_id = mini_map(curr_chunk_ids["LL"].b.biome);
+	sprite(sprite_id, 198, 26);
+	sprite_id = mini_map(curr_chunk_ids["LU"].b.biome);
+	sprite(sprite_id, 200, 26);
+	sprite_id = mini_map(curr_chunk_ids["UU"].b.biome);
+	sprite(sprite_id, 202, 26);
+	sprite_id = mini_map(curr_chunk_ids["UJ"].b.biome);
+	sprite(sprite_id, 204, 26);
+	sprite_id = mini_map(curr_chunk_ids["JJ"].b.biome);
+	sprite(sprite_id, 206, 26);
+	
+	
+}
+
+
+
+
+
+
+
+// curr_area is the object, current_area is the index
+
+
+
+//console.log("hello thal");
+
+//start_music();
 
 var l_offset = 0;
 var u_offset = 0;
 const info_box_offset = 0;//48;
 function update_level() {
 	
+	update_setting_gamepad();
+	
 	// if (finished_animation)  
-	if (activated_area > -1) {
-		
-		//console.log("going from area "+current_area+" to "+activated_area);
-		if (entering) {
-			update_door(activated_area);
+	if (activated_area > -1 || activate_reenter_bexit > -1) {
+		//console.log("... "+ready_enter_door["gotox"]*8+" "+ready_enter_door["gotoy"]*8);
+		//console.log("activated area")
+		//music();
+		//console.log("update_level(): attempting to go from area "+current_area+" to "+activated_area);
+		if (opening_door || entering_door) {
+			//console.log("update_level(): if (entering === 2) TRUE   { update_door("+activated_area+") ... }");
+			console.log("  entering door");
+			//update_door(activated_area);
+			//entering = 0;
+			//activated_area = -1;
+			//ready_enter_door = {};
 		} else {
-			curr_area = newLevel.areas[activated_area];
-			current_area = activated_area;
+			//console.log("CHANGING curr_area. activated_area: "+activated_area+"  entering: "+entering+"  "+ready_enter_door["gotox"]+" "+ready_enter_door["gotoy"]);
+			
+			if (activated_area > -1) {
+				curr_area = newLevel.areas[activated_area];
+				current_area = activated_area;
+				
+				p.x = ready_enter_door["gotox"]*8;
+				p.y = ready_enter_door["gotoy"]*8;
+				//console.log("checking  "+ready_enter_door["gotox"]+" "+ready_enter_door["gotoy"]);
+				p2.x = ready_enter_door["gotox"]*8;
+				p2.y = ready_enter_door["gotoy"]*8;
+				
+				
+			} else if (activate_reenter_bexit > -1) {
+				curr_area = newLevel.areas[activate_reenter_bexit];
+				current_area = activate_reenter_bexit;
+				
+			}
+			ready_enter_door = {};
+			//console.log("??? "+p.x+" "+p.y);
+			
+			
 			level_image_ = curr_area["image"];
 			level_image_behind = curr_area["image_behind"];
 			level_image_front = curr_area["image_front"];//new TileMap(width, height);
+			
 			
 			level_grid_ = curr_area["grid"];//[...Array(height)].map(_ => Array(width).fill(0));
 			level_events_ = curr_area["event_grid"];
@@ -5335,12 +9093,22 @@ function update_level() {
 			bm = height-1;
 			level_pixel_width = width*8;
 			level_pixel_height = height*8;
-		
+			
+			
+			
+			
+			//curr_music = music_library[curr_area["terrain"]]; // random for each terrain?
+			//start_music();
 			//console.log("switched! should be in area "+current_area+" at coordinate ("+p.x+", "+p.y+")");
 			// activated door should be the key for that door list [0,2,3] etc.
 		
 			activated_area = -1;
+			activate_reenter_bexit = -1;
+			
+			start_music();
 		}
+		//start_music();
+		//activated_area = -1;
 	}
 	
 	//let jj = level_image_.get(2,5)
@@ -5359,7 +9127,15 @@ function update_level() {
   //check_platform_collision();
   
   player1_movement();
+	
+	
+	//console.log("after player movement");
   player2_movement();
+	
+	if (paused) {
+		debug_print();
+		return;
+	}
   
   player1_animation();
   player2_animation();
@@ -5372,7 +9148,7 @@ function update_level() {
 	
   // drawing
   cls();
-	background_scroll();
+	background_scroll(curr_area["terrain"]);
 	
 	// need to calculate difference for right side of screen
 	if (level_pixel_width == SCREEN_WIDTH) {
@@ -5412,6 +9188,8 @@ function update_level() {
 	// need to calculate difference for top of screen
 	
 	
+	// switching tilesheets takes up memory
+	
 	
 	// going right
 	// l_offset: 0    lfe: 0   rte: 1
@@ -5428,7 +9206,10 @@ function update_level() {
 	//}
 	//console.log(top_edge+" "+bottom_edge+" "+left_edge+" "+right_edge);
 	//tilesheet(ts_terrain);
-	tilesheet(ts_m);
+	
+	
+	
+	
 	
 	draw(level_image_behind, l_offset-p.x*lfe*rte, u_offset-p.y*tpe*bte-info_box_offset);
 	draw(level_image_, l_offset-p.x*lfe*rte, u_offset-p.y*tpe*bte-info_box_offset);
@@ -5436,15 +9217,17 @@ function update_level() {
 	
 	
 	
-	tilesheet(ts_1); // could have separate one for objects
+	//tilesheet(ts_1); // could have separate one for objects
 	
 	draw_doors();
   draw_moving_platforms();
 	
-  tilesheet(ts_se);
+	draw_items(); // include animations
+	
+  //tilesheet(ts_se);
   draw_small_enemies();
   
-  tilesheet(ts_2);
+  //tilesheet(ts_2);
 	
 	//print(p.x+" ", 64);
   // draw 6 player 2 sprite tiles:
@@ -5455,7 +9238,7 @@ function update_level() {
   sprite(psheet2[4]+(pframe2*2), l_offset+p2.x-XOFFSET+(8*going_left2)-p.x*lfe*rte, u_offset+p2.y+16-YOFFSET-p.y*tpe*bte-info_box_offset, going_left2);
   sprite(psheet2[5]+(pframe2*2), l_offset+p2.x+8-XOFFSET-(8*going_left2)-p.x*lfe*rte, u_offset+p2.y+16-YOFFSET-p.y*tpe*bte-info_box_offset, going_left2);
   
-  tilesheet(ts_1);
+  //tilesheet(ts_1);
   // draw 6 player 1 sprite tiles:
   sprite(psheet[0]+(pframe*2), XMID-left_edge-XOFFSET+(8*going_left)+right_edge, YMID-top_edge-YOFFSET+bottom_edge-info_box_offset, going_left);
   sprite(psheet[1]+(pframe*2), XMID-left_edge+8-XOFFSET-(8*going_left)+right_edge, YMID-top_edge-YOFFSET+bottom_edge-info_box_offset, going_left);
@@ -5464,11 +9247,15 @@ function update_level() {
   sprite(psheet[4]+(pframe*2), XMID-left_edge-XOFFSET+(8*going_left)+right_edge, YMID-top_edge+16-YOFFSET+bottom_edge-info_box_offset, going_left);
   sprite(psheet[5]+(pframe*2), XMID-left_edge+8-XOFFSET-(8*going_left)+right_edge, YMID-top_edge+16-YOFFSET+bottom_edge-info_box_offset, going_left);
   
-	tilesheet(ts_m);
-	draw(level_image_front, l_offset-p.x*lfe*rte, u_offset-p.y*tpe*bte-info_box_offset);
+	//tilesheet(ts_m);
+	//draw(level_image_front, l_offset-p.x*lfe*rte, u_offset-p.y*tpe*bte-info_box_offset);
   
-	tilesheet(ts_1);
+	//tilesheet(ts_1);
 	draw_projectiles();
+	
+	draw_weather();
+	
+	draw_minimap();
   
   // for whichever sprites are 'in' the window view
   // (condition is just whether sprites are within some distance from the player)
@@ -5480,13 +9267,16 @@ function update_level() {
     
   }
 	
-  debug_print();
+	if (debug_on) {
+		debug_print();
+	}
   
   
+  /*
   let thisLoop = Date.now();
   fps = Math.round(1000 / (thisLoop - lastLoop));
   lastLoop = thisLoop;
-	
+	*/
 	
 	toggle_speed();
 } 
@@ -5494,7 +9284,7 @@ function update_level() {
 
 
 
-console.log(newLevel.info());
+//console.log(newLevel.info());
 
 /* ========================== DEBUGGING ============================== */
 function debug_print() {
@@ -5515,9 +9305,26 @@ function debug_print() {
   debug_msg = debug_msg+" "+enemy_test+" "+dt+" "+(dt - combo_start)+" "+combo+" ";
    
 	let area_string = current_area == newLevel.finalArea ? " BOSS " : current_area;
-	print("area: "+area_string, 8, 0); //+" keys: "+has_key
-	print(newLevel.area_info(current_area), 0, 16);
-  //print(score, 100, 16);
+	print(dt, 200,0);
+	print("         area: "+area_string+"   x"+p.x+" y"+p.y, 24, 0); //+" keys: "+has_key
+	print("key: "+has_key, 8, 0);
+	print("nutmeg: "+nutmeg, 8, 8);
+	print("sugar:  "+sugar, 8, 16);
+	print("pepper: "+cayenne, 8, 24);
+	print("enemies: "+curr_area["small_enemies"].length, 8, 32);
+	print("activated_area: "+activated_area, 8, 48);
+	print("trying_door_fail: "+trying_door_fail, 8, 56);
+	print("unlocking_door: "+unlocking_door, 8, 64);
+	print("opening_door: "+opening_door, 8, 72);
+	print("combo: "+combo, 8, 80);
+	print("gsp: "+groundsavepoint[0]+", "+groundsavepoint[1], 8, 88);
+	
+	//print("ready_door: "+ready_enter_door["gotox"]+" "+ready_enter_door["gotoy"], 8, 72);
+	
+	
+	//print(WHATAMI, 8, 8);
+	print(newLevel.area_info(current_area), 120, 20);
+  print(score, 100, 16);
   //print("Thal: ("+p.x+", "+p.y+")  Enx: ("+p2.x+", "+p2.y+")  combo: +"+combo, 100, 24);
   
 	// going right
@@ -5542,6 +9349,11 @@ function debug_print() {
 }
 
 
+
+
+
+
+
 /* ========================= TIMED EVENTS =========================== */
 var dt = 0;
 var frame_dt = 0;
@@ -5564,7 +9376,7 @@ function toggle_speed() {
 
 // timed events:
 function player_combo() {
-  if (dt - combo_start > 180) combo = 0;
+  if (dt - combo_start > 60) combo = 0;
   combo_start = dt;
   combo++;
   let multiplier = 1;
@@ -5581,11 +9393,68 @@ function player_combo() {
 		if no soundId is provided, music stops
 */
 
+function start_music() {
+	// each area type has 1 to 3 songs? want just enough to not feel repetitive
+	
+	if (0) {
+		curr_area = newLevel.areas[current_area];
+		//music();
+		// curr_area["terrain"]
+		if (current_area == newLevel.finalArea) {
+			// BOSS music
+		}
+	
+		else if (["ground"].includes(curr_area["terrain"])) {
+			music('Theme3Day', 0.3); // outdoor day
+		}
+		else if (["towergroundleft", "towergroundright", "towerground", "towerleft", "towerright"].includes(curr_area["terrain"])) {
+			music('testA', 0.3); // castle
+		} 
+		else if (["insidecave", "underground"].includes(curr_area["terrain"])) {
+			music('Theme2Night', 0.3); // outdoor night
+		} 
+		else if (["peak", "peakleft", "peakright"].includes(curr_area["terrain"])) {
+			music('Theme2Day', 0.3); // castle
+		} else {
+			music('testA', 0.3); // castle
+		}
+	}
+	
+	
+	
+	
+}
 
+//console.log(gamepads[0].buttons);
+//exports.gamepad;
 
+var gamepad1 = null;
+
+function update_setting_gamepad() {
+	//print("Press any button to continue.", 8, 16);
+	
+	
+	if (gamepads[0].available) {
+		//print("gamepad detected.");
+		gamepad1 = gamepads[0];
+		//console.log(gamepads[0].btnp);
+		//return "level";
+	} else {
+		gamepad1 = null;
+	}
+	/*else {
+		if (btn.A) {
+			return "level";
+		}
+	}/**/
+	
+	
+	
+	//return "wait_gamepad";
+}
 
 /* ========================== UPDATE ============================== */
-var state = "level";
+var state = "world";
 
 exports.update = function () {
   
@@ -5607,10 +9476,12 @@ exports.update = function () {
 	    case "level":
 	      update_level();
 	      break;
-			
 	  }
 	}
   
+	//let gp = gamepads[0];
+	//console.log(gp.btn);
+	//let gp_state = gamepad.buttons; // get state of gamepad id 0
   //score++;
 
 };
@@ -5619,7 +9490,442 @@ exports.update = function () {
 
 
 
+/*
 
+----------
+current TODO:
+
+
+50130
+
+50521
+62986
+
+With helmet, you dont lose oxygen.
+Without helmet, you get more points.
+
+
+
+- weather effects?
+  got rain
+
+
+
+
+finishing a level faster gets you more points
+
+
+- fall down all dizzy when 'dying' in the level, takes you back to start of level
+- dying in the over world
+
+entrance to platforms upward should be very vertical (e.g. single ladder or vine)
+
+
+
+need more interesting 'blobs' as platform branches
+- dirt+grass tiles with grass+grass tiles combination
+
+ better doors (use door.status and areas to unlock door)
+
+If some levels are not actually beatable, that might be ok--might make searching the 'universe' for beatable levels more fun.
+Think of a Library of Babel style game where every possible level is constructed
+
+set up the 'seed' as things are clicked on
+
+
+- some areas can have pnode platform creation instead of a chunk map.
+	- have a mixture of pnodes and chunks--randomized platforms and 'blobs' can connect areas 
+					(use empty chunk data to build on, or even underground caves)
+	- might look better in a sky or 'tree canopy' level
+
+
+tilesets and biomes:
+- dirt/grass, 
+- grass/moss, 
+- caves 
+- tree/jungle level
+-
+
+
+- jumping up through an exit -- player should shoot upwards, reset the jumping index/animation
+
+
+2 hits then restart level?
+(maximum 5 hits)
+
+See about using Firebase? for multiplayer 'live database' thing
+
+css
+// image-rendering: pixelated;
+
+HEROKU IS NOT FREE ANYMORE
+(base) Samuels-MacBook-Pro:thalgame samueljohnson$ heroku ps
+ ›   Warning: heroku update available from 7.60.2 to 7.67.1.
+ ▸    Starting November 28th, 2022, free Heroku Dynos will no longer be available. To keep your apps running, upgrade to paid dynos. Learn more in our blog
+ ▸    (https://blog.heroku.com/next-chapter).
+No dynos on ⬢ thalgame
+
+	
+	
+	- vertical style levels
+	
+	
+	- 'puzzle' aspects, to get to each area 
+			
+			Castle: keys unlock doors
+
+			lever/switch/button 'activates' wall/object/platform
+
+			ropes/vines/ladders to go up, holes and the like to go down
+			
+
+			'teleportation' or magic thing
+
+			Mountains: cave holes
+	
+	
+	
+	
+
+	- entire 'Thal' game could be one world? that way cut scenes could take up like half of the game lol
+
+
+
+	
+	- entering new dungeons, need way to store area data
+			- if game is procedural, only need to access level structures as you load them.
+	
+	
+	
+	- dead ends should have slightly harder enemies
+
+
+	
+
+
+
+
+			
+	- 'dead ends' should have either:
+			bosses
+			special items
+			
+			
+	✔ graph/node structure to find the way out
+		initial 'main' path, then add random branches to it
+	
+		( can be used in the world map )
+			
+
+
+26+26+9
+
+
+
+
+
+
+----------
+  
+ intro sequence + title screen
+
+ animations:
+    cutscenes as well as character dialogue
+
+
+
+ slopes
+ test 'structure' (2d array?) that can be placed conveniently in the level
+ 
+ 
+ save state for password:
+    save all of the treasures/artifacts (bosses respawn, but not necessary to kill) 
+    player name (world id) is incorporated in the cryptograph along with the item sequence/combination
+    
+    101100000name_world_id -> morph -> password with 20 characters
+
+    after decoding, will do a check to make sure it is a legitimate password:
+      
+      ten 1s and 0s at the start
+      name after that exactly matches the world id that the person has put in
+      ... good to go!
+
+    
+
+
+
+    
+  
+    will need to choose which things to save for progress? gives password for those
+
+ enemies and physics
+ new tilesheet for each 'thing'
+ 
+two players (just need left, right, jump, and shoot. WASD for player 1, arrows for player 2)
+  heroes:
+  Thal   Enx   G. Goose
+  
+  villains:
+  Nally  Theehoarth
+
+  minis:
+  Nut Meg
+
+  minivillains:
+  Tun Gem
+collision detection? or Thal just overtop--physics would be similar to platforms, easy to implement
+
+
+
+
+level types (last through the whole level):
+   weather effects: ice changes 'slide' and 
+
+
+
+
+game types (as shown in over world):
+	
+	
+  platform (working on now) 
+  
+	overworld (enter levels from here) 'minithal' version
+  
+	space-shooter (between worlds, enter worlds from here)
+
+
+simple colour palette, like gameboy
+
+
+
+
+
+
+how to avoid html injection? inputting values might be risky?
+
+
+travel options 
+	- walking/on foot, OR...
+	vehicle with upgrades:
+	- the "Plain Jane", slightly faster than walking but not by much (speed 2)
+	- giant tires -> dune-buggy thing that can run over mountains all jittery. (speed 2)
+	- amphibious thing to go across water, (speed 2 on land, speed 1 on water)
+	- "Turbo Zap" - super duper fast, for planetary highways (speed 3)
+
+
+
+
+worldmap terrain ideas
+	- instead of inputting a seed manually, game starts on biggest scale and zooms in as the user clicks on it 
+			('universe' -> 'filament' -> 'galactic cluster' -> 'galaxy' -> 'star cluster' -> 'star' -> 'planet' -> 'continent' -> 'area')
+		- should auto-generate at each scale -- have a tileset for this
+
+		- OR, start medium scale ('finish' game, then the user scrolls out -- 'whoa theres more?')
+	- can enter anywhere on the map -- creates random seed
+	- quicksand and mud, randomly get stuck, must button mash to get out
+	- zoomed in version with new tileset: trees and rocks/boulders
+		- canyon-type, bottom layer is walkable, then use inverse of trail to fill rest of map with 1s, so trail is '0'
+			- (mostly helps for drawing it)
+	- need to implement maze, as well as trails, "wnodes"
+	- recheck all cliff/rock formations, if beside trees should re-number. one final image map at the end.
+	
+	- 
+
+- level map, when destroying, see if can blit a new image and change the terrain
+	- platforms and pnodes, more involved
+	
+- 
+
+- G.G. ("Gwen Goose") sprite
+	- white, brown coat
+	
+- more Thal sprites, without helmet
+	- string ability (becomes "1 dimensional"), basically creates cracks, holes, any other void or empty "matrix"
+		- running moves in a wavy loop
+		- whip attack
+		- squeeze through small cracks (two types: - and | )
+		- create holes and loops (avoid portal-like things) by tying in knots and strings
+		- hands should be bright circles, to get that satisfying "mario" aesthetic
+- stats and item use
+
+
+		
+- mood and feel of the game: lonely, lost, nostalgic, adventure, retrowave, alien planets, 
+	- entering cities or areas could have epic backgrounds: megaopolis, grid sunset, mountain-range, cloud-tops, 
+	- scale taken care of by level generating algorithm
+
+
+
+
+
+
+
+
+------------------
+
+
+  item: mortar and pestle (Kutni)
+    can get upgrades! this allows the player to save up their collected spices and not use (crush) them until they get a "better" one
+    (saving the spices risks losing progress, only saves the kutni)
+    
+    many levels of each type, but only one of each level has 'the Kutni' upgrade. (single integer for cryptograph, 0-5)
+    
+    - wood (brown), get from The Jungle (World 1) 
+                    +1 to max stat
+    - stone (grey), get from The Mountains (World 2)
+                    +2 to max stat
+    - marble (white), get from The Palace (World 3)
+                    +3 to max stat
+    - diamond (light blue), get from The Volcano (World 4)
+                    +5 to max stat
+    - neutron (black), get from The Star System (World 5), more like a dyson sphere
+                    +8 to max stat
+    
+    changes the color on her vest
+    
+    
+    
+    
+    use: to crush spices, for stats
+
+    
+    
+    (basically any tree in the game will have either of these, doesn't have to be a 'nutmeg' tree since it is an alien world)
+    
+    Lots in the Jungle (World 1) so need to stock up early on.
+    The Mountains (World 2) is less so. (some mountain levels have snow and ice. be careful! increase speed (sugar))
+    The Palace (World 3) doesn't have 'natural' ones growing, so very scarce.
+    World 4 and 5 have no spices.
+    
+    find raw spices -> 
+    
+    example screen:
+    
+               (icon, raw material)                 (icon, pile+jar).                  
+    nutmeg   20        O  |\                  |\     A[]   (dark brown)    MP       5 [/////..]          7  
+                          | \                 | \  
+    cinnamon  4        |  |  \   (  mortar    |  \   A[]   (light brown)   HP       2 [//..............] 16      
+                          |   >   and pestle  |   >
+    cayenne  11        j  |  /       pic  )   |  /   A[]   (light orange)  DEF.       [///]              3
+                          | /                 | /  
+    sugar     1        Y  |/                  |/     A[]   (light gold)    SPD.     3 [///..]            5   <- in quicksand/water etc.
+
+    
+    
+    
+      nutmeg 
+        - looks like: trees, fruit is yellow, some split open to reveal red inside
+        - collected as: brown-red seeds 
+        - use mortar and pestle: dark brown powder 
+        
+        - raw effects: fully heal mana
+        - ground effects: fully heal and increase max mana
+    
+      cinnamon 
+        - looks like: trees, bark is bright brown
+        - collected as: sticks/rolls 
+        - mortar and pestle: light brown powder
+        
+        - raw effects: fully heal HP
+        - ground effects: fully heal and increase max HP
+    
+      cayenne 
+        - looks like: plant, red/orange peppers 
+        - collected as: peppers
+        - mortar and pestle: red/orange powder
+        
+        - raw effects: increase defense temporarily and cause "burn" damage to enemies temporarily
+        - ground effects: increase max defense
+    
+      sugar 
+        - looks like: plant, striped black-white or green-yellow
+        - collected as: short, striped stalks
+        - mortar and pestle: light gold powder
+        
+        - raw effects: electricity storage and power, increase speed temporarily
+        - ground effects: increase max speed (better through water, quicksand, steep hills, sticky sap, etc.)
+		
+			
+			clove?
+      
+      save state saves your mortar and pestle, but not your stats.
+      don't want to allow the player to cheat--resetting the game should be more difficult, not be a loophole.
+      if reset, can re-collect all the spices you dropped and grind them into 'better' stats but that's up to the player whether it is worth it.
+      Also lose your high score. (by starting from 0 it will know if you've reset the game, so it wont give out special bonuses)
+     
+      
+
+  
+  
+  
+  
+  other main 'Key' items (shows up as little icons at the top):
+    - gears -- to make machines go or work, basically changes the physics of the game
+        - change gravity
+        - can put in machinery to make buttons, levers, and switches work (moving platforms)
+        - 
+    - bongos -- changes enemy behaviour of the game (could be easier or more difficult?)
+				- jump higher (double jump)
+				- changes music, more catchy
+    
+    - triangles -- allows 'loop' magic and boosts some stats
+
+  Key items are a single integer in the save state (covers all 8 combinations 000 001 010 011 100 101 110 111)
+  
+  randomized over all the 'final' bosses, 3 out of 5 bosses.
+
+
+  1 integer for mortar and pestle
+  1 integer for key items
+
+  
+  
+		
+		
+-----
+far world map tileset has grass, mountains, lakes, etc
+close world map tileset has trees, bushes, etc
+
+got small "zoomed out" map from large map,
+now just need to get a bigger, "zoomed in" map from a small 'over world' map
+
+for each x,y in the small map, create ...
+
+
+----- 
+
+
+
+
+
+
+----
+
+instead of sprite collision, use the tilemap to determine solids
+
+
+---
+
+Nut and Meg as miniature clones/sidekicks
+
+Tun and Gem are Nut and Meg's clones (lol!) even tinier
+
+
+
+
+
+
+
+firebase with pixelbox
+
+
+
+
+
+
+
+
+*/
 
 
 

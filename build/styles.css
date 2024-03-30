@@ -3,10 +3,17 @@ body {
 	text-align: center;
 	font-family: verdana;
 	/*background-color: #444;/**/
-	background-image: linear-gradient(rgba(130,130,130,1), rgba(40,40,40,1));
+	/*background-image: linear-gradient(rgba(130,130,130,1), rgba(40,40,40,1));/**/
+	
 	margin: 0;
 	overflow: hidden;
 	height: 100%;
+	perspective: 1000px;/**/
+	background-image: url('/assets/webpage/arcade_machine_in_room.png');/**/
+	background-repeat: no-repeat;
+	background-attachment: fixed;
+	background-size: 2400px 1600px;/**/
+	background-position: center;
 }
 
 * {
@@ -261,11 +268,97 @@ body {
 }
 
 
+.borderbox_tilt {
+	/*top: 0px; /**/
+	/*position: absolute; /**/
+	perspective: 1000px;/**/
+	display: flex; 
+	align-items: center; 
+	justify-content: center;/**/
+	
+}/**/
+
+.borderbox_cover {
+	/*top: -10px; /**/
+	/*left: 50%; /**/
+	/*position: absolute; /**/
+	width: 501px;/**/ 
+	height: 372px; /**/
+	
+	/*width: 100%;/**/
+	/*height: 100%;/**/
+	border: 8px solid #000;
+	z-index: 4;
+	transform: rotateX(15deg) rotateY(16deg) rotateZ(-5deg) translateY(-146px) translateX(20px);/**/
+	display: flex; 
+	align-items: center; 
+	justify-content: center;/**/
+}
+
+
+
+.crt-overlay {
+  /*position: absolute;/**/
+	width: 500px;/**/ 
+	height: 372px; /**/
+  opacity: 0.6;
+	filter: blur(0.5px);
+  background: 
+		linear-gradient(
+			rgba(16, 15, 15, 0.00) 50%, 
+			rgba(0, 0, 0, 0.25) 50%
+		),
+    linear-gradient(
+      90deg,
+      rgba(255, 0, 0, 0.06),
+      rgba(0, 200, 0, 0.02),
+      rgba(0, 0, 200, 0.04)
+    );
+  background-size: 100% 4px, 30px 100%;
+  z-index: 0;
+	transform: rotateX(15deg) rotateY(16deg) rotateZ(-5deg) translateY(-143px) translateX(20px);/**/
+	display: flex; 
+	align-items: center; 
+	justify-content: center;/**/
+  animation: flicker 80ms infinite;
+}
+
+/*
+.video-overlay:after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgb(255, 255, 255);
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0) 70%,
+    rgba(0, 0, 0, 1) 100%
+  );
+  z-index: 2;
+}/**/
+
+
+
+@keyframes flicker {
+  0% {
+    transform: translateY(1px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+
+
+
 canvas {
   
-	/*position: absolute;/**/
+	position: absolute;/**/
   /*position: relative;/**/
-	/*top: 30%;/**/
+	/*top: 0px;/**/
 	/*left: 50%;/**/
   /*transform: translateX(-50%); /**/
 	
@@ -273,6 +366,16 @@ canvas {
 	image-rendering: -moz-crisp-edges;
 	image-rendering: -webkit-optimize-contrast;
 	image-rendering: optimize-contrast;
-	image-rendering: pixelated;
-	-ms-interpolation-mode: nearest-neighbor;
+	image-rendering: pixelated;/**/
+	filter: blur(0.5px);
+	-ms-interpolation-mode: nearest-neighbor;/**/
+	
+	border: 8px solid #000;
+	border-radius: 4px;
+	transform: rotateX(15deg) rotateY(16deg) rotateZ(-5deg) translateY(-138px) translateX(20px);/**/
+	z-index: -1;
+	/*display: flex; 
+		align-items: center; 
+		justify-content: center;/**/
+	
 }
