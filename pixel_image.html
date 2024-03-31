@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Display Image</title>
+</head>
+<body style="background: black; display: flex; margin: 0">
+<div style="width: 1024px; height: 1024px; background: black; ">
+<canvas id="myCanvas" width="1024" height="1024" style="background: black"></canvas>
+</div>
+<script>
+	function gaussian2D(x, y, amplitude, meanX, meanY, sigma) {
+	    const exponent = -((Math.pow(x - meanX, 2) + Math.pow(y - meanY, 2)) / (2 * Math.pow(sigma, 2)));
+	    let result = amplitude * Math.exp(exponent);
+			
+			return result;
+			/*
+			if (result > disc) {
+				return result;
+			} else {
+				return 0;
+			}/**/
+			
+	}
+	
+	function noise2DA(x,y,n){
+		let xoff = 55511;
+		let yoff = 1323;
+		let doff = 103;
+		let eoff = 31; 
+		let foff = 19;
+		let a = Math.cos(x+xoff)+xoff;
+		let b = Math.cos(y+yoff)+yoff;
+		let c = (a*b*doff)%eoff+Math.sin(x*y+foff);
+		let d = Math.floor(Math.abs(c));
+		let e = d%100;
+		
+		let thres = n - 1;
+		if (thres <= e) {
+			return 255;
+		} else {
+			return 0;
+		}
+	}
+	
+	function noise2DB(x,y,n){
+		let xoff = 13011;
+		let yoff = 591931;
+		let doff = 679;
+		let eoff = 13; 
+		let foff = 29;
+		let a = Math.cos(x+xoff)+xoff;
+		let b = Math.cos(y+yoff)+yoff;
+		let c = (a*b*doff)%eoff+Math.sin(x*y+foff);
+		let d = Math.floor(Math.abs(c));
+		let e = d%100;
+		
+		let thres = n - 1;
+		if (thres <= e) {
+			return 255;
+		} else {
+			return 0;
+		}
+	}
+	
+	function check_if_circle(d) {
+		return (d & (d-1)) || d <= 0 ? 0 : 255;
+	}
+	
+	function is_power_of(exponent, n){
+		//return !Number.isInteger(Math.log(n) / Math.log(exponent)) || n <= 0 ? 255 : 0;
+	}
+	
+  var pixelData = [];
+	var blackPixelData = [];
+	
+	var values = [];
+	
+	const QSIZE = 300;
+	const SCALE = 1;
+	//const I = 100;
+	
+	
+	
+	const A = 1;
+	
+	let max_ = 0;
+	
+	
+	
+	function get_biome_value(x_,y_,res) {
+		let N = 15*res;
+		
+		let dxs = [...Array(N)].map((n,i) => i*2+N*100 );
+		let dys = [...Array(N)].map((n,i) => i*3+N );
+		
+		let xs = dxs.map(dx_ => x_+dx_);
+		let ys = dys.map(dy_ => y_+dy_);
+		
+		let ths = [...Array(N)].map((n,i) => i*0.29 );
+		
+		let xrs = ths.map( (th,i) => Math.floor( xs[i] * Math.cos(th) - ys[i] * Math.sin(th) ) );
+		let yrs = ths.map( (th,i) => Math.floor( ys[i] * Math.cos(th) + xs[i] * Math.sin(th) ) );
+		
+		let sizes = [...Array(N)].map((n,i) => 0.01 + 0.0097*i);
+		let chps = sizes.map((s,i) => Math.cos(s*xrs[i])*Math.cos(s*yrs[i]));
+		
+		let b = chps.reduce((acc,c) => acc + c, 0);
+		//let b = chp;
+		
+		return b;
+		
+	}
+	
+	function is_special(x_,y_) {
+		let radius = Math.floor(Math.sqrt((x_)**2 + (y_)**2));
+		if (Number.isInteger(Math.sqrt(radius)) && radius > 15) {
+			
+			// number of thetas is proportional to radius
+			let n = Math.floor(Math.sqrt(radius)); // or log
+			let delta_th = 19.9;
+			let A = 22.9;//5.64;//29.39;
+			let B = 19.01;
+			let C = 191.07; 
+			
+			/*((i+1)*r_offset_B*(radius**2))*/  /*(((i+1)*r_offset_A)*delta_th)*/
+			
+			let start_th = A*Math.PI/180;
+			let ths = [...Array(n)].map((_,i) => start_th + (((i+A)**2)/B)*((2*Math.PI)/(n)) );
+			
+			let xys = ths.map((t,i) => {
+				let xo = Math.floor( radius * Math.sin(t+((i*B)*Math.PI/180)) );
+				let yo = Math.floor( radius * Math.cos(t+((i*B)*Math.PI/180)) );
+				return [xo, yo];
+			});
+			
+			return xys;
+			
+		}
+		
+		return 0;
+	}
+	
+	
+	
+	function get_biome_type(x, y) {
+		
+		let thickness = 1;
+		let radius = Math.floor(thickness*Math.sqrt((x)**2 + (y)**2));
+		let difficulty = Math.floor(Math.sqrt(radius));
+		
+		
+		let xyo = is_special(x,y);
+		
+		let z1 = "";
+		let z2 = "";
+		let z3 = "";
+		
+		z1 = get_biome_value(x,y,1);
+		if (z1 > 6) {
+			z1 = 5;
+		} else if (z1 > 1.4) {
+			z1 = 4;
+		} /*else if (z1 > 0.5) {
+			z1 = 2;
+		} */else if (z1 > 0.5){
+			z1 = 1;
+		} else if (z1 > 0.0005) {
+			z1 = 2;
+		} else {
+			z1 = 0;
+		}
+		
+		
+		z2 = get_biome_value(x,y,2);
+		if (z2 > 11) {
+			z2 = 5; //
+		} else if (z2 > 6) {
+			z2 = 3; // deep forest
+		} else if (z2 > 2.8) {
+			z2 = 2;
+		} else if (z2 > 0.000001) {
+			z2 = 1;
+		} else {
+			z2 = 0;
+		}/**/
+		
+		
+		z3 = get_biome_value(x,y,3);
+		if (z3 > 4) {
+			z3 = 1;
+		} else if (z3 > 2) {
+			z3 = 1;
+		} else if (z3 > 0.2){
+			z3 = 3;
+		} else if (z3 > 0.2){
+			z3 = 0;
+		} else {
+			z3 = 0;
+		}
+		/**/
+		
+		let color = "rgb("+(difficulty*2)+",0,"+(250-difficulty*10)+")";
+		
+		let biome = "water";
+		
+		// TODO: desert
+		
+		if (z2 === 5) {
+			color = "rgb(120,0,120)"; // <--
+			biome = "evil";
+		} else if (z2 === 3) {
+			color = "rgb(0,30,0)";
+			biome = "deepforest";
+			if (z2 >= 1 && z1 === 4) {
+				color = "rgb(230,230,240)";
+				biome = "peak";
+			}
+			
+		} else if (z2 >= 1 || z3 === 1) {
+			color = "rgb(20,100,0)";
+			biome = "grass";
+			if (z1 >= 4) {
+				//color = "rgb(120,110,0)";
+				//biome = "desert";
+				//color = "rgb(0,280,280)";
+				//biome = "mountains";
+				if (z1 === 5) {
+					color = "rgb(200,170,0)";
+					biome = "desert";
+				} else if (z2 === 0) {
+					color = "rgb(200,170,0)";
+					biome = "desert";
+				} else if (z3 === 2) {
+					color = "rgb(220,220,0)";
+					biome = "deepforest";
+					
+				} 
+				if (z2 === 2) {
+					color = "rgb(120,120,120)";
+					biome = "mountains";
+					//if (z2 >= 1) {
+						//color = "rgb(0,230,230)";
+						//biome = "peak";
+						//}
+				}
+				
+			} else if (z2 === 2) {
+				color = "rgb(10,60,0)";
+				biome = "forest";
+				
+			} else if (z1 === 2) {
+				color = "rgb(120,120,120)";
+				biome = "mountains";
+				
+			} else if (z1 === 1) {
+				color = "rgb(10,60,0)";
+				biome = "forest";
+			} else if (z3 === 3){
+				color = "rgb(10,60,0)";
+				biome = "forest";
+			}
+		} else if (z3 === 2) {
+			color = "rgb(20,100,0)";
+			biome = "island";
+		}
+		/**/
+		
+		/*
+		if (x === 0 && y === 0) {
+			//color = "rgb(0,250,250)";
+		} else if (xyo[0][0] && xyo[0][1]) {
+			//color = "rgb(250,0,0)";
+		}/**/
+		
+		return {
+			"biome_color": color,
+			"biome_type": biome,
+			"difficulty": difficulty,
+			"special": xyo
+		}
+	}
+	
+	
+	// initialize with black first
+	for (let y=0; y<16; y++) {
+		for (let x=0; x<16; x++) {
+			blackPixelData.push([x*8,y*8, "rgb(0,100,0)"]);
+		}
+	}/**/
+	
+	
+	// TURN ON to see full biome map
+	if (0) {
+		
+		for (let y=-QSIZE; y<=QSIZE; y++) {
+			for (let x=-QSIZE; x<QSIZE; x++) {
+			
+			
+				let biome_info = get_biome_type(x,y);
+			
+				if (biome_info["special"] !== 0) {
+				
+					try {
+					
+						biome_info["special"].forEach(([x, y]) => {
+							if (x === 0 && y === 0) {
+								pixelData.push([x,y, "rgb(250,250,250)"]);
+							} else if (x === 0 || y === 0) {
+								pixelData.push([x,y, "rgb(250,0,0)"]);
+							} else {
+								pixelData.push([x,y, "rgb(250,0,0)"]);
+							}
+						
+						});
+						/*
+							pixelData.push([
+								biome_info["special"][0][0], 
+								biome_info["special"][0][1], 
+								"rgb(250,0,50)"
+							]);
+							pixelData.push([
+								biome_info["special"][1][0], 
+								biome_info["special"][1][1], 
+								"rgb(250,120,0)"
+							]);
+							pixelData.push([
+								biome_info["special"][2][0], 
+								biome_info["special"][2][1], 
+								"rgb(10,150,250)"
+							]);
+							pixelData.push([
+								biome_info["special"][3][0], 
+								biome_info["special"][3][1], 
+								"rgb(120,250,0)"
+							]);
+						/**/
+					
+					} catch (e) {
+						console.log("error");
+					}
+				} else {
+					pixelData.push([x,y, biome_info["biome_color"]]);
+				}
+			
+			}
+		
+		}
+	}
+
+	/* =============== random number generator ================ */
+	/* random number generator for seed. n is how many you need (source?)*/
+	function PRNG(input_string, n){
+	  // create seed state
+	  function xmur3(str) {
+	      for(var i = 0, h = 1779033703 ^ str.length; i < str.length; i++)
+	          h = Math.imul(h ^ str.charCodeAt(i), 3432918353),
+	          h = h << 13 | h >>> 19;
+	      return function() {
+	          h = Math.imul(h ^ h >>> 16, 2246822507);
+	          h = Math.imul(h ^ h >>> 13, 3266489909);
+	          return (h ^= h >>> 16) >>> 0;
+	      }
+	  }
+	  // output randomizer
+	  function mulberry32(a) {
+	      return function() {
+	        var t = a += 0x6D2B79F5;
+	        t = Math.imul(t ^ t >>> 15, t | 1);
+	        t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+	        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+	      }
+	  }
+	  var ssseed = xmur3(input_string);
+	  var rrrand = mulberry32(ssseed());
+	  var rands = [];
+	  for (let i=0; i<n; i++) { rands.push(rrrand()); }
+  
+	  return rands;
+	}
+	
+	const seed = PRNG("0_5", 16);
+	// how would this work if exported from another function?
+	// input starting iR, spit out final?
+	//var iR = 0; //increment every time a new number is used
+
+	/*
+	function rnd(min_, max_) {
+	  let value = min_ + Math.floor(seed[iR]*(max_-min_));
+	  iR++;
+	  if (iR >= seed.length) {
+	    iR=0;
+	  }
+	  return value;
+	}*/
+	
+	
+	
+	
+	function g7(xx, yy) {
+		
+		const seed = PRNG(xx+"_"+yy, 64);
+		let iR = 0;
+		
+		let pixelData = [];
+		
+		var chunk = [...Array(16)].map(_ => Array(16).fill(0));
+		
+		let xi = 8;
+		let yi = 0;
+		let r = 0;
+		while (xi < 16 && yi < 16) {
+			for (let xi_=xi; xi_<16; xi_++){
+				chunk[yi][xi_] = 1;
+			}
+			xi++;
+			r = 0+Math.floor(seed[iR]*(2-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			if (!r) { yi++; }
+		}
+		
+		xi = 15;
+		yi = 7;
+		r = 0;
+		while (xi >= 0 && yi >= 0) {
+			for (let yi_=yi; yi_>=0; yi_--){
+				chunk[yi_][xi] = 1;
+			}
+			yi--;
+			r = 0+Math.floor(seed[iR]*(2-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			if (!r) { xi--; }
+		}
+		
+		for (let y=0; y<16; y++) {
+			for (let x=0; x<16; x++) {
+				if (chunk[y][x]) {
+					pixelData.push([x*8,y*8, "rgb(0,200,250)"]);
+				}
+			}
+		}
+		
+		return pixelData;
+	}
+	
+	function gr(xx, yy) {
+		
+		const seed = PRNG(xx+"_"+yy, 64);
+		let iR = 0;
+		
+		let pixelData = [];
+		
+		var chunk = [...Array(16)].map(_ => Array(16).fill(0));
+		
+		let xi = 7;
+		let yi = 0;
+		let r = 0;
+		while (xi >= 0 && yi < 8) {
+			for (let xi_=xi; xi_>=0; xi_--) {
+				chunk[yi][xi_] = 1;
+			}
+			xi--;
+			r = 0+Math.floor(seed[iR]*(2-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			yi+=r;
+		}
+		
+		xi = 0;
+		yi = 7;
+		r = 0;
+		while (xi >= 0 && yi >= 0) {
+			for (let yi_=yi; yi_>=0; yi_--){
+				chunk[yi_][xi] = 1;
+			}
+			yi--;
+			r = 0+Math.floor(seed[iR]*(2-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			xi+=r;
+		}
+		
+		for (let y=0; y<16; y++) {
+			for (let x=0; x<16; x++) {
+				if (chunk[y][x]) {
+					pixelData.push([x*8,y*8, "rgb(0,200,250)"]);
+				}
+			}
+		}
+		
+		return pixelData;
+	}
+	
+	
+	function gL(xx, yy) {
+		
+		const seed = PRNG(xx+"_"+yy, 64);
+		let iR = 0;
+		
+		let pixelData = [];
+		
+		var chunk = [...Array(16)].map(_ => Array(16).fill(0));
+		
+		let xi = 7;
+		let yi = 15;
+		let r = 0;
+		while (xi >= 0 && yi >= 0) {
+			for (let xi_=xi; xi_>=0; xi_--) {
+				chunk[yi][xi_] = 1;
+			}
+			xi--;
+			r = 0+Math.floor(seed[iR]*(2-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			yi-=r;
+		}
+		
+		xi = 0;
+		yi = 8;
+		r = 0;
+		while (xi >= 0 && yi < 16) {
+			for (let yi_=yi; yi_<16; yi_++){
+				chunk[yi_][xi] = 1;
+			}
+			yi++;
+			r = 0+Math.floor(seed[iR]*(2-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			xi+=r;
+		}
+		
+		for (let y=0; y<16; y++) {
+			for (let x=0; x<16; x++) {
+				if (chunk[y][x]) {
+					pixelData.push([x*8,y*8, "rgb(0,200,250)"]);
+				}
+			}
+		}
+		
+		return pixelData;
+	}
+	
+	function gJ(xx, yy) {
+		
+		const seed = PRNG(xx+"_"+yy, 64);
+		let iR = 0;
+		
+		let pixelData = [];
+		
+		var chunk = [...Array(16)].map(_ => Array(16).fill(0));
+		
+		let xi = 8;
+		let yi = 15;
+		let r = 0;
+		while (xi < 16 && yi >= 0) {
+			for (let xi_=xi; xi_<16; xi_++) {
+				chunk[yi][xi_] = 1;
+			}
+			xi++;
+			r = 0+Math.floor(seed[iR]*(2-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			yi-=r;
+		}
+		
+		xi = 15;
+		yi = 8;
+		r = 0;
+		while (xi >= 0 && yi < 16) {
+			for (let yi_=yi; yi_<16; yi_++){
+				chunk[yi_][xi] = 1;
+			}
+			yi++;
+			r = 0+Math.floor(seed[iR]*(2-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			xi-=r;
+		}
+		
+		for (let y=0; y<16; y++) {
+			for (let x=0; x<16; x++) {
+				if (chunk[y][x]) {
+					pixelData.push([x*8,y*8, "rgb(0,200,250)"]);
+				}
+			}
+		}
+		
+		return pixelData;
+	}
+	
+	
+	
+	function wL(xx, yy) {
+		
+		const seed = PRNG(xx+"_"+yy, 64);
+		let iR = 0;
+		
+		let pixelData = [];
+		
+		var chunk = [...Array(16)].map(_ => Array(16).fill(1));
+		
+		let xi = 0;
+		let yi = 8;
+		let r = 0;
+		
+		while (xi < 8 && yi < 16) {
+			for (let yi_=yi; yi_<16; yi_++){
+				chunk[yi_][xi] = 0;
+			}
+			xi++;
+			r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			yi+=r;
+		}
+		
+		xi = 7;
+		yi = 15;
+		r = 0;
+		while (xi >= 0 && yi >= 8) {
+			for (let xi_=xi; xi_>=0; xi_--) {
+				chunk[yi][xi_] = 0;
+			}
+			yi--;
+			r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			xi-=r;
+		}
+		
+		for (let y=0; y<16; y++) {
+			for (let x=0; x<16; x++) {
+				if (chunk[y][x]) {
+					pixelData.push([x*8,y*8, "rgb(0,200,250)"]);
+				}
+			}
+		}
+		
+		return pixelData;
+	}
+	
+	function wJ(xx, yy) {
+		
+		const seed = PRNG(xx+"_"+yy, 64);
+		let iR = 0;
+		
+		let pixelData = [];
+		
+		var chunk = [...Array(16)].map(_ => Array(16).fill(1));
+		
+		let xi = 15;
+		let yi = 8;
+		let r = 0;
+		
+		while (xi > 8 && yi < 16) {
+			for (let yi_=yi; yi_<16; yi_++){
+				chunk[yi_][xi] = 0;
+			}
+			xi--;
+			r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			yi+=r;
+		}
+		
+		xi = 8;
+		yi = 15;
+		r = 0;
+		while (xi < 16 && yi >= 8) {
+			for (let xi_=xi; xi_<16; xi_++) {
+				chunk[yi][xi_] = 0;
+			}
+			yi--;
+			r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			xi+=r;
+		}
+		
+		for (let y=0; y<16; y++) {
+			for (let x=0; x<16; x++) {
+				if (chunk[y][x]) {
+					pixelData.push([x*8,y*8, "rgb(0,200,250)"]);
+				}
+			}
+		}
+		
+		return pixelData;
+	}
+	
+	function w7(xx, yy) {
+		
+		const seed = PRNG(xx+"_"+yy, 64);
+		let iR = 0;
+		
+		let pixelData = [];
+		
+		var chunk = [...Array(16)].map(_ => Array(16).fill(1));
+		
+		let xi = 8;
+		let yi = 0;
+		let r = 0;
+		
+		while (xi < 16 && yi < 8) {
+			for (let xi_=xi; xi_<16; xi_++){
+				chunk[yi][xi_] = 0;
+			}
+			yi++;
+			r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			xi+=r;
+		}
+		
+		xi = 15;
+		yi = 7;
+		r = 0;
+		while (xi >=8 && yi > 0) {
+			for (let yi_=yi; yi_>=0; yi_--) {
+				chunk[yi_][xi] = 0;
+			}
+			xi--;
+			r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			yi-=r;
+		}
+		
+		for (let y=0; y<16; y++) {
+			for (let x=0; x<16; x++) {
+				if (chunk[y][x]) {
+					pixelData.push([x*8,y*8, "rgb(0,200,250)"]);
+				}
+			}
+		}
+		
+		return pixelData;
+	}
+	
+	
+	function wr(xx, yy) {
+		const seed = PRNG(xx+"_"+yy, 64);
+		let iR = 0;
+		let pixelData = [];
+		var chunk = [...Array(16)].map(_ => Array(16).fill(1));
+		
+		
+		let xi = 7;
+		let yi = 0;
+		let r = 0;
+		
+		while (xi >= 0 && yi < 8) {
+			for (let xi_=xi; xi_>=0; xi_--){
+				chunk[yi][xi_] = 0;
+			}
+			yi++;
+			r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			xi-=r;
+		}
+		
+		xi = 0;
+		yi = 7;
+		r = 0;
+		while (xi < 8 && yi > 0) {
+			for (let yi_=yi; yi_>=0; yi_--) {
+				chunk[yi_][xi] = 0;
+			}
+			xi++;
+			r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			yi-=r;
+		}
+		
+		for (let y=0; y<16; y++) {
+			for (let x=0; x<16; x++) {
+				if (chunk[y][x]) {
+					pixelData.push([x*8,y*8, "rgb(0,200,250)"]);
+				}
+			}
+		}
+		
+		return pixelData;
+	}
+	
+	
+	
+	
+	
+	function wu(xx, yy) {
+		const seed = PRNG(xx+"_"+yy, 64);
+		let iR = 0;
+		let pixelData = [];
+		var chunk = [...Array(16)].map(_ => Array(16).fill(1));
+		
+		let xi = 15;
+		let yi = 8;
+		let r = 0;
+		
+		while (xi > 8 && yi < 16) {
+			for (let yi_=yi; yi_<16; yi_++){
+				chunk[yi_][xi] = 0;
+			}
+			xi--;
+			r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			yi+=r;
+		}
+		
+		xi = 8;
+		yi = 15;
+		r = 0;
+		while (xi < 16 && yi >= 8) {
+			for (let xi_=xi; xi_<16; xi_++) {
+				chunk[yi][xi_] = 0;
+			}
+			yi--;
+			r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			xi+=r;
+		}
+		
+		xi = 0;
+		yi = 8;
+		r = 0;
+		
+		while (xi < 8 && yi < 16) {
+			for (let yi_=yi; yi_<16; yi_++){
+				chunk[yi_][xi] = 0;
+			}
+			xi++;
+			r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			yi+=r;
+		}
+		
+		xi = 7;
+		yi = 15;
+		r = 0;
+		while (xi >= 0 && yi >= 8) {
+			for (let xi_=xi; xi_>=0; xi_--) {
+				chunk[yi][xi_] = 0;
+			}
+			yi--;
+			r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			xi-=r;
+		}
+		/*
+		let xi = 0;
+		let yi = 0;
+		let r = 0;
+		while (xi < 8 && yi < 16) {
+			chunk[yi][xi] = 1;
+			for (let yi_=yi; yi_>=0; yi_--){
+				chunk[yi_][xi] = 1;
+			}
+			r = 0+Math.floor(seed[iR]*(2-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			yi+=r;
+			r = 0+Math.floor(seed[iR]*(2-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			xi+=r;
+		}
+		if (yi > 15) {
+			yi = 15;
+		}
+		while (xi < 8) {
+			for (let yi_=yi; yi_>=0; yi_--){
+				chunk[yi_][xi] = 1;
+			}
+			xi++;
+		}
+		
+		xi = 15;
+		yi = 0;
+		r = 0;
+		while (xi > 7 && yi < 16) {
+			chunk[yi][xi] = 1;
+			for (let yi_=yi; yi_>=0; yi_--){
+				chunk[yi_][xi] = 1;
+			} 
+			r = 0+Math.floor(seed[iR]*(2-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			yi+=r;
+			r = 0+Math.floor(seed[iR]*(2-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			xi-=r;
+		}
+		if (yi > 15) {
+			yi = 15;
+		}
+		while (xi > 7) {
+			for (let yi_=yi; yi_>=0; yi_--){
+				chunk[yi_][xi] = 1;
+			}
+			xi--;
+		}/**/
+		
+		
+		
+		for (let y=0; y<16; y++) {
+			for (let x=0; x<16; x++) {
+				if (chunk[y][x]) {
+					pixelData.push([x*8,y*8, "rgb(0,200,250)"]);
+				}
+			}
+		}
+		
+		return pixelData;
+	}
+	
+	function wn(xx, yy) {
+		const seed = PRNG(xx+"_"+yy, 64);
+		let iR = 0;
+		let pixelData = [];
+		var chunk = [...Array(16)].map(_ => Array(16).fill(1));
+		
+		
+		let xi = 7;
+		let yi = 0;
+		let r = 0;
+		
+		while (xi < 16 && yi < 8) {
+			for (let xi_=xi; xi_<16; xi_++){
+				chunk[yi][xi_] = 0;
+			}
+			yi++;
+			r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			xi+=r;
+		}
+		
+		xi = 15;
+		yi = 7;
+		r = 0;
+		while (xi >=8 && yi >= 0) {
+			for (let yi_=yi; yi_>=0; yi_--) {
+				chunk[yi_][xi] = 0;
+			}
+			xi--;
+			r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			yi-=r;
+		}/**/
+		
+		
+		xi = 7;
+		yi = 0;
+		r = 0;
+		while (xi >= 0 && yi < 8) {
+			for (let xi_=xi; xi_>=0; xi_--){
+				chunk[yi][xi_] = 0;
+			}
+			yi++;
+			r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			xi-=r;
+		}
+		
+		xi = 0;
+		yi = 7;
+		r = 0;
+		while (xi < 7 && yi >= 0) {
+			for (let yi_=yi; yi_>=0; yi_--) {
+				chunk[yi_][xi] = 0;
+			}
+			xi++;
+			r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			yi-=r;
+		}/**/
+		
+		
+		
+		for (let y=0; y<16; y++) {
+			for (let x=0; x<16; x++) {
+				if (chunk[y][x]) {
+					pixelData.push([x*8,y*8, "rgb(0,200,250)"]);
+				}
+			}
+		}
+		
+		return pixelData;
+	}
+	
+	
+	
+	
+	function wc(xx, yy) {
+		const seed = PRNG(xx+"_"+yy, 64);
+		let iR = 0;
+		let pixelData = [];
+		var chunk = [...Array(16)].map(_ => Array(16).fill(1));
+		
+		
+		
+		let yi = 7;
+		let xi = 0;
+		let r = 0;
+		
+		
+		while (yi < 16 && xi < 8) {
+			for (let yi_=yi; yi_<16; yi_++){
+				chunk[yi_][xi] = 0;
+			}
+			xi++;
+			r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			yi+=r;
+		}
+		/**/
+		
+		
+		yi = 15;
+		xi = 7;
+		r = 0;
+		while (yi >=8 && xi >= 0) {
+			for (let xi_=xi; xi_>=0; xi_--) {
+				chunk[yi][xi_] = 0;
+			}
+			yi--;
+			r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			xi-=r;
+		}/**/
+		
+		
+		xi = 7;
+		yi = 0;
+		r = 0;
+		while (xi >= 0 && yi < 8) {
+			for (let xi_=xi; xi_>=0; xi_--){
+				chunk[yi][xi_] = 0;
+			}
+			yi++;
+			r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			xi-=r;
+		}/**/
+		
+		
+		xi = 0;
+		yi = 7;
+		r = 0;
+		while (xi < 7 && yi >= 0) {
+			for (let yi_=yi; yi_>=0; yi_--) {
+				chunk[yi_][xi] = 0;
+			}
+			xi++;
+			r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			yi-=r;
+		}/**/
+		
+		
+		
+		for (let y=0; y<16; y++) {
+			for (let x=0; x<16; x++) {
+				if (chunk[y][x]) {
+					pixelData.push([x*8,y*8, "rgb(0,200,250)"]);
+				}
+			}
+		}
+		
+		return pixelData;
+	}
+	
+	
+	function w3(xx, yy) {
+		const seed = PRNG(xx+"_"+yy, 64);
+		let iR = 0;
+		let pixelData = [];
+		var chunk = [...Array(16)].map(_ => Array(16).fill(1));
+		
+		let yi = 15;
+		let xi = 8;
+		let r = 0;
+		
+		while (yi > 8 && xi < 16) {
+			for (let xi_=xi; xi_<16; xi_++){
+				chunk[yi][xi_] = 0;
+			}
+			yi--;
+			r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			xi+=r;
+		}
+		
+		yi = 8;
+		xi = 15;
+		r = 0;
+		while (yi < 16 && xi >= 8) {
+			for (let yi_=yi; yi_<16; yi_++) {
+				chunk[yi_][xi] = 0;
+			}
+			xi--;
+			r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			yi+=r;
+		}
+		
+		yi = 0;
+		xi = 8;
+		r = 0;
+		
+		while (yi < 8 && xi < 16) {
+			for (let xi_=xi; xi_<16; xi_++){
+				chunk[yi][xi_] = 0;
+			}
+			yi++;
+			r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			xi+=r;
+		}
+		
+		yi = 7;
+		xi = 15;
+		r = 0;
+		while (yi >= 0 && xi >= 8) {
+			for (let yi_=yi; yi_>=0; yi_--) {
+				chunk[yi_][xi] = 0;
+			}
+			xi--;
+			r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			yi-=r;
+		}/**/
+		
+		
+		
+		for (let y=0; y<16; y++) {
+			for (let x=0; x<16; x++) {
+				if (chunk[y][x]) {
+					pixelData.push([x*8,y*8, "rgb(0,200,250)"]);
+				}
+			}
+		}
+		
+		return pixelData;
+	}
+	
+	
+	//var pixelData = g7();
+	
+	
+  // Function to draw the image on the canvas
+  function drawImageFromArray(xx, yy) {
+    const canvas = document.getElementById('myCanvas');
+    const context = canvas.getContext('2d');
+		
+		//---------- EDIT HERE ----------
+		// functions finished: wL, w7, wJ, wr, wu, wn, wc, w3
+		
+		let pixelData = w3(xx,yy);
+		//-------------------------------
+		
+		
+		
+		context.scale(SCALE, SCALE);
+		//context.translate(canvas.width / (SCALE*2), canvas.height / (SCALE*2));
+		//context.translate(xx,yy);
+		
+		
+		blackPixelData.forEach(([x,y, color]) => { 
+			context.fillStyle = color;
+			context.fillRect(x*SCALE+xx*SCALE*132, y*SCALE+yy*SCALE*132, SCALE*7, SCALE*7); // Draw a 1x1 pixel at (x, y) with the specified color
+		});/**/
+		
+		
+		/*
+    pixelData.forEach(([x, y, color]) => {
+      context.fillStyle = color;
+      context.fillRect(x*SCALE+xx*SCALE*0, y*SCALE+yy*SCALE*0, SCALE*2, SCALE*2); // Draw a 1x1 pixel at (x, y) with the specified color
+    });/**/
+		
+		
+    pixelData.forEach(([x, y, color]) => {
+      context.fillStyle = color;
+      context.fillRect(x*SCALE+xx*SCALE*132, y*SCALE+yy*SCALE*132, SCALE*7, SCALE*7); // Draw a 1x1 pixel at (x, y) with the specified color
+    });/**/
+		
+		// -- This is the middle tile --
+		if (0) {
+      context.fillStyle = "rgb(50,250,250)";
+      context.fillRect(0, 0, SCALE*2, SCALE*2);
+		}
+  }
+
+  /*  36 randomized biome tiles  */
+	if (1) {
+	  // Call the function to draw the image
+		for (let y_=0; y_<6; y_++) {
+			for (let x_=0; x_<6; x_++) {
+				drawImageFromArray(x_, y_);
+			}
+	  }
+	}
+	
+	/*  1 biome map  */
+	//drawImageFromArray(0, 0);
+  	
+	
+	
+	
+	
+	
+	// ----------------
+	/*
+	let g = gaussian2D(xx, yy, 200, 0, 0, 50);
+	let g_c = Math.cos(g/3)*100;
+	let h = gaussian2D(xx, yy, 100, 0, 0, 40);
+	let h_c = Math.cos(h/5)*100;
+	let i = ((h_c/g_c)%23)*100;
+	
+	max_ = g >= max_ ? g : max_;
+	
+	
+	
+	// ---------------- NOISE
+	let aa = noise2DA(xx, yy, 31);//*noise2DA(x+9897,y+9543, 1); // 2-32
+	let bb = noise2DB(xx+234,yy+998, 32);
+	let cc = noise2DB(xx+23, yy-99, 1);//noise2DB(x+251,y+875, 2)+noise2DB(x+25,y+87, 2);
+	
+	let q = 1;
+	let wx = Math.cos((50*Math.abs(x+q))**0.5);
+	let wy = Math.cos((50*Math.abs(y+q))**0.5);
+	
+	
+	
+	// ----------------- CONCENTRIC CIRCLES (boss levels)
+	let d = 1*Math.sqrt((x+xoffset)**2 + (y+yoffset)**2);
+	let w = check_if_circle(d);// * (aa);// || bb);
+	
+	*/
+	
+</script>
+
+</body>
+</html>
