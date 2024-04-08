@@ -31,6 +31,62 @@ function PRNG(input_string, n){
   return rands;
 }
 
+
+
+export function init_curr_chunk_ids(cx,cy) {
+	
+	let curr_chunk_ids_ = {
+	
+		"r": { cid: (cx-1).toString()+"_"+(cy-1).toString(), x: cx-1, y: cy-1, b: {}, s: 0 }, 
+		"T": { cid: cx.toString()+"_"+(cy-1).toString(), x: cx, y: cy-1, b: {}, s: 0 }, 
+		"7": { cid: (cx+1).toString()+"_"+(cy-1).toString(), x: cx+1, y: cy-1, b: {}, s: 0 },
+		"E": { cid: (cx-1).toString()+"_"+cy.toString(), x: cx-1, y: cy, b: {}, s: 0 }, 
+
+		"O": { cid: cx.toString()+"_"+cy.toString(), x: cx, y: cy, b: {}, s: 0 }, 
+
+		"3": { cid: (cx+1).toString()+"_"+cy.toString(), x: cx+1, y: cy, b: {}, s: 0 },
+		"L": { cid: (cx-1).toString()+"_"+(cy+1).toString(), x: cx-1, y: cy+1, b: {}, s: 0 }, 
+		"U": { cid: cx.toString()+"_"+(cy+1).toString(), x: cx, y: cy+1, b: {}, s: 0 }, 
+		"J": { cid: (cx+1).toString()+"_"+(cy+1).toString(), x: cx+1, y: cy+1, b: {}, s: 0 },
+
+		"rr": { cid: (cx-2).toString()+"_"+(cy-2).toString(), x: cx-2, y: cy-2, b: {}, s: 0 },
+		"rT": { cid: (cx-1).toString()+"_"+(cy-2).toString(), x: cx-1, y: cy-2, b: {}, s: 0 },
+		"TT": { cid: cx.toString()+"_"+(cy-2).toString(), x: cx, y: cy-2, b: {}, s: 0 },
+		"T7": { cid: (cx+1).toString()+"_"+(cy-2).toString(), x: cx+1, y: cy-2, b: {}, s: 0 },
+		"77": { cid: (cx+2).toString()+"_"+(cy-2).toString(), x: cx+2, y: cy-2, b: {}, s: 0 },
+		"Er": { cid: (cx-2).toString()+"_"+(cy-1).toString(), x: cx-2, y: cy-1, b: {}, s: 0 }, 
+		"EE": { cid: (cx-2).toString()+"_"+cy.toString(), x: cx-2, y: cy, b: {}, s: 0 }, 
+		"EL": { cid: (cx-2).toString()+"_"+(cy+1).toString(), x: cx-2, y: cy+1, b: {}, s: 0 }, 
+		"73": { cid: (cx+2).toString()+"_"+(cy-1).toString(), x: cx+2, y: cy-1, b: {}, s: 0 }, 
+		"33": { cid: (cx+2).toString()+"_"+cy.toString(), x: cx+2, y: cy, b: {}, s: 0 }, 
+		"J3": { cid: (cx+2).toString()+"_"+(cy+1).toString(), x: cx+2, y: cy+1, b: {}, s: 0 }, 
+		"LL": { cid: (cx-2).toString()+"_"+(cy+2).toString(), x: cx-2, y: cy+2, b: {}, s: 0 }, 
+		"LU": { cid: (cx-1).toString()+"_"+(cy+2).toString(), x: cx-1, y: cy+2, b: {}, s: 0 }, 
+		"UU": { cid: cx.toString()+"_"+(cy+2).toString(), x: cx, y: cy+2, b: {}, s: 0 }, 
+		"UJ": { cid: (cx+1).toString()+"_"+(cy+2).toString(), x: cx+1, y: cy+2, b: {}, s: 0 }, 
+		"JJ": { cid: (cx+2).toString()+"_"+(cy+2).toString(), x: cx+2, y: cy+2, b: {}, s: 0 }
+	
+	};
+	
+	return curr_chunk_ids_;
+}
+
+
+export function g(seed, ch2="") {
+	let iR = 0;
+	var chunk = [...Array(16)].map(_ => Array(16).fill(0));
+	//console.log(ch2);
+	//console.log(ch2 == "f");
+	if (ch2 == "f") {
+		//console.log("fffffff");
+		chunk = forest(seed);
+	}
+	
+	//console.log(chunk);
+	return chunk;
+	
+}
+
 export function g7(seed) {
 	
 	//const seed = PRNG(xx+"_"+yy, 64);
@@ -66,6 +122,7 @@ export function g7(seed) {
 		if (!r) { xi--; }
 	}
 	
+	chunk[0][15] = 11;
 	/*
 	for (let y=0; y<16; y++) {
 		for (let x=0; x<16; x++) {
@@ -74,7 +131,7 @@ export function g7(seed) {
 			}
 		}
 	}/**/
-	
+	//chunk[14][14] = 2;
 	return chunk;//pixelData;
 }
 
@@ -113,6 +170,7 @@ export function gr(seed) {
 		xi+=r;
 	}
 	
+	chunk[0][0] = 11;
 	/*
 	for (let y=0; y<16; y++) {
 		for (let x=0; x<16; x++) {
@@ -160,6 +218,7 @@ export function gL(seed) {
 		xi+=r;
 	}
 	
+	chunk[15][0] = 11;
 	/*
 	for (let y=0; y<16; y++) {
 		for (let x=0; x<16; x++) {
@@ -473,6 +532,7 @@ export function wu(seed) {
 	return chunk;
 }
 
+
 export function wn(seed) {
 	let iR = 0;
 	var chunk = [...Array(16)].map(_ => Array(16).fill(1));
@@ -534,6 +594,572 @@ export function wn(seed) {
 	
 	return chunk;
 }
+
+
+export function wc(seed) {
+	
+	let iR = 0;
+	var chunk = [...Array(16)].map(_ => Array(16).fill(1));
+	
+	
+	let yi = 7;
+	let xi = 0;
+	let r = 0;
+	
+	
+	while (yi < 16 && xi < 8) {
+		for (let yi_=yi; yi_<16; yi_++){
+			chunk[yi_][xi] = 0;
+		}
+		xi++;
+		r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+		yi+=r;
+	}
+	/**/
+	
+	
+	yi = 15;
+	xi = 7;
+	r = 0;
+	while (yi >=8 && xi >= 0) {
+		for (let xi_=xi; xi_>=0; xi_--) {
+			chunk[yi][xi_] = 0;
+		}
+		yi--;
+		r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+		xi-=r;
+	}/**/
+	
+	
+	xi = 7;
+	yi = 0;
+	r = 0;
+	while (xi >= 0 && yi < 8) {
+		for (let xi_=xi; xi_>=0; xi_--){
+			chunk[yi][xi_] = 0;
+		}
+		yi++;
+		r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+		xi-=r;
+	}/**/
+	
+	
+	xi = 0;
+	yi = 7;
+	r = 0;
+	while (xi < 7 && yi >= 0) {
+		for (let yi_=yi; yi_>=0; yi_--) {
+			chunk[yi_][xi] = 0;
+		}
+		xi++;
+		r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+		yi-=r;
+	}/**/
+	
+	
+	
+	return chunk;
+}
+
+
+export function w3(seed) {
+	
+	let iR = 0;
+	var chunk = [...Array(16)].map(_ => Array(16).fill(1));
+	
+	let yi = 15;
+	let xi = 8;
+	let r = 0;
+	
+	while (yi > 8 && xi < 16) {
+		for (let xi_=xi; xi_<16; xi_++){
+			chunk[yi][xi_] = 0;
+		}
+		yi--;
+		r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+		xi+=r;
+	}
+	
+	yi = 8;
+	xi = 15;
+	r = 0;
+	while (yi < 16 && xi >= 8) {
+		for (let yi_=yi; yi_<16; yi_++) {
+			chunk[yi_][xi] = 0;
+		}
+		xi--;
+		r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+		yi+=r;
+	}
+	
+	yi = 0;
+	xi = 8;
+	r = 0;
+	
+	while (yi < 8 && xi < 16) {
+		for (let xi_=xi; xi_<16; xi_++){
+			chunk[yi][xi_] = 0;
+		}
+		yi++;
+		r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+		xi+=r;
+	}
+	
+	yi = 7;
+	xi = 15;
+	r = 0;
+	while (yi >= 0 && xi >= 8) {
+		for (let yi_=yi; yi_>=0; yi_--) {
+			chunk[yi_][xi] = 0;
+		}
+		xi--;
+		r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+		yi-=r;
+	}/**/
+	
+	
+	return chunk;
+}
+
+
+
+export function wlhnt(seed) {
+	let iR = 0;
+	//let pixelData = [];
+	var chunk = [...Array(16)].map(_ => Array(16).fill(0));
+	
+	
+	//let xi = 7;
+	//let yi = 0;
+	let r = 0;
+	
+	let xi = 0;
+	let yi = 15;
+	while (xi < 16 && yi >= 0) {
+		for (let yi_=yi; yi_>=0; yi_--) {
+			chunk[yi_][xi] = 1;
+		}
+		xi++;
+		r = Math.floor(seed[iR]*(2-0)); // min + seed[iR] * (max - min)
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+		yi-=r;
+	}
+	
+	xi = 15;
+	yi = 15;
+	while (xi >= 0 && yi >= 0) {
+		for (let yi_=yi; yi_>=0; yi_--) {
+			chunk[yi_][xi] = 1;
+		}
+		xi--;
+		r = Math.floor(seed[iR]*(2-0)); // min + seed[iR] * (max - min)
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+		yi-=r;
+	}
+	
+	return chunk;
+}
+
+export function wlhst(seed) {
+	let iR = 0;
+	//let pixelData = [];
+	var chunk = [...Array(16)].map(_ => Array(16).fill(0));
+	
+	
+	let xi = 0;
+	let yi = 0;
+	let r = 0;
+	while (xi < 16 && yi < 16) {
+		for (let yi_=yi; yi_<16; yi_++) {
+			chunk[yi_][xi] = 1;
+		}
+		xi++;
+		r = Math.floor(seed[iR]*(3-0)); // min + seed[iR] * (max - min)
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+		yi+=r;
+	}
+	
+	xi = 15;
+	yi = 0;
+	while (xi >= 0 && yi < 16) {
+		for (let yi_=yi; yi_<16; yi_++) {
+			chunk[yi_][xi] = 1;
+		}
+		xi--;
+		r = Math.floor(seed[iR]*(3-0)); // min + seed[iR] * (max - min)
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+		yi+=r;
+	}
+	
+	return chunk;
+}
+
+export function wlhet(seed) {
+
+	let iR = 0;
+	var chunk = [...Array(16)].map(_ => Array(16).fill(0));
+
+
+	let xi = 0;
+	let yi = 0;
+	let r = 0;
+	while (xi < 16 && yi < 16) {
+		for (let xi_=xi; xi_<16; xi_++) {
+			chunk[yi][xi_] = 1;
+		}
+		yi++;
+		r = Math.floor(seed[iR]*(3-0)); // min + seed[iR] * (max - min)
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+		xi+=r;
+	}
+
+
+	xi = 0;
+	yi = 15;
+	while (xi < 16 && yi > 0) {
+		for (let xi_=xi; xi_<16; xi_++) {
+			chunk[yi][xi_] = 1;
+		}
+		yi--;
+		r = Math.floor(seed[iR]*(3-0)); // min + seed[iR] * (max - min)
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+		xi+=r;
+	}/**/
+	
+	return chunk;
+
+}
+
+export function wlhwt(seed) {
+
+	let iR = 0;
+	var chunk = [...Array(16)].map(_ => Array(16).fill(0));
+	
+	let xi = 15;
+	let yi = 0;
+	let r = 0;
+	while (xi >= 0 && yi < 16) {
+		for (let xi_=xi; xi_>=0; xi_--) {
+			chunk[yi][xi_] = 1;
+		}
+		yi++;
+		r = Math.floor(seed[iR]*(3-0)); // min + seed[iR] * (max - min)
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+		xi-=r;
+	}
+	
+	
+	xi = 15;
+	yi = 15;
+	while (xi >= 0 && yi > 0) {
+		for (let xi_=xi; xi_>=0; xi_--) {
+			chunk[yi][xi_] = 1;
+		}
+		yi--;
+		r = Math.floor(seed[iR]*(3-0)); // min + seed[iR] * (max - min)
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+		xi-=r;
+	}/**/
+	
+	return chunk;
+
+}
+
+function lift(array, index, lift_height=1) {
+	
+	let new_array = [...array];
+	
+	let i_height = 0;
+	let i_prev = index;
+	let i_left = index-1;
+	let i_right = index+1;
+	
+	while (i_height < lift_height) {
+		i_height++;
+		
+		new_array[index]++;
+		i_prev = index;
+		i_left = index-1;
+		while (i_left >= 0) {
+			if (Math.abs(new_array[i_left]-new_array[i_prev]) > 1) {
+				new_array[i_left]++;
+			} else {
+				i_prev = i_left;
+				i_left--;
+			}
+		}
+		i_prev = index;
+		i_right = index+1;
+		while (i_right < array.length) {
+			if (Math.abs(new_array[i_prev]-new_array[i_right]) > 1) {
+				new_array[i_right]++;
+			} else {
+				i_prev = i_right;
+				i_right++;
+			}
+		}
+		
+	}
+	
+	
+	return new_array;
+}
+
+
+export function wlbns(seed) {
+	
+	let iR = 0;
+	var chunk = [...Array(16)].map(_ => Array(16).fill(0));
+	
+	let xi = 0;
+	let yi = 0;
+	let r = 0;
+	let coast = [1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1];
+	
+	
+	for (let i=0; i<25; i++) {
+		r = 1 + Math.floor(seed[iR]*(14-1)); // min + seed[iR] * (max - min)
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+	  coast = lift(coast, r, 1);
+	}/**/
+	
+	while (yi < 16) {
+		for (let xi_=0; xi_<coast[yi]; xi_++) {
+			chunk[yi][xi_] = 1;
+		}
+		yi++;
+	}
+	
+	yi = 0;
+	coast = [1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1];
+	
+	for (let i=0; i<25; i++) {
+		r = 1 + Math.floor(seed[iR]*(14-1)); // min + seed[iR] * (max - min)
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+	  coast = lift(coast, r, 1);
+	}/**/
+	
+	while (yi < 16) {
+		for (let xi_=0; xi_<coast[yi]; xi_++) {
+			chunk[yi][15-xi_] = 1;
+		}
+		yi++;
+	}
+	
+	return chunk;
+	
+}
+
+export function wlbwe(seed) {
+	let iR = 0;
+	var chunk = [...Array(16)].map(_ => Array(16).fill(0));
+	
+	
+	let xi = 0;
+	let yi = 0;
+	let r = 0;
+	let coast = [1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1];
+	
+	
+	for (let i=0; i<25; i++) {
+		r = 1 + Math.floor(seed[iR]*(14-1)); // min + seed[iR] * (max - min)
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+	  coast = lift(coast, r, 1);
+	}/**/
+	
+	while (xi < 16) {
+		for (let yi_=0; yi_<coast[xi]; yi_++) {
+			chunk[yi_][xi] = 1;
+		}
+		xi++;
+	}
+	
+	xi = 0;
+	coast = [1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1];
+	
+	for (let i=0; i<25; i++) {
+		r = 1 + Math.floor(seed[iR]*(14-1)); // min + seed[iR] * (max - min)
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+	  coast = lift(coast, r, 1);
+	}/**/
+	
+	while (xi < 16) {
+		for (let yi_=0; yi_<coast[xi]; yi_++) {
+			chunk[15-yi_][xi] = 1;
+		}
+		xi++;
+	}
+	
+	return chunk;
+}
+
+
+
+
+function forest(seed) {
+	
+	let iR = 0;
+	var chunk = [...Array(16)].map(_ => Array(16).fill(0));
+	
+	
+	
+	
+	//let xi = 8;
+	//let yi = 0;
+	let randr = 1;
+	let randx = 0;
+	let randy = 0;
+	
+	
+	// large canopy
+	for (let i=0; i<4; i++) {
+		randx = 0 + Math.floor(seed[iR]*(15-0)); // min + seed[iR] * (max - min)
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+		randy = 0 + Math.floor(seed[iR]*(15-0)); // min + seed[iR] * (max - min)
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+		
+		try { chunk[randy][randx] = 2; } catch (e) {}
+	  try { chunk[randy][randx+1] = 2; } catch (e) {}
+		try {	chunk[randy+1][randx] = 2; } catch (e) {}
+		try {	chunk[randy+1][randx+1] = 2; } catch (e) {}
+	}/**/
+	
+	
+	//   41 42
+	//   43 44
+	
+	// small canopy
+	for (let i=0; i<30; i++) {
+		randx = 0 + Math.floor(seed[iR]*(16-0)); // min + seed[iR] * (max - min)
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+		randy = 0 + Math.floor(seed[iR]*(16-0)); // min + seed[iR] * (max - min)
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+		
+		try { chunk[randy][randx] = 2; } catch (e) {}
+	  
+	}/**/
+	
+	chunk[7][8] = 40;
+	chunk[8][8] = 41;
+	
+	
+	return chunk;
+}
+
+
+
+function xyWithinRadius(r, x, y) {
+    let result = [];
+
+    // Loop through each potential coordinate within a square around (x, y)
+    for (let i = x - r; i <= x + r; i++) {
+        for (let j = y - r; j <= y + r; j++) {
+            // Check if the distance from (i, j) to (x, y) is less than or equal to the radius
+            if (Math.sqrt(Math.pow(i - x, 2) + Math.pow(j - y, 2)) <= r) {
+                result.push([i, j]);
+            }
+        }
+    }
+
+    return result;
+}
+
+
+export function wo(seed) {
+	
+	
+	let iR = 0;
+	var chunk = [...Array(16)].map(_ => Array(16).fill(0));
+	
+	
+	//let xi = 8;
+	//let yi = 0;
+	let randr = 1;
+	let randx = 0;
+	let randy = 0;
+	
+	for (let i=0; i<2; i++) {
+		randx = 4 + Math.floor(seed[iR]*(12-4)); // min + seed[iR] * (max - min)
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+		randy = 4 + Math.floor(seed[iR]*(12-4)); // min + seed[iR] * (max - min)
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+		
+		randr = 3 + Math.floor(seed[iR]*(5-3)); // min + seed[iR] * (max - min)
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+		
+		let coords = xyWithinRadius(randr, randx, randy);
+		
+		for (let c=0; c<coords.length; c++){
+			let x = coords[c][0];
+			let y = coords[c][1];
+			try { chunk[y][x] = 1; } catch(e){}
+		}
+	}
+	
+	
+	for (let i=0; i<15; i++) {
+		randx = 3 + Math.floor(seed[iR]*(13-3)); // min + seed[iR] * (max - min)
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+		randy = 3 + Math.floor(seed[iR]*(13-3)); // min + seed[iR] * (max - min)
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+		
+		randr = 0 + Math.floor(seed[iR]*(4-1)); // min + seed[iR] * (max - min)
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+		
+		let coords = xyWithinRadius(randr, randx, randy);
+		
+		for (let c=0; c<coords.length; c++){
+			let x = coords[c][0];
+			let y = coords[c][1];
+			try { chunk[y][x] = 1; } catch(e){}
+		}
+	}
+	
+	for (let i=0; i<20; i++) {
+		randx = 1 + Math.floor(seed[iR]*(14-1)); // min + seed[iR] * (max - min)
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+		randy = 1 + Math.floor(seed[iR]*(14-1)); // min + seed[iR] * (max - min)
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+		
+		try { chunk[randy][randx] = 1; } catch (e) {}
+	  try { chunk[randy][randx+1] = 1; } catch (e) {}
+		try {	chunk[randy+1][randx] = 1; } catch (e) {}
+		try {	chunk[randy+1][randx+1] = 1; } catch (e) {}
+	}
+	
+	
+	return chunk;
+	
+}
+
+
+// Example usage:
+//let radius = 3;
+//let centerX = 0;
+//let centerY = 0;
+//console.log(xyWithinRadius(5, 8, 8));
+
+// TODO
+
+/* 
+export function wc(seed) {
+
+}/**/
+
+/* 
+export function w3(seed) {
+
+}/**/
+
+
 
 
 export function dot_(img, i, j) {
@@ -1789,6 +2415,9 @@ function is_special(x_,y_) {
 		let xys = ths.map((t,i) => {
 			let xo = Math.floor( radius * Math.sin(t+((i*B)*Math.PI/180)) );
 			let yo = Math.floor( radius * Math.cos(t+((i*B)*Math.PI/180)) );
+			
+			xo = xo > 0 ? xo+1 : xo;
+			yo = yo > 0 ? yo+1 : yo;
 			return [xo, yo];
 		});
 		
@@ -1966,10 +2595,20 @@ export function get_biome_info(x, y) {
 	}/**/
 	
 	
-	
+	// ********* testing DELETE after
+	let biome2 = "g";
+	if (1) {
+		if (biome !== "w" && biome !== "g") {
+			if (["f"].includes(biome)) {
+				biome2 = "f";
+			}
+			biome = "g";
+		}
+	}
 	
 	return {
-		"biome": biome,
+		"biome": biome, 
+		"biome2": biome2,
 		"difficulty": difficulty,
 		"color": color,
 		"special": xyo,
@@ -2078,6 +2717,13 @@ export function get_chunk_shapes(m) {
 	for (let i=0; i<CHUNK_ITER.length; i++) {
 		let cid = CHUNK_ITER[i];
 		let biome = m[cid].b["biome"];
+		
+		// temporary
+		if (0) {
+			if (["f", "m", "F", "d"].includes(biome.charAt(0))) {
+				biome = "g";
+			}
+		}
 		
 		switch (biome) {
 			case "f":
@@ -2326,6 +2972,7 @@ export function get_chunk_shapes(m) {
 				}
 				break;
 			case "g":
+				// need to account for other tiles instead of just g and w
 				if (
 					m[ DIR[cid].up ].b["biome"] == "g" && 
 					m[ DIR[cid].left ].b["biome"] == "g" && 
@@ -2335,28 +2982,70 @@ export function get_chunk_shapes(m) {
 				) {
 					m[cid].s = "gJ";
 				} else if (
-					m[ DIR[cid].up ].b["biome"] !== "w" && 
-					m[ DIR[cid].left ].b["biome"] == "w" && 
-					m[ DIR[cid].right ].b["biome"] == "w" &&
-					m[ DIR[cid].down ].b["biome"] == "w" //&&
-					//m[ DIR[cid].dLeft ].b["biome"] == "w" &&
-					//m[ DIR[cid].dRight ].b["biome"] !== "w"
+					
+					m[ DIR[cid].left ].b["biome"] == "w" &&
+					m[ DIR[cid].down ].b["biome"] == "w" && 
+					!(m[ DIR[cid].uLeft ].b["biome"] == "w" && m[ DIR[cid].up ].b["biome"] == "w") &&
+					!(
+						m[ DIR[cid].left ].b["biome"] == "w" && 
+						m[ DIR[cid].dLeft ].b["biome"] == "w" && 
+						m[ DIR[cid].down ].b["biome"] == "w" &&
+						m[ DIR[cid].dRight ].b["biome"] == "w" &&
+						m[ DIR[cid].right ].b["biome"] == "w"
+					) &&
+					m[ DIR[cid].dLeft ].b["biome"] == "w"
+					/*m[ DIR[cid].up ].b["biome"] == "w" && 
+					
+					//m[ DIR[cid].right ].b["biome"] !== "w" &&
+					//m[ DIR[cid].dLeft ].b["biome"] == "w" && // ?
+					m[ DIR[cid].dRight ].b["biome"] !== "w" && 
+					(m[ DIR[cid].uLeft ].b["biome"] !== "w" || m[ DIR[cid].right ].b["biome"] !== "w")  // not both water
+					/**/
+					
 				) {
 					m[cid].s = "gL";
 				} else if (
 					m[ DIR[cid].up ].b["biome"] == "w" && 
-					m[ DIR[cid].left ].b["biome"] == "g" && 
+					//m[ DIR[cid].left ].b["biome"] == "w" && 
 					m[ DIR[cid].right ].b["biome"] == "w" &&
-					m[ DIR[cid].down ].b["biome"] == "g" &&
-					m[ DIR[cid].uRight ].b["biome"] == "w"
+					//m[ DIR[cid].down ].b["biome"] == "g" &&
+					//m[ DIR[cid].uRight ].b["biome"] == "w"
+					!(
+						m[ DIR[cid].left ].b["biome"] == "w" && 
+						m[ DIR[cid].uLeft ].b["biome"] == "w" && 
+						m[ DIR[cid].up ].b["biome"] == "w" &&
+						m[ DIR[cid].uRight ].b["biome"] == "w" &&
+						m[ DIR[cid].right ].b["biome"] == "w"
+					) &&
+					!(
+						m[ DIR[cid].up ].b["biome"] == "w" &&
+						m[ DIR[cid].uRight ].b["biome"] == "w" &&
+						m[ DIR[cid].right ].b["biome"] == "w" &&
+						m[ DIR[cid].dRight ].b["biome"] == "w" && 
+						m[ DIR[cid].down ].b["biome"] == "w"
+					) &&
+					!(
+						m[ DIR[cid].up ].b["biome"] == "w" &&
+						m[ DIR[cid].uRight ].b["biome"] !== "w" &&
+						m[ DIR[cid].right ].b["biome"] == "w"
+					)
+					// TODO ******* seehere
+					
 				) {
 					m[cid].s = "g7";
 				} else if (
 					m[ DIR[cid].up ].b["biome"] == "w" && 
 					m[ DIR[cid].left ].b["biome"] == "w" && 
 					m[ DIR[cid].right ].b["biome"] == "g" &&
-					m[ DIR[cid].down ].b["biome"] == "g" &&
-					m[ DIR[cid].uLeft ].b["biome"] == "w"
+					//m[ DIR[cid].down ].b["biome"] == "g" &&
+					m[ DIR[cid].uLeft ].b["biome"] == "w" &&
+					!(
+						m[ DIR[cid].up ].b["biome"] == "w" &&
+						m[ DIR[cid].uLeft ].b["biome"] == "w" && 
+						m[ DIR[cid].left ].b["biome"] == "w" && 
+						m[ DIR[cid].dLeft ].b["biome"] == "w" &&
+						m[ DIR[cid].down ].b["biome"] == "w"
+					)
 				) {
 					m[cid].s = "gr";
 				} else {
@@ -2396,16 +3085,30 @@ export function get_chunk_shapes(m) {
 					m[ DIR[cid].up ].b["biome"] !== "w" && 
 					m[ DIR[cid].left ].b["biome"] == "w" && 
 					m[ DIR[cid].right ].b["biome"] == "w" &&
-					m[ DIR[cid].down ].b["biome"] !== "w"
+					m[ DIR[cid].down ].b["biome"] !== "w" && // if only one of the below is a grass
+					(
+						(m[ DIR[cid].dLeft ].b["biome"] == "w" ? 1 : 0) +
+						(m[ DIR[cid].dRight ].b["biome"] == "w" ? 1 : 0) +
+						(m[ DIR[cid].uLeft ].b["biome"] == "w" ? 1 : 0) +
+						(m[ DIR[cid].uRight ].b["biome"] == "w" ? 1 : 0) >= 3
+					)
 				) {
-					m[cid].s = "wlbns"; // water land bridge north-south
+					m[cid].s = "wlbns"; // water land bridge north-south (could have a left-biased NS bridge)
 				} else if (
 					m[ DIR[cid].up ].b["biome"] == "w" && 
 					m[ DIR[cid].left ].b["biome"] !== "w" && 
 					m[ DIR[cid].right ].b["biome"] !== "w" &&
-					m[ DIR[cid].down ].b["biome"] == "w"
+					m[ DIR[cid].down ].b["biome"] == "w" &&
+					(
+						(m[ DIR[cid].dLeft ].b["biome"] == "w" ? 1 : 0) +
+						(m[ DIR[cid].dRight ].b["biome"] == "w" ? 1 : 0) +
+						(m[ DIR[cid].uLeft ].b["biome"] == "w" ? 1 : 0) +
+						(m[ DIR[cid].uRight ].b["biome"] == "w" ? 1 : 0) >= 3
+					)
+					
 				) {
-					m[cid].s = "wlbwe"; // water land bridge west-east
+					m[cid].s = "wlbwe"; // water land bridge west-east (could have a top-biased WE bridge)
+					
 				} else if (
 					m[ DIR[cid].up ].b["biome"] !== "w" && 
 					m[ DIR[cid].left ].b["biome"] !== "w" && 
@@ -2449,7 +3152,7 @@ export function get_chunk_shapes(m) {
 				} else if (
 					m[ DIR[cid].up ].b["biome"] == "w" && 
 					m[ DIR[cid].left ].b["biome"] == "g" && 
-					m[ DIR[cid].right ].b["biome"] == "w" &&
+					//m[ DIR[cid].right ].b["biome"] == "w" &&
 					m[ DIR[cid].down ].b["biome"] == "w" &&
 					m[ DIR[cid].uLeft ].b["biome"] == "w" &&
 					m[ DIR[cid].dLeft ].b["biome"] == "w"
@@ -2473,6 +3176,13 @@ export function get_chunk_shapes(m) {
 					m[ DIR[cid].dRight ].b["biome"] == "w"
 				) {
 					m[cid].s = "wlhnt"; // water lighthouse north tip
+				} else if (
+					m[ DIR[cid].up ].b["biome"] == "g" && 
+					m[ DIR[cid].left ].b["biome"] == "g" && 
+					m[ DIR[cid].right ].b["biome"] == "g" &&
+					m[ DIR[cid].down ].b["biome"] == "g" 
+				) {
+					m[cid].s = "wo"; // small water lake
 				} else {
 					m[cid].s = "w";
 				}

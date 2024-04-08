@@ -4,8 +4,9 @@ import { platforms } from "./platforms.js";
 //import { player1_movement } from "./thal.js";
 import { TERRAIN, ZEN, dot_order, pnode, PLAT_STYLE, BRANCH, T } from "./objects.js";
 import { CHUNKS } from "./chunks.js";
-import { dot_, dot_image, dot_w, get_biome_info, get_chunk_shapes,
-	gL, gJ, g7, gr, wL, wJ, w7, wr, wu, wn
+import { dot_, dot_image, dot_w, get_biome_info, get_chunk_shapes, init_curr_chunk_ids,
+	g, gL, gJ, g7, gr, wL, wJ, w7, wr, wu, wn, wc, w3, wo,
+	wlhnt, wlhst, wlhet, wlhwt, wlbns, wlbwe
  } from "./game_functions.js";
 
 //import { tileinfo } from "./objects.js";
@@ -16,6 +17,10 @@ import { dot_, dot_image, dot_w, get_biome_info, get_chunk_shapes,
 //var gamepad1 = gamepads[0];
 //gamepad;
 var WHATAMI = 0;
+
+// temporary for chunks
+const INIT_X = -3;
+const INIT_Y = 7;
 
 // Development/projects/thalgame
 
@@ -328,9 +333,11 @@ var HEAD2 = 2;
 const XOFFSET = 4;
 const YOFFSET = 16;
 
+
+
 var p = { x: 0*8, y: 0*8 }; //player
 var p2 = { x: 5*8, y: 29*8 }; //player2
-var pw = { x: 2*8, y: 4*8, cx: 0, cy: 0 }; //player
+var pw = { x: 8 *8 + INIT_X*16*8, y: 8 *8 + INIT_Y*16*8, cx: INIT_X, cy: INIT_Y }; //player
 var pw2 = { x: 0*8, y: 0*8 }; //player2
 
 var psheet = get_psheet(ZEN[HEAD].idle);
@@ -2997,7 +3004,7 @@ function background_scroll(terrain_type) {
 		draw(bg2, le_ + bg_width*2 - bg_dist_0, 0);
 		
 	} else if (["ground", "aboveground"].includes(terrain_type)) {
-		// bg1 is father away
+		// bg1 is farther away
 	  draw(bg1, le_ - bg_width - bg_dist_0, 0+offset_plus);
 	  draw(bg1, le_ - bg_dist_0, 0+offset_plus);
 	  draw(bg1, le_ + bg_width - bg_dist_0, 0+offset_plus);
@@ -7558,6 +7565,8 @@ if (1) {
 	var render_J_m = new TileMap(W_IMAGE_SIZE, W_IMAGE_SIZE);
 	/**/
 	var render_map_m = new TileMap(50, 50);
+	var render_map_f = new TileMap(50, 50);
+	var render_map_canopy = new TileMap(50, 50);
 	
 	/*
 	var render_test = new TileMap(16, 16);
@@ -7747,6 +7756,13 @@ function update_world() {
 	sprite(pw_sheet_id+33+(pframe*2), XMID-4-left_edge+8-XOFFSET-(8*going_left)+right_edge, YMID-top_edge-16+bottom_edge+16, going_left);
 	/**/
 	
+	draw_world_chunks_canopy();
+	
+	draw_world_particles(); // water, wind and leaves rustling, grass
+	
+	
+	
+	
 	//sprite(368, XMID-left_edge-XOFFSET+right_edge, YMID-top_edge-4+bottom_edge, going_left);
   /*sprite(psheet[0]+(pframe*2)+128, XMID-left_edge-XOFFSET+(8*going_left)+right_edge, YMID-top_edge-YOFFSET+bottom_edge-info_box_offset, going_left);
   sprite(psheet[1]+(pframe*2), XMID-left_edge+8-XOFFSET-(8*going_left)+right_edge, YMID-top_edge-YOFFSET+bottom_edge-info_box_offset, going_left);
@@ -7815,6 +7831,7 @@ functions:
 
 */
 
+// ready made
 var grass_terrain_chunk = [...Array(16)].map(_ => Array(16).fill(0));
 var water_terrain_chunk = [...Array(16)].map(_ => Array(16).fill(1));
 var forest_terrain_chunk = [...Array(16)].map(_ => Array(16).fill(2));
@@ -7823,10 +7840,14 @@ var desert_terrain_chunk = [...Array(16)].map(_ => Array(16).fill(4));
 
 
 // each of the 9 3x3 chunks will go through this
-function build_chunk_shape(chs, cid, sp) {
-	
+function build_chunk_shape(chs, cid, sp="", ch2="") {
+	//console.log("...."+ch2)
 	//console.log(chs+" "+cid+" "+sp);
-	let events = [...Array(16)].map(_ => Array(16).fill(0));
+	let events = [...Array(16)].map(_ => Array(16).fill(0)); 
+	// 0 is default grass, 1 is water, 4 is forest?
+	// cid is e.g. "-4_7" or "100_-98"
+	// chs is e.g. "g" or "w"
+	
 	
 	if (["g", "gr", "g7", "gL", "gJ", ].includes(chs) ){
 		//events = grass_terrain_chunk.map( (a,i) => a.slice() );
@@ -7908,6 +7929,8 @@ function build_chunk_shape(chs, cid, sp) {
 			*/
 			//console.log("g");
 			//events[8][8] = 1;
+			events = g(chunk_seed, ch2);
+			
 			break;
 		case "w":
 			events = water_terrain_chunk;//.map(function(arr) { return arr.slice(); });
@@ -7957,140 +7980,46 @@ function build_chunk_shape(chs, cid, sp) {
 			
 			break;
 		case "wn":
-			console.log("hello")
+			//console.log("hello")
 			events = wn(chunk_seed);
 			
 			break; 
 		case "wc":
 			//events = [...Array(world_chunk_size)].map(_ => Array(world_chunk_size).fill(3));
-			events[0][0] = 0;
-			events[15][0] = 0;
-			
+			//events[0][0] = 0;
+			//events[15][0] = 0;
+			events = wc(chunk_seed);
 			break; 
 		case "w3":
 			//events = [...Array(world_chunk_size)].map(_ => Array(world_chunk_size).fill(3));
-			events[0][15] = 0;
-			events[15][15] = 0;
-			
+			//events[0][15] = 0;
+			//events[15][15] = 0;
+			events = w3(chunk_seed);
 			break; 
 		case "wu":
 			events = wu(chunk_seed);
 			
 			break;
+		case "wo":
+			events = wo(chunk_seed);
+			break;
 		case "wlbns":
-			/*
-			//events = [...Array(world_chunk_size)].map(_ => Array(world_chunk_size).fill(3));
-			events[0][7] = 0;
-			events[0][8] = 0;
-			events[1][7] = 0;
-			events[1][8] = 0;
-			events[2][7] = 0;
-			events[2][8] = 0;
-			events[3][7] = 0;
-			events[3][8] = 0;
-			events[4][7] = 0;
-			events[4][8] = 0;
-			events[5][7] = 0;
-			events[5][8] = 0;
-			events[6][7] = 0;
-			events[6][8] = 0;
-			events[9][7] = 0;
-			events[9][8] = 0;
-			events[10][7] = 0;
-			events[10][8] = 0;
-			events[12][7] = 0;
-			events[12][8] = 0;
-			events[13][7] = 0;
-			events[13][8] = 0;
-			events[14][7] = 0;
-			events[14][8] = 0;
-			events[15][7] = 0;
-			events[15][8] = 0;
-			
-			/**/
-			
-			
-			
+			events = wlbns(chunk_seed);
 			break; 
 		case "wlbwe":
-			//events = [...Array(world_chunk_size)].map(_ => Array(world_chunk_size).fill(3));
-			/*
-			events[7][0] = 0;
-			events[8][0] = 0;
-			events[7][1] = 0;
-			events[8][1] = 0;
-			events[7][2] = 0;
-			events[8][2] = 0;
-			events[7][3] = 0;
-			events[8][3] = 0;
-			events[7][4] = 0;
-			events[8][4] = 0;
-			events[7][5] = 0;
-			events[8][5] = 0;
-			events[7][6] = 0;
-			events[8][6] = 0;
-			events[7][9] = 0;
-			events[8][9] = 0;
-			events[7][10] = 0;
-			events[8][10] = 0;
-			events[7][11] = 0;
-			events[8][11] = 0;
-			events[7][12] = 0;
-			events[8][12] = 0;
-			events[7][13] = 0;
-			events[8][13] = 0;
-			events[7][14] = 0;
-			events[8][14] = 0;
-			events[7][15] = 0;
-			events[8][15] = 0;
-			/**/
-			
-			
+			events = wlbwe(chunk_seed);
 			break;
 		case "wlhst":
-			//events = [...Array(world_chunk_size)].map(_ => Array(world_chunk_size).fill(3));
-			/*
-			events[0][7] = 0;
-			events[0][8] = 0;
-			events[1][7] = 0;
-			events[1][8] = 0;
-			events[2][7] = 0;
-			events[2][8] = 0;
-			/**/
-			
+			events = wlhst(chunk_seed);
 			break; 
 		case "wlhet":
-			//events = [...Array(world_chunk_size)].map(_ => Array(world_chunk_size).fill(3));
-			/*
-			events[7][13] = 0;
-			events[8][13] = 0;
-			events[7][14] = 0;
-			events[8][14] = 0;
-			events[7][15] = 0;
-			events[8][15] = 0;
-			/**/
+			events = wlhet(chunk_seed);
 			break;
 		case "wlhwt":
-			/*
-			//events = [...Array(world_chunk_size)].map(_ => Array(world_chunk_size).fill(3));
-			events[7][0] = 0;
-			events[8][0] = 0;
-			//events[7][1] = 0;
-			events[8][1] = 0;
-			events[7][2] = 0;
-			events[8][2] = 0;
-			/**/
+			events = wlhwt(chunk_seed);
 			break; 
   	case "wlhnt":
-			/*
-			//events = [...Array(world_chunk_size)].map(_ => Array(world_chunk_size).fill(3));
-			events[13][7] = 0;
-			events[13][8] = 0;
-			events[14][7] = 0;
-			events[14][8] = 0;
-			events[15][7] = 0;
-			events[15][8] = 0;
-			/**/
+			events = wlhnt(chunk_seed);
 			break;
 	}
 	
@@ -8123,13 +8052,19 @@ var testing_chunk = [
 	[0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0],
 ];
 
+
+// initiate this with the current location
+var curr_chunk_ids = init_curr_chunk_ids(pw.cx, pw.cy);
+/*
 var curr_chunk_ids = {
 	
 	"r": { cid: "-1_-1", x: -1, y: -1, b: {}, s: 0 }, 
 	"T": { cid: "0_-1", x: 0, y: -1, b: {}, s: 0 }, 
 	"7": { cid: "1_-1", x: 1, y: -1, b: {}, s: 0 },
 	"E": { cid: "-1_0", x: -1, y: 0, b: {}, s: 0 }, 
+	
 	"O": { cid: "0_0", x: 0, y: 0, b: {}, s: 0 }, 
+	
 	"3": { cid: "1_0", x: 1, y: 0, b: {}, s: 0 },
 	"L": { cid: "-1_1", x: -1, y: 1, b: {}, s: 0 }, 
 	"U": { cid: "0_1", x: 0, y: 1, b: {}, s: 0 }, 
@@ -8153,6 +8088,9 @@ var curr_chunk_ids = {
 	"JJ": { cid: "2_2", x: 2, y: 2, b: {}, s: 0 }, 
 	
 };
+/**/
+
+
 
 /*
 function check_9(chx, chy) {
@@ -8327,7 +8265,7 @@ function update_world_chunks() {
 		
 		// TODO: don't need the chunk images after all, just the events for each of the surrounding chunks
 		//                   
-		let chunk_events_r = build_chunk_shape(curr_chunk_ids["r"].s, curr_chunk_ids["r"].cid);
+		let chunk_events_r = build_chunk_shape(curr_chunk_ids["r"].s, curr_chunk_ids["r"].cid, "x", curr_chunk_ids["r"].b.biome2 );
 		//let chunk_image_r = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		//let chunk_image_mid_r = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		chunk_set[cidr] = { 
@@ -8337,7 +8275,7 @@ function update_world_chunks() {
 			"b": curr_chunk_ids["r"].b
 		};
 		
-		let chunk_events_T = build_chunk_shape(curr_chunk_ids["T"].s, curr_chunk_ids["T"].cid);
+		let chunk_events_T = build_chunk_shape(curr_chunk_ids["T"].s, curr_chunk_ids["T"].cid, "x", curr_chunk_ids["T"].b.biome2);
 		//let chunk_image_T = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		//let chunk_image_mid_T = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		chunk_set[cidT] = { 
@@ -8347,7 +8285,7 @@ function update_world_chunks() {
 			"b": curr_chunk_ids["T"].b
 		};
 		
-		let chunk_events_7 = build_chunk_shape(curr_chunk_ids["7"].s, curr_chunk_ids["7"].cid);
+		let chunk_events_7 = build_chunk_shape(curr_chunk_ids["7"].s, curr_chunk_ids["7"].cid, "x", curr_chunk_ids["7"].b.biome2);
 		//let chunk_image_7 = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		//let chunk_image_mid_7 = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		chunk_set[cid7] = { 
@@ -8357,7 +8295,7 @@ function update_world_chunks() {
 			"b": curr_chunk_ids["7"].b
 		};
 		
-		let chunk_events_E = build_chunk_shape(curr_chunk_ids["E"].s, curr_chunk_ids["E"].cid);
+		let chunk_events_E = build_chunk_shape(curr_chunk_ids["E"].s, curr_chunk_ids["E"].cid, "x", curr_chunk_ids["E"].b.biome2);
 		//let chunk_image_E = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		//let chunk_image_mid_E = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		chunk_set[cidE] = { 
@@ -8367,7 +8305,8 @@ function update_world_chunks() {
 			"b": curr_chunk_ids["E"].b
 		};
 		
-		let chunk_events_O = build_chunk_shape(curr_chunk_ids["O"].s, curr_chunk_ids["O"].cid);
+		let chunk_events_O = build_chunk_shape(curr_chunk_ids["O"].s, curr_chunk_ids["O"].cid, "x", curr_chunk_ids["O"].b.biome2);
+		//console.log("curr_chunk_ids[O].b.biome2 "+curr_chunk_ids["O"].b.biome2);
 		//let chunk_image_O = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		//let chunk_image_mid_O = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		chunk_set[cidO] = { 
@@ -8377,7 +8316,7 @@ function update_world_chunks() {
 			"b": curr_chunk_ids["O"].b
 		};
 		
-		let chunk_events_3 = build_chunk_shape(curr_chunk_ids["3"].s, curr_chunk_ids["3"].cid);
+		let chunk_events_3 = build_chunk_shape(curr_chunk_ids["3"].s, curr_chunk_ids["3"].cid, "x", curr_chunk_ids["3"].b.biome2);
 		//let chunk_image_3 = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		//let chunk_image_mid_3 = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		chunk_set[cid3] = { 
@@ -8387,7 +8326,7 @@ function update_world_chunks() {
 			"b": curr_chunk_ids["3"].b
 		};
 		
-		let chunk_events_L = build_chunk_shape(curr_chunk_ids["L"].s, curr_chunk_ids["L"].cid);
+		let chunk_events_L = build_chunk_shape(curr_chunk_ids["L"].s, curr_chunk_ids["L"].cid, "x", curr_chunk_ids["L"].b.biome2);
 		//let chunk_image_L = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		//let chunk_image_mid_L = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		chunk_set[cidL] = { 
@@ -8397,7 +8336,7 @@ function update_world_chunks() {
 			"b": curr_chunk_ids["L"].b
 		};
 		
-		let chunk_events_U = build_chunk_shape(curr_chunk_ids["U"].s, curr_chunk_ids["U"].cid);
+		let chunk_events_U = build_chunk_shape(curr_chunk_ids["U"].s, curr_chunk_ids["U"].cid, "x", curr_chunk_ids["U"].b.biome2);
 		//let chunk_image_U = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		//let chunk_image_mid_U = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		chunk_set[cidU] = { 
@@ -8407,7 +8346,7 @@ function update_world_chunks() {
 			"b": curr_chunk_ids["U"].b
 		};
 		
-		let chunk_events_J = build_chunk_shape(curr_chunk_ids["J"].s, curr_chunk_ids["J"].cid);
+		let chunk_events_J = build_chunk_shape(curr_chunk_ids["J"].s, curr_chunk_ids["J"].cid, "x", curr_chunk_ids["J"].b.biome2);
 		//let chunk_image_J = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		//let chunk_image_mid_J = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		chunk_set[cidJ] = { 
@@ -8423,6 +8362,7 @@ function update_world_chunks() {
 		
 		// grass and water
 		main_map["image_ground"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
+		main_map["image_deep_water"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
 		main_map["image_forest"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
 		main_map["image_mountain"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
 		main_map["image_desert"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
@@ -8433,7 +8373,7 @@ function update_world_chunks() {
 		
 		// chunk_events
 		
-		
+		//main_map["event"][chy]
 		
 		
 		
@@ -8473,7 +8413,13 @@ function update_world_chunks() {
 					main_map["event"][chy+16+1][chx+16+1] = chunk_set[cidO]["event"][chy][chx];
 					if (chunk_set[cidO]["event"][chy][chx] === 1) { // water
 						dot_w( main_map["image_ground"], chx+16+1, chy+16+1);
+						
+					} else if ([11].includes(chunk_set[cidO]["event"][chy][chx])) { // deep water
+						dot_w( main_map["image_ground"], chx+16+1, chy+16+1);
+						dot_w( main_map["image_deep_water"], chx+16+1, chy+16+1);
+						
 					} else if (chunk_set[cidO]["event"][chy][chx] === 2) { // forest
+						//dot_w( main_map["image_ground"], chx+16+1, chy+16+1);
 						dot_w( main_map["image_forest"], chx+16+1, chy+16+1);
 					} else if (chunk_set[cidO]["event"][chy][chx] === 3) { // mountain
 						dot_w( main_map["image_mountain"], chx+16+1, chy+16+1);
@@ -8486,7 +8432,11 @@ function update_world_chunks() {
 					main_map["event"][chy+1][chx+1] = chunk_set[cidr]["event"][chy][chx];
 					if (chunk_set[cidr]["event"][chy][chx] === 1) {
 						dot_w( main_map["image_ground"], chx+1, chy+1);
-					}	else if (chunk_set[cidr]["event"][chy][chx] === 2) {
+					}	else if ([11].includes(chunk_set[cidr]["event"][chy][chx])) { // deep water
+						dot_w( main_map["image_ground"], chx+1, chy+1);
+						dot_w( main_map["image_deep_water"], chx+1, chy+1);
+					} else if (chunk_set[cidr]["event"][chy][chx] === 2) {
+						//dot_w( main_map["image_ground"], chx+1, chy+1);
 						dot_w( main_map["image_forest"], chx+1, chy+1);
 					} else if (chunk_set[cidr]["event"][chy][chx] === 3) {
 						dot_w( main_map["image_mountain"], chx+1, chy+1);
@@ -8498,7 +8448,11 @@ function update_world_chunks() {
 					main_map["event"][chy+1][chx+16+1] = chunk_set[cidT]["event"][chy][chx];
 					if (chunk_set[cidT]["event"][chy][chx] === 1) {
 						dot_w( main_map["image_ground"], chx+16+1, chy+1);
+					} else if ([11].includes(chunk_set[cidT]["event"][chy][chx])) { // deep water
+						dot_w( main_map["image_ground"], chx+16+1, chy+1);
+						dot_w( main_map["image_deep_water"], chx+16+1, chy+1);
 					} else if (chunk_set[cidT]["event"][chy][chx] === 2) {
+						//dot_w( main_map["image_ground"], chx+16+1, chy+1);
 						dot_w( main_map["image_forest"], chx+16+1, chy+1);
 					} else if (chunk_set[cidT]["event"][chy][chx] === 3) {
 						dot_w( main_map["image_mountain"], chx+16+1, chy+1);
@@ -8510,7 +8464,11 @@ function update_world_chunks() {
 					main_map["event"][chy+1][chx+32+1] = chunk_set[cid7]["event"][chy][chx];
 					if (chunk_set[cid7]["event"][chy][chx] === 1) {
 						dot_w( main_map["image_ground"], chx+32+1, chy+1);
+					} else if ([11].includes(chunk_set[cid7]["event"][chy][chx])) { // deep water
+						dot_w( main_map["image_ground"], chx+32+1, chy+1);
+						dot_w( main_map["image_deep_water"], chx+32+1, chy+1);
 					} else if (chunk_set[cid7]["event"][chy][chx] === 2) {
+						//dot_w( main_map["image_ground"], chx+32+1, chy+1);
 						dot_w( main_map["image_forest"], chx+32+1, chy+1);
 					} else if (chunk_set[cid7]["event"][chy][chx] === 3) {
 						dot_w( main_map["image_mountain"], chx+32+1, chy+1);
@@ -8522,7 +8480,11 @@ function update_world_chunks() {
 					main_map["event"][chy+16+1][chx+1] = chunk_set[cidE]["event"][chy][chx];
 					if (chunk_set[cidE]["event"][chy][chx] === 1) {
 						dot_w( main_map["image_ground"], chx+1, chy+16+1);
+					} else if ([11].includes(chunk_set[cidE]["event"][chy][chx])) { // deep water
+						dot_w( main_map["image_ground"], chx+1, chy+16+1);
+						dot_w( main_map["image_deep_water"], chx+1, chy+16+1);
 					} else if (chunk_set[cidE]["event"][chy][chx] === 2) {
+						//dot_w( main_map["image_ground"], chx+1, chy+16+1);
 						dot_w( main_map["image_forest"], chx+1, chy+16+1);
 					} else if (chunk_set[cidE]["event"][chy][chx] === 3) {
 						dot_w( main_map["image_mountain"], chx+1, chy+16+1);
@@ -8534,6 +8496,9 @@ function update_world_chunks() {
 					main_map["event"][chy+16+1][chx+32+1] = chunk_set[cid3]["event"][chy][chx];
 					if (chunk_set[cid3]["event"][chy][chx] === 1) {
 						dot_w( main_map["image_ground"], chx+32+1, chy+16+1);
+					} else if ([11].includes(chunk_set[cid3]["event"][chy][chx])) { // deep water
+						dot_w( main_map["image_ground"], chx+32+1, chy+16+1);
+						dot_w( main_map["image_deep_water"], chx+32+1, chy+16+1);
 					} else if (chunk_set[cid3]["event"][chy][chx] === 2) {
 						dot_w( main_map["image_forest"], chx+32+1, chy+16+1);
 					} else if (chunk_set[cid3]["event"][chy][chx] === 3) {
@@ -8546,7 +8511,11 @@ function update_world_chunks() {
 					main_map["event"][chy+32+1][chx+1] = chunk_set[cidL]["event"][chy][chx];
 					if (chunk_set[cidL]["event"][chy][chx] === 1) {
 						dot_w( main_map["image_ground"], chx+1, chy+32+1);
+					} else if ([11].includes(chunk_set[cidL]["event"][chy][chx])) { // deep water
+						dot_w( main_map["image_ground"], chx+1, chy+32+1);
+						dot_w( main_map["image_deep_water"], chx+1, chy+32+1);
 					} else if (chunk_set[cidL]["event"][chy][chx] === 2) {
+						//dot_w( main_map["image_ground"], chx+1, chy+32+1);
 						dot_w( main_map["image_forest"], chx+1, chy+32+1);
 					} else if (chunk_set[cidL]["event"][chy][chx] === 3) {
 						dot_w( main_map["image_mountain"], chx+1, chy+32+1);
@@ -8559,7 +8528,11 @@ function update_world_chunks() {
 					main_map["event"][chy+32+1][chx+16+1] = chunk_set[cidU]["event"][chy][chx];
 					if (chunk_set[cidU]["event"][chy][chx] === 1) {
 						dot_w( main_map["image_ground"], chx+16+1, chy+32+1);
+					} else if ([11].includes(chunk_set[cidU]["event"][chy][chx])) { // deep water
+						dot_w( main_map["image_ground"], chx+16+1, chy+32+1);
+						dot_w( main_map["image_deep_water"], chx+16+1, chy+32+1);
 					} else if (chunk_set[cidU]["event"][chy][chx] === 2) {
+						//dot_w( main_map["image_ground"], chx+16+1, chy+32+1);
 						dot_w( main_map["image_forest"], chx+16+1, chy+32+1);
 					} else if (chunk_set[cidU]["event"][chy][chx] === 3) {
 						dot_w( main_map["image_mountain"], chx+16+1, chy+32+1);
@@ -8571,7 +8544,11 @@ function update_world_chunks() {
 					main_map["event"][chy+32+1][chx+32+1] = chunk_set[cidJ]["event"][chy][chx];
 					if (chunk_set[cidJ]["event"][chy][chx] === 1) {
 						dot_w( main_map["image_ground"], chx+32+1, chy+32+1);
+					} else if ([11].includes(chunk_set[cidJ]["event"][chy][chx])) { // deep water
+						dot_w( main_map["image_ground"], chx+32+1, chy+32+1);
+						dot_w( main_map["image_deep_water"], chx+32+1, chy+32+1);
 					} else if (chunk_set[cidJ]["event"][chy][chx] === 2) {
+						//dot_w( main_map["image_ground"], chx+32+1, chy+32+1);
 						dot_w( main_map["image_forest"], chx+32+1, chy+32+1);
 					} else if (chunk_set[cidJ]["event"][chy][chx] === 3) {
 						dot_w( main_map["image_mountain"], chx+32+1, chy+32+1);
@@ -8735,14 +8712,32 @@ function update_world_chunks() {
 			for (let chx=0; chx<3*world_chunk_size; chx++) {
 				
 				let tile_ = main_map["event"][chy+1][chx+1];
-				if (tile_ <= 1) {
+				if (tile_ === 0) {
+					render_map_canopy.set(chx+0, chy+0, main_map["image_forest"][chy+1][chx+1] + 128);
+					render_map.set(chx+0, chy+0, 0);
+				} else if (tile_ === 1) {
+					
 					render_map.set(chx+0, chy+0, main_map["image_ground"][chy+1][chx+1]);
+					render_map_canopy.set(chx+0, chy+0, main_map["image_forest"][chy+1][chx+1] + 128);
+					
+				} else if (tile_ === 11) {
+					render_map.set(chx+0, chy+0, main_map["image_deep_water"][chy+1][chx+1] + 64);
+					
+					//render_map_f.set(chx+0, chy+0, main_map["image_forest"][chy+1][chx+1]+64);
 				} else if (tile_ === 2) {
-					render_map.set(chx+0, chy+0, main_map["image_forest"][chy+1][chx+1]+64);
+					render_map_canopy.set(chx+0, chy+0, main_map["image_forest"][chy+1][chx+1] + 128);
+					render_map.set(chx+0, chy+0, 0);
+					//render_map_f.set(14,10, 100);
 				} else if (tile_ === 3) {
-					render_map.set(chx+0, chy+0, main_map["image_mountain"][chy+1][chx+1]+128);
+					render_map.set(chx+0, chy+0, main_map["image_mountain"][chy+1][chx+1] + 128);
 				} else if (tile_ === 4) {
-					render_map.set(chx+0, chy+0, main_map["image_desert"][chy+1][chx+1]+192);
+					render_map.set(chx+0, chy+0, main_map["image_desert"][chy+1][chx+1] + 192);
+				} else if (tile_ === 40) {
+					render_map.set(chx+0, chy+0, 0);
+					render_map_canopy.set(chx+0, chy+0, 139);
+				} else if (tile_ === 41) {
+					//render_map.set(chx+0, chy+0, 0);
+					render_map.set(chx+0, chy+0, 140);
 				}
 			}
 		}
@@ -8935,6 +8930,7 @@ function draw_world_chunks() {
 	draw(render_J, 256-(pw.x%128+n_x), 256-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
 	/**/
 	draw(render_map, 0-(pw.x%128+n_x), 0-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
+	//draw(render_map_f, 0-(pw.x%128+n_x), 0-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
 	//draw(render_map_m, 0-(pw.x%128+n_x), 0-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
 	
 	/*
@@ -8955,11 +8951,62 @@ function draw_world_chunks() {
 	let pwx8 = Math.floor(pw.x/8);
 	let pwy8 = Math.floor(pw.y/8);
 	
+	//let ttcx = pw.cx >= 0 ? pw.cx-1 : pw.cx;
+	//let ttcy = pw.cy >= 0 ? pw.cy-1 : pw.cy;
+	//let tupleToCheck = [ttcx, ttcy];
+	let tupleToCheck = [pw.cx, pw.cy];
+	let cbs = curr_chunk_ids["O"].b.special;
+	
 	print("x y  : "+pw.x+" "+pw.y, 8, 8);
 	print("grid : "+pwx8+" "+pwy8, 8, 16);
 	print("chunk: "+pw.cx+" "+pw.cy+"  (total: "+Object.keys(chunk_set).length+")", 8, 24);
-	print("type: "+curr_chunk_ids["O"].s, 8, 32);
+	print("biome type:  "+curr_chunk_ids["O"].b.biome, 8, 32);
+	print("   secondary biome type:  "+curr_chunk_ids["O"].b.biome2, 128, 32);
+	print("biome shape: "+curr_chunk_ids["O"].s, 8, 40);
+	print("biome diff: "+curr_chunk_ids["O"].b.difficulty, 8, 48);
+	if (cbs.length > 0) {
+		
+		print(cbs.length+" specials:", 8, 56)
+		for (let i=0; i<cbs.length; i++) {
+			print(" "+cbs[i], 8, 64+(i*8));
+		}
+		if (cbs.some(subArray => subArray.toString() === tupleToCheck.toString())) {
+			print("!!! "+pw.cx+" "+pw.cy, 64,128);
+		}
+	}
+	
+	//print(tupleToCheck, 64,128);
+	//print(curr_chunk_ids["O"].b.special, 64,136);
+	
+	
+	
+	//console.log(tupleExists);
+	
+	/*
+	
+		"biome": biome,
+		"difficulty": difficulty,
+		"color": color,
+		"special": xyo,
+	};
+	*/
+	
 	//console.log(curr_chunk_ids["O"]);
+	
+	
+	
+	
+	
+	
+}
+
+
+function draw_world_chunks_canopy() {
+	
+	let n_x = pw.x < 0 ? 128 : 0;
+	let n_y = pw.y < 0 ? 128 : 0;
+	
+	draw(render_map_canopy, 0-(pw.x%128+n_x), 0-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
 	
 	
 	
@@ -9019,13 +9066,18 @@ function draw_world_chunks() {
 	sprite(sprite_id, 204, 26);
 	sprite_id = mini_map(curr_chunk_ids["JJ"].b.biome);
 	sprite(sprite_id, 206, 26);
-	
-	
+
 }
 
 
 
-
+function draw_world_particles() {
+	let n_x = pw.x < 0 ? 128 : 0;
+	let n_y = pw.y < 0 ? 128 : 0;
+	
+	sprite(76, 0-(pw.x%128+n_x), 0-(pw.y%128+n_y)-32);
+	//draw(render_map_particles, 0-(pw.x%128+n_x), 0-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
+}
 
 
 
