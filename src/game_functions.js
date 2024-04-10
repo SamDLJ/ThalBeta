@@ -75,15 +75,16 @@ export function init_curr_chunk_ids(cx,cy) {
 export function g(seed, ch2="") {
 	let iR = 0;
 	var chunk = [...Array(16)].map(_ => Array(16).fill(0));
+	var chunk_canopy = [...Array(16)].map(_ => Array(16).fill(0));
 	//console.log(ch2);
 	//console.log(ch2 == "f");
 	if (ch2 == "f") {
 		//console.log("fffffff");
-		chunk = forest(seed);
+		[chunk, chunk_canopy] = forest(seed);
 	}
 	
 	//console.log(chunk);
-	return chunk;
+	return [chunk, chunk_canopy];
 	
 }
 
@@ -1004,21 +1005,48 @@ export function wlbwe(seed) {
 
 
 
+
 function forest(seed) {
 	
 	let iR = 0;
 	var chunk = [...Array(16)].map(_ => Array(16).fill(0));
-	
-	
-	
+	var chunk_canopy = [...Array(16)].map(_ => Array(16).fill(0));
 	
 	//let xi = 8;
 	//let yi = 0;
-	let randr = 1;
+	//let randr = 1;
 	let randx = 0;
 	let randy = 0;
 	
+	for (let i=0; i<15; i++) {
+		randx = 0 + Math.floor(seed[iR]*(15-0)); // min + seed[iR] * (max - min)
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+		randy = 0 + Math.floor(seed[iR]*(15-0)); // min + seed[iR] * (max - min)
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+		
+		chunk[randy][randx] = 41;
+		
+		
+		try { chunk_canopy[randy-1][randx-1] = 2; } catch {}
+		try { chunk_canopy[randy-1][randx] = 2; } catch {}
+		try { chunk_canopy[randy-1][randx+1] = 2; } catch {}
+		try { chunk_canopy[randy][randx-1] = 2; } catch {}
+		try { chunk_canopy[randy][randx] = 2; } catch {}
+		try { chunk_canopy[randy][randx+1] = 2; } catch {}
+		try { chunk_canopy[randy+1][randx-1] = 2; } catch {}
+		try { chunk_canopy[randy+1][randx] = 2; } catch {}
+		try { chunk_canopy[randy+1][randx+1] = 2; } catch {}
+		
+		//let random_height = 3 + Math.floor(seed[iR]*(6));
+		//iR = iR >= seed.length-1 ? 0 : iR+1;
+		
+		
+		//for (let h=1; h<random_height && randy-h; h++) {
+		//	try { chunk[randy-h][randx] = 40; } catch {}	
+		//}
+	}
 	
+	/*
 	// large canopy
 	for (let i=0; i<4; i++) {
 		randx = 0 + Math.floor(seed[iR]*(15-0)); // min + seed[iR] * (max - min)
@@ -1036,6 +1064,7 @@ function forest(seed) {
 	//   41 42
 	//   43 44
 	
+	/*
 	// small canopy
 	for (let i=0; i<30; i++) {
 		randx = 0 + Math.floor(seed[iR]*(16-0)); // min + seed[iR] * (max - min)
@@ -1047,11 +1076,11 @@ function forest(seed) {
 	  
 	}/**/
 	
-	chunk[7][8] = 40;
-	chunk[8][8] = 41;
+	//chunk[7][8] = 40;
+	//chunk[8][8] = 41;
 	
 	
-	return chunk;
+	return [chunk, chunk_canopy];
 }
 
 
