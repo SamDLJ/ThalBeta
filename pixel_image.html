@@ -92,18 +92,18 @@
 	function get_biome_value(x_,y_,res) {
 		let N = 15*res;
 		
-		let dxs = [...Array(N)].map((n,i) => i*2+N*100 );
-		let dys = [...Array(N)].map((n,i) => i*3+N );
+		let dxs = [...Array(N)].map((n,i) => i*2+N*100 ); // i*2+N*100
+		let dys = [...Array(N)].map((n,i) => i*3+N ); // i*3+N
 		
 		let xs = dxs.map(dx_ => x_+dx_);
 		let ys = dys.map(dy_ => y_+dy_);
 		
-		let ths = [...Array(N)].map((n,i) => i*0.29 );
+		let ths = [...Array(N)].map((n,i) => i*0.29 ); // 29
 		
 		let xrs = ths.map( (th,i) => Math.floor( xs[i] * Math.cos(th) - ys[i] * Math.sin(th) ) );
 		let yrs = ths.map( (th,i) => Math.floor( ys[i] * Math.cos(th) + xs[i] * Math.sin(th) ) );
 		
-		let sizes = [...Array(N)].map((n,i) => 0.01 + 0.0097*i);
+		let sizes = [...Array(N)].map((n,i) => 0.01 + 0.0097*i); // 97
 		let chps = sizes.map((s,i) => Math.cos(s*xrs[i])*Math.cos(s*yrs[i]));
 		
 		let b = chps.reduce((acc,c) => acc + c, 0);
@@ -141,6 +141,8 @@
 		
 		return 0;
 	}
+	
+	//[[-4,15],[-12,-12],[14,-8],[4,15]]
 	
 	
 	
@@ -348,6 +350,15 @@
 		
 		}
 	}
+	
+	
+
+	
+
+
+
+
+
 
 	/* =============== random number generator ================ */
 	/* random number generator for seed. n is how many you need (source?)*/
@@ -394,6 +405,89 @@
 	  }
 	  return value;
 	}*/
+	
+	
+	
+	// initiate this with the current location
+	var curr_chunk_ids = {
+	
+		"r": { cid: "-1_-1", x: -1, y: -1, b: {}, s: 0 }, 
+		"T": { cid: "0_-1", x: 0, y: -1, b: {}, s: 0 }, 
+		"7": { cid: "1_-1", x: 1, y: -1, b: {}, s: 0 },
+		"E": { cid: "-1_0", x: -1, y: 0, b: {}, s: 0 }, 
+	
+		"O": { cid: "0_0", x: 0, y: 0, b: {}, s: 0 }, 
+	
+		"3": { cid: "1_0", x: 1, y: 0, b: {}, s: 0 },
+		"L": { cid: "-1_1", x: -1, y: 1, b: {}, s: 0 }, 
+		"U": { cid: "0_1", x: 0, y: 1, b: {}, s: 0 }, 
+		"J": { cid: "1_1", x: 1, y: 1, b: {}, s: 0 },
+	
+		"rr": { cid: "-2_-2", x: -2, y: -2, b: {}, s: 0 },
+		"rT": { cid: "-1_-2", x: -1, y: -2, b: {}, s: 0 },
+		"TT": { cid: "0_-2", x: 0, y: -2, b: {}, s: 0 },
+		"T7": { cid: "1_-2", x: 1, y: -2, b: {}, s: 0 },
+		"77": { cid: "2_-2", x: 2, y: -2, b: {}, s: 0 },
+		"Er": { cid: "-2_-1", x: -2, y: -1, b: {}, s: 0 }, 
+		"EE": { cid: "-2_0", x: -2, y: 0, b: {}, s: 0 }, 
+		"EL": { cid: "-2_1", x: -2, y: 1, b: {}, s: 0 }, 
+		"73": { cid: "2_-1", x: 2, y: -1, b: {}, s: 0 }, 
+		"33": { cid: "2_0", x: 2, y: 0, b: {}, s: 0 }, 
+		"J3": { cid: "2_1", x: 2, y: 1, b: {}, s: 0 }, 
+		"LL": { cid: "-2_2", x: -2, y: 2, b: {}, s: 0 }, 
+		"LU": { cid: "-1_2", x: -1, y: 2, b: {}, s: 0 }, 
+		"UU": { cid: "0_2", x: 0, y: 2, b: {}, s: 0 }, 
+		"UJ": { cid: "1_2", x: 1, y: 2, b: {}, s: 0 }, 
+		"JJ": { cid: "2_2", x: 2, y: 2, b: {}, s: 0 }, 
+	
+	};
+	
+	function init_curr_chunk_ids(cx,cy) {
+		
+		let curr_chunk_ids_ = {
+		
+			"r": { cid: (cx-1).toString()+"_"+(cy-1).toString(), x: cx-1, y: cy-1, b: {}, s: 0 }, 
+			"T": { cid: cx.toString()+"_"+(cy-1).toString(), x: cx, y: cy-1, b: {}, s: 0 }, 
+			"7": { cid: (cx+1).toString()+"_"+(cy-1).toString(), x: cx+1, y: cy-1, b: {}, s: 0 },
+			"E": { cid: (cx-1).toString()+"_"+cy.toString(), x: cx-1, y: cy, b: {}, s: 0 }, 
+	
+			"O": { cid: cx.toString()+"_"+cy.toString(), x: cx, y: cy, b: {}, s: 0 }, 
+	
+			"3": { cid: (cx+1).toString()+"_"+cy.toString(), x: cx+1, y: cy, b: {}, s: 0 },
+			"L": { cid: (cx-1).toString()+"_"+(cy+1).toString(), x: cx-1, y: cy+1, b: {}, s: 0 }, 
+			"U": { cid: cx.toString()+"_"+(cy+1).toString(), x: cx, y: cy+1, b: {}, s: 0 }, 
+			"J": { cid: (cx+1).toString()+"_"+(cy+1).toString(), x: cx+1, y: cy+1, b: {}, s: 0 },
+	
+			"rr": { cid: (cx-2).toString()+"_"+(cy-2).toString(), x: cx-2, y: cy-2, b: {}, s: 0 },
+			"rT": { cid: (cx-1).toString()+"_"+(cy-2).toString(), x: cx-1, y: cy-2, b: {}, s: 0 },
+			"TT": { cid: cx.toString()+"_"+(cy-2).toString(), x: cx, y: cy-2, b: {}, s: 0 },
+			"T7": { cid: (cx+1).toString()+"_"+(cy-2).toString(), x: cx+1, y: cy-2, b: {}, s: 0 },
+			"77": { cid: (cx+2).toString()+"_"+(cy-2).toString(), x: cx+2, y: cy-2, b: {}, s: 0 },
+			"Er": { cid: (cx-2).toString()+"_"+(cy-1).toString(), x: cx-2, y: cy-1, b: {}, s: 0 }, 
+			"EE": { cid: (cx-2).toString()+"_"+cy.toString(), x: cx-2, y: cy, b: {}, s: 0 }, 
+			"EL": { cid: (cx-2).toString()+"_"+(cy+1).toString(), x: cx-2, y: cy+1, b: {}, s: 0 }, 
+			"73": { cid: (cx+2).toString()+"_"+(cy-1).toString(), x: cx+2, y: cy-1, b: {}, s: 0 }, 
+			"33": { cid: (cx+2).toString()+"_"+cy.toString(), x: cx+2, y: cy, b: {}, s: 0 }, 
+			"J3": { cid: (cx+2).toString()+"_"+(cy+1).toString(), x: cx+2, y: cy+1, b: {}, s: 0 }, 
+			"LL": { cid: (cx-2).toString()+"_"+(cy+2).toString(), x: cx-2, y: cy+2, b: {}, s: 0 }, 
+			"LU": { cid: (cx-1).toString()+"_"+(cy+2).toString(), x: cx-1, y: cy+2, b: {}, s: 0 }, 
+			"UU": { cid: cx.toString()+"_"+(cy+2).toString(), x: cx, y: cy+2, b: {}, s: 0 }, 
+			"UJ": { cid: (cx+1).toString()+"_"+(cy+2).toString(), x: cx+1, y: cy+2, b: {}, s: 0 }, 
+			"JJ": { cid: (cx+2).toString()+"_"+(cy+2).toString(), x: cx+2, y: cy+2, b: {}, s: 0 }
+		
+		};
+		
+		return curr_chunk_ids_;
+	}
+	
+	//console.log(init_curr_chunk_ids(0,0));
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	
@@ -1130,7 +1224,741 @@
 	}
 	
 	
+	function wlhnt(xx, yy) {
+		const seed = PRNG(xx+"_"+yy, 64);
+		let iR = 0;
+		let pixelData = [];
+		var chunk = [...Array(16)].map(_ => Array(16).fill(0));
+		
+		
+		let xi = 0;
+		let yi = 15;
+		let r = 0;
+		while (xi < 16 && yi >= 0) {
+			for (let yi_=yi; yi_>=0; yi_--) {
+				chunk[yi_][xi] = 1;
+			}
+			xi++;
+			r = Math.floor(seed[iR]*(2-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			yi-=r;
+		}
+		
+		xi = 15;
+		yi = 14;
+		while (xi >= 0 && yi >= 0) {
+			for (let yi_=yi; yi_>=0; yi_--) {
+				chunk[yi_][xi] = 1;
+			}
+			xi--;
+			r = Math.floor(seed[iR]*(2-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			yi-=r;
+		}
+		
+		
+		for (let y=0; y<16; y++) {
+			for (let x=0; x<16; x++) {
+				if (chunk[y][x]) {
+					pixelData.push([x*8,y*8, "rgb(0,200,250)"]);
+				}
+			}
+		}
+		
+		return pixelData;
+	}
+	
+	
+	
+	function wlhst(xx, yy) {
+		const seed = PRNG(xx+"_"+yy, 64);
+		let iR = 0;
+		let pixelData = [];
+		var chunk = [...Array(16)].map(_ => Array(16).fill(0));
+		
+		
+		let xi = 0;
+		let yi = 0;
+		let r = 0;
+		while (xi < 16 && yi < 16) {
+			for (let yi_=yi; yi_<16; yi_++) {
+				chunk[yi_][xi] = 1;
+			}
+			xi++;
+			r = Math.floor(seed[iR]*(3-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			yi+=r;
+		}
+		
+		xi = 15;
+		yi = 0;
+		while (xi >= 0 && yi < 16) {
+			for (let yi_=yi; yi_<16; yi_++) {
+				chunk[yi_][xi] = 1;
+			}
+			xi--;
+			r = Math.floor(seed[iR]*(3-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			yi+=r;
+		}
+		
+		
+		
+		for (let y=0; y<16; y++) {
+			for (let x=0; x<16; x++) {
+				if (chunk[y][x]) {
+					pixelData.push([x*8,y*8, "rgb(0,200,250)"]);
+				}
+			}
+		}
+		
+		return pixelData;
+	}
+	
+	
+	function wlhet(xx, yy) {
+		const seed = PRNG(xx+"_"+yy, 64);
+		let pixelData = [];
+		
+		let iR = 0;
+		var chunk = [...Array(16)].map(_ => Array(16).fill(0));
+		
+		
+		let xi = 0;
+		let yi = 0;
+		let r = 0;
+		while (xi < 16 && yi < 16) {
+			for (let xi_=xi; xi_<16; xi_++) {
+				chunk[yi][xi_] = 1;
+			}
+			yi++;
+			r = Math.floor(seed[iR]*(3-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			xi+=r;
+		}
+		
+		
+		xi = 0;
+		yi = 15;
+		while (xi < 16 && yi > 0) {
+			for (let xi_=xi; xi_<16; xi_++) {
+				chunk[yi][xi_] = 1;
+			}
+			yi--;
+			r = Math.floor(seed[iR]*(3-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			xi+=r;
+		}/**/
+		
+		
+		
+		for (let y=0; y<16; y++) {
+			for (let x=0; x<16; x++) {
+				if (chunk[y][x]) {
+					pixelData.push([x*8,y*8, "rgb(0,200,250)"]);
+				}
+			}
+		}
+		
+		return pixelData;
+	}
+	
+	
+	function wlhwt(xx, yy) {
+		const seed = PRNG(xx+"_"+yy, 64);
+		let pixelData = [];
+		
+		let iR = 0;
+		var chunk = [...Array(16)].map(_ => Array(16).fill(0));
+		
+		
+		let xi = 15;
+		let yi = 0;
+		let r = 0;
+		while (xi >= 0 && yi < 16) {
+			for (let xi_=xi; xi_>=0; xi_--) {
+				chunk[yi][xi_] = 1;
+			}
+			yi++;
+			r = Math.floor(seed[iR]*(3-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			xi-=r;
+		}
+		
+		
+		xi = 15;
+		yi = 15;
+		while (xi >= 0 && yi > 0) {
+			for (let xi_=xi; xi_>=0; xi_--) {
+				chunk[yi][xi_] = 1;
+			}
+			yi--;
+			r = Math.floor(seed[iR]*(3-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			xi-=r;
+		}/**/
+		
+		
+		
+		for (let y=0; y<16; y++) {
+			for (let x=0; x<16; x++) {
+				if (chunk[y][x]) {
+					pixelData.push([x*8,y*8, "rgb(0,200,250)"]);
+				}
+			}
+		}
+		
+		return pixelData;
+	}
+	
+	
+	
+	function wlbwe(xx, yy) {
+		const seed = PRNG(xx+"_"+yy, 64);
+		let pixelData = [];
+		
+		let iR = 0;
+		var chunk = [...Array(16)].map(_ => Array(16).fill(0));
+		
+		
+		let xi = 0;
+		let yi = 0;
+		let r = 0;
+		let coast = [1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1];
+		
+		
+		for (let i=0; i<25; i++) {
+			r = 1 + Math.floor(seed[iR]*(14-1)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+		  coast = lift(coast, r, 1);
+		}/**/
+		
+		while (xi < 16) {
+			for (let yi_=0; yi_<coast[xi]; yi_++) {
+				chunk[yi_][xi] = 1;
+			}
+			xi++;
+		}
+		
+		xi = 0;
+		coast = [1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1];
+		
+		for (let i=0; i<25; i++) {
+			r = 1 + Math.floor(seed[iR]*(14-1)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+		  coast = lift(coast, r, 1);
+		}/**/
+		
+		while (xi < 16) {
+			for (let yi_=0; yi_<coast[xi]; yi_++) {
+				chunk[15-yi_][xi] = 1;
+			}
+			xi++;
+		}
+		
+		
+		for (let y=0; y<16; y++) {
+			for (let x=0; x<16; x++) {
+				if (chunk[y][x]) {
+					pixelData.push([x*8,y*8, "rgb(0,200,250)"]);
+				}
+			}
+		}
+		
+		return pixelData;
+	}
+	
+	
+	
+	
+	
+	function wlbns(xx, yy) {
+		const seed = PRNG(xx+"_"+yy, 64);
+		let pixelData = [];
+		
+		let iR = 0;
+		var chunk = [...Array(16)].map(_ => Array(16).fill(0));
+		
+		
+		let xi = 0;
+		let yi = 0;
+		let r = 0;
+		let coast = [1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1];
+		
+		
+		for (let i=0; i<15; i++) {
+			r = 3 + Math.floor(seed[iR]*(12-3)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+		  coast = lift(coast, r, 1);
+		}/**/
+		
+		while (yi < 16) {
+			for (let xi_=0; xi_<coast[yi]; xi_++) {
+				chunk[yi][xi_] = 1;
+			}
+			yi++;
+		}
+		
+		yi = 0;
+		coast = [1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1];
+		
+		for (let i=0; i<15; i++) {
+			r = 3 + Math.floor(seed[iR]*(12-3)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+		  coast = lift(coast, r, 1);
+		}/**/
+		
+		while (yi < 16) {
+			for (let xi_=0; xi_<coast[yi]; xi_++) {
+				chunk[yi][15-xi_] = 1;
+			}
+			yi++;
+		}
+		
+		for (let y=0; y<16; y++) {
+			for (let x=0; x<16; x++) {
+				if (chunk[y][x]) {
+					pixelData.push([x*8,y*8, "rgb(0,200,250)"]);
+				}
+			}
+		}
+		
+		return pixelData;
+	}
+	
+	
+	
+	
+	
+	function xyWithinRadius(r, x, y) {
+	    let result = [];
+
+	    // Loop through each potential coordinate within a square around (x, y)
+	    for (let i = x - r; i <= x + r; i++) {
+	        for (let j = y - r; j <= y + r; j++) {
+	            // Check if the distance from (i, j) to (x, y) is less than or equal to the radius
+	            if (Math.sqrt(Math.pow(i - x, 2) + Math.pow(j - y, 2)) <= r) {
+	                result.push([i, j]);
+	            }
+	        }
+	    }
+
+	    return result;
+	}
+	
+	
+	function forest(xx, yy) {
+		const seed = PRNG(xx+"_"+yy, 64);
+		let pixelData = [];
+		
+		let iR = 0;
+		var chunk = [...Array(16)].map(_ => Array(16).fill(0));
+		
+		
+		//let xi = 8;
+		//let yi = 0;
+		let randr = 1;
+		let randx = 0;
+		let randy = 0;
+		
+		
+		// 2x2 squares
+		for (let i=0; i<2; i++) {
+			randx = 0 + Math.floor(seed[iR]*(15-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			randy = 0 + Math.floor(seed[iR]*(15-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			
+			try { chunk[randy][randx] = 1; } catch (e) {}
+		  try { chunk[randy][randx+1] = 1; } catch (e) {}
+			try {	chunk[randy+1][randx] = 1; } catch (e) {}
+			try {	chunk[randy+1][randx+1] = 1; } catch (e) {}
+		}/**/
+		
+		// 
+		for (let i=0; i<20; i++) {
+			randx = 0 + Math.floor(seed[iR]*(16-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			randy = 0 + Math.floor(seed[iR]*(16-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			
+			try { chunk[randy][randx] = 1; } catch (e) {}
+		  
+		}/**/
+		
+		
+		
+		
+		for (let y=0; y<16; y++) {
+			for (let x=0; x<16; x++) {
+				if (chunk[y][x]) {
+					pixelData.push([x*8,y*8, "rgb(0,200,250)"]);
+				}
+			}
+		}
+		
+		return pixelData;
+	}
+
+	
+	function wo(xx, yy) {
+		const seed = PRNG(xx+"_"+yy, 128);
+		let pixelData = [];
+		
+		let iR = 0;
+		var chunk = [...Array(16)].map(_ => Array(16).fill(0));
+		
+		
+		//let xi = 8;
+		//let yi = 0;
+		let randr = 1;
+		let randx = 0;
+		let randy = 0;
+		
+		for (let i=0; i<0; i++) {
+			randx = 4 + Math.floor(seed[iR]*(12-4)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			randy = 4 + Math.floor(seed[iR]*(12-4)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			
+			randr = 3 + Math.floor(seed[iR]*(5-3)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			
+			let coords = xyWithinRadius(randr, randx, randy);
+			
+			for (let c=0; c<coords.length; c++){
+				let x = coords[c][0];
+				let y = coords[c][1];
+				try { chunk[y][x] = 1; } catch(e){}
+			}
+		}
+		
+		
+		for (let i=0; i<0; i++) {
+			randx = 3 + Math.floor(seed[iR]*(13-3)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			randy = 3 + Math.floor(seed[iR]*(13-3)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			
+			randr = 0 + Math.floor(seed[iR]*(4-1)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			
+			let coords = xyWithinRadius(randr, randx, randy);
+			
+			for (let c=0; c<coords.length; c++){
+				let x = coords[c][0];
+				let y = coords[c][1];
+				try { chunk[y][x] = 1; } catch(e){}
+			}
+		}/**/
+		
+		// 2x2 squares
+		for (let i=0; i<6; i++) {
+			randx = 0 + Math.floor(seed[iR]*(15-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			randy = 0 + Math.floor(seed[iR]*(15-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			
+			try { chunk[randy][randx] = 1; } catch (e) {}
+		  try { chunk[randy][randx+1] = 1; } catch (e) {}
+			try {	chunk[randy+1][randx] = 1; } catch (e) {}
+			try {	chunk[randy+1][randx+1] = 1; } catch (e) {}
+		}/**/
+		
+		// 
+		for (let i=0; i<50; i++) {
+			randx = 0 + Math.floor(seed[iR]*(16-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			randy = 0 + Math.floor(seed[iR]*(16-0)); // min + seed[iR] * (max - min)
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			
+			try { chunk[randy][randx] = 1; } catch (e) {}
+		  
+		}/**/
+		
+		
+		
+		//let xoff = 3;
+		
+		
+		
+		
+		
+		for (let y=0; y<16; y++) {
+			for (let x=0; x<16; x++) {
+				if (chunk[y][x]) {
+					pixelData.push([x*8,y*8, "rgb(0,200,250)"]);
+				}
+			}
+		}
+		
+		return pixelData;
+	}
+	
+	
+	
+	
+	function weT(xx, yy) {
+		const seed = PRNG(xx+"_"+yy, 128);
+		let pixelData = [];
+		
+		let iR = 0;
+		var chunk = [...Array(16)].map(_ => Array(16).fill(1));
+		
+		let ry = 0;
+		let rx = 1;
+		let xi = 0;
+		
+		let rugged = 0 + Math.floor(seed[iR]*(2-0));
+		
+		if (rugged) {
+			while (xi<16) {
+				let middle = 4 < xi && xi < 12 ? (6 < xi && xi < 10 ? 2 : 1) : 0;
+				rx = 1 + Math.floor(seed[iR]*(2-0));
+				iR = iR >= seed.length-1 ? 0 : iR+1;
+				ry =  middle + Math.floor(seed[iR]*(3-0));
+				iR = iR >= seed.length-1 ? 0 : iR+1;
+				for (let n=xi; n<xi+rx && n<16; n++) {
+					for (let yi=0; yi<ry; yi++) {
+						chunk[15-yi][n] = 0;
+					}
+				}
+				xi += rx;
+			}
+		} else {
+			while (xi<16) {
+				let middle = 4 < xi && xi < 12 ? 1 : 0;
+				rx = 1 + Math.floor(seed[iR]*(6-0));
+				iR = iR >= seed.length-1 ? 0 : iR+1;
+				ry =  middle + Math.floor(seed[iR]*(2-0));
+				iR = iR >= seed.length-1 ? 0 : iR+1;
+				for (let n=xi; n<xi+rx && n<16; n++) {
+					for (let yi=0; yi<ry; yi++) {
+						chunk[15-yi][n] = 0;
+					}
+				}
+				xi += rx;
+			}
+		}
+		
+		for (let y=0; y<16; y++) {
+			for (let x=0; x<16; x++) {
+				if (chunk[y][x]) {
+					pixelData.push([x*8,y*8, "rgb(0,200,250)"]);
+				}
+			}
+		}
+		
+		return pixelData;
+	}
+	
+	
+	function weU(xx, yy) {
+		const seed = PRNG(xx+"_"+yy, 128);
+		let pixelData = [];
+		
+		let iR = 0;
+		var chunk = [...Array(16)].map(_ => Array(16).fill(1));
+		
+		let ry = 0;
+		let rx = 1;
+		let xi = 0;
+		
+		let rugged = 0 + Math.floor(seed[iR]*(2-0));
+		
+		if (rugged) {
+			while (xi<16) {
+				let middle = 4 < xi && xi < 12 ? (6 < xi && xi < 10 ? 2 : 1) : 0;
+				rx = 1 + Math.floor(seed[iR]*(2-0));
+				iR = iR >= seed.length-1 ? 0 : iR+1;
+				ry =  middle + Math.floor(seed[iR]*(3-0));
+				iR = iR >= seed.length-1 ? 0 : iR+1;
+				for (let n=xi; n<xi+rx && n<16; n++) {
+					for (let yi=0; yi<ry; yi++) {
+						chunk[yi][n] = 0;
+					}
+				}
+				xi += rx;
+			}
+		} else {
+			while (xi<16) {
+				let middle = 4 < xi && xi < 12 ? 1 : 0;
+				rx = 1 + Math.floor(seed[iR]*(6-0));
+				iR = iR >= seed.length-1 ? 0 : iR+1;
+				ry =  middle + Math.floor(seed[iR]*(2-0));
+				iR = iR >= seed.length-1 ? 0 : iR+1;
+				for (let n=xi; n<xi+rx && n<16; n++) {
+					for (let yi=0; yi<ry; yi++) {
+						chunk[yi][n] = 0;
+					}
+				}
+				xi += rx;
+			}
+		}
+		
+		for (let y=0; y<16; y++) {
+			for (let x=0; x<16; x++) {
+				if (chunk[y][x]) {
+					pixelData.push([x*8,y*8, "rgb(0,200,250)"]);
+				}
+			}
+		}
+		
+		return pixelData;
+	}
+	
+	
+	
+	
+	// 
+	function lift(array, index, lift_height=1) {
+		
+		let new_array = [...array];
+		
+		let i_height = 0;
+		let i_prev = index;
+		let i_left = index-1;
+		let i_right = index+1;
+		
+		while (i_height < lift_height) {
+			i_height++;
+			
+			new_array[index]++;
+			i_prev = index;
+			i_left = index-1;
+			while (i_left >= 0) {
+				if (Math.abs(new_array[i_left]-new_array[i_prev]) > 1) {
+					new_array[i_left]++;
+				} else {
+					i_prev = i_left;
+					i_left--;
+				}
+			}
+			i_prev = index;
+			i_right = index+1;
+			while (i_right < array.length) {
+				if (Math.abs(new_array[i_prev]-new_array[i_right]) > 1) {
+					new_array[i_right]++;
+				} else {
+					i_prev = i_right;
+					i_right++;
+				}
+			}
+			
+		}
+		
+		
+		
+		return new_array;
+	}
+	
+	/*
+	let lineup = [1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1];
+	//lineup = lift(lineup, 3);
+	//lineup = lift(lineup, 3);
+	lineup = lift(lineup, 7, 5);
+	//lineup = lift(lineup, 4);
+	//lineup = lift(lineup, 3);
+	
+	let opp = lineup.map(x => 15-x);
+	console.log(opp.join(" "));
+	/**/
+	
+	
+	
+	
+	
 	//var pixelData = g7();
+	function variance(xx, yy, xoffset, yoffset, sparse) {
+		let x = xx+xoffset;
+		let y = yy+yoffset;
+		let p = (x*y)+((x-y)*(x+y));
+		
+		let q = 0;
+		
+		switch (sparse) {
+		  case 0:
+			  q = !(p%2+p%3-p%5+p%7-p%9);
+			  break;
+		  case 1:
+			  q = !(p%2-p%3-p%5+p%7-p%9);//+p%13);//+p%17-p%19);
+			  break;
+		  case 2:
+			  q = !(p%2-p%3+p%5-p%7-p%9-p%13+p%17+p%19);
+			  break;
+		  case 3:
+			  q = !(p%2-p%3+p%5-p%7+p%9+p%13);//+p%17-p%19);
+			  break;
+		  case 4:
+			  q = !(p%2+p%3+p%5-p%7+p%9+p%13);//+p%17-p%19);
+			  break;
+		  case 5:
+			  q = !(p%2-p%3-p%5+p%7-p%9-p%13-p%17+p%19-p%23);
+			  break;
+		  case 6:
+			  q = !(p%2+p%3-p%5-p%7+p%9-p%13-p%17-p%19);
+			  break;
+			case 7:
+			  q = !(p%2-p%3+p%5-p%7+p%9-p%13-p%17-p%19-p%23);
+			  break;
+		}
+		
+		return q;
+	}
+	
+	function variance_II(x,y, s) {
+		
+		let q1 = variance(x,y,0,0, s);
+		let q2 = variance(x,y,90,20, s);
+		let q3 = variance(x,y,0,990, s);
+		let q4 = variance(x,y,-71,0, s);
+		let q5 = variance(x,y,222,431, s);/**/
+		let q6 = variance(x,y,22,-4311, s);/**/
+		let q7 = variance(x,y,-222,-93108, s);/**/
+		
+		let result = q1 || q2 || q3 || q4 || q5 || q6 || q7;
+		
+		return result;
+		
+	}
+	
+	
+	function forest_variance() {
+		for (let y=-QSIZE; y<=QSIZE; y++) {
+			for (let x=-QSIZE; x<QSIZE; x++) {
+				
+				let r0 = variance_II(x,y,0);
+				let r1 = variance_II(x,y,1);
+				let r2 = variance_II(x,y,2);
+				let r3 = variance_II(x,y,3);
+				let r4 = variance_II(x,y,4);
+				let r5 = variance_II(x,y,5);
+				let r6 = variance_II(x,y,6);
+				let r7 = variance_II(x,y,7);
+				
+				
+				let r = r7;
+			
+				
+				if (x === 0 && y === 0) {
+					pixelData.push([x,y, "rgb(250,250,250)"]);
+//				} else if (r7) { pixelData.push([x,y, "rgb(150,0,250)"]);
+//				} else if (r6) { pixelData.push([x,y, "rgb(0,200,250)"]);
+//				} else if (r5) { pixelData.push([x,y, "rgb(0,150,0)"]);
+//				} else if (r4) { pixelData.push([x,y, "rgb(200,200,0)"]);
+//        } else if (r3) { pixelData.push([x,y, "rgb(200,130,0)"]);
+//				} else if (r2) { pixelData.push([x,y, "rgb(200,0,0)"]);
+//        } else if (r1) { pixelData.push([x,y, "rgb(150,0,150)"]);
+//				} else if (r0) { pixelData.push([x,y, "rgb(150,0,150)"]);
+				} else { pixelData.push([x,y, "rgb(0,0,0)"]);
+				}
+			}
+		}
+	}
+	
+	if (1) {
+		forest_variance();
+  }	
 	
 	
   // Function to draw the image on the canvas
@@ -1141,43 +1969,57 @@
 		//---------- EDIT HERE ----------
 		// functions finished: wL, w7, wJ, wr, wu, wn, wc, w3
 		
-		let pixelData = w3(xx,yy);
+		//let pixelData = weU(xx,yy);
 		//-------------------------------
 		
 		
 		
 		context.scale(SCALE, SCALE);
-		//context.translate(canvas.width / (SCALE*2), canvas.height / (SCALE*2));
+		
+		// turn on to see biome map
+		
+			
+		
+		context.translate(canvas.width / (SCALE*2), canvas.height / (SCALE*2));
 		//context.translate(xx,yy);
 		
 		
-		blackPixelData.forEach(([x,y, color]) => { 
-			context.fillStyle = color;
-			context.fillRect(x*SCALE+xx*SCALE*132, y*SCALE+yy*SCALE*132, SCALE*7, SCALE*7); // Draw a 1x1 pixel at (x, y) with the specified color
-		});/**/
-		
+		if (1) {
 		
 		/*
-    pixelData.forEach(([x, y, color]) => {
-      context.fillStyle = color;
-      context.fillRect(x*SCALE+xx*SCALE*0, y*SCALE+yy*SCALE*0, SCALE*2, SCALE*2); // Draw a 1x1 pixel at (x, y) with the specified color
-    });/**/
+			blackPixelData.forEach(([x, y, color]) => { 
+				context.fillStyle = color;
+				context.fillRect(x*SCALE+xx*SCALE*132, y*SCALE+yy*SCALE*132, SCALE*7, SCALE*7); // Draw a 1x1 pixel at (x, y) with the specified color
+			});/**/
 		
 		
-    pixelData.forEach(([x, y, color]) => {
-      context.fillStyle = color;
-      context.fillRect(x*SCALE+xx*SCALE*132, y*SCALE+yy*SCALE*132, SCALE*7, SCALE*7); // Draw a 1x1 pixel at (x, y) with the specified color
-    });/**/
+			
+	    pixelData.forEach(([x, y, color]) => {
+	      context.fillStyle = color;
+	      context.fillRect(x*SCALE+xx*SCALE*1, y*SCALE+yy*SCALE*1, SCALE*3, SCALE*3); // Draw a 1x1 pixel at (x, y) with the specified color
+	    });/**/
 		
-		// -- This is the middle tile --
-		if (0) {
-      context.fillStyle = "rgb(50,250,250)";
-      context.fillRect(0, 0, SCALE*2, SCALE*2);
-		}
+	
+			// bigger red squares ?
+			/*
+	    pixelData.forEach(([x, y, color]) => {
+	      context.fillStyle = color;
+	      context.fillRect(x*SCALE+xx*SCALE*132, y*SCALE+yy*SCALE*132, SCALE*2, SCALE*2); // Draw a 1x1 pixel at (x, y) with the specified color
+	    });/**/
+		
+		
+		
+			// -- This is the middle tile --
+			if (1) {
+	      context.fillStyle = "rgb(250,250,250)";
+	      context.fillRect(0, 0, SCALE*1, SCALE*1);
+			}
+		
+	  }
   }
 
   /*  36 randomized biome tiles  */
-	if (1) {
+	if (0) {
 	  // Call the function to draw the image
 		for (let y_=0; y_<6; y_++) {
 			for (let x_=0; x_<6; x_++) {
@@ -1187,7 +2029,7 @@
 	}
 	
 	/*  1 biome map  */
-	//drawImageFromArray(0, 0);
+	drawImageFromArray(0, 0);
   	
 	
 	

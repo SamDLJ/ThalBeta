@@ -4,9 +4,10 @@ import { platforms } from "./platforms.js";
 //import { player1_movement } from "./thal.js";
 import { TERRAIN, ZEN, dot_order, pnode, PLAT_STYLE, BRANCH, T } from "./objects.js";
 import { CHUNKS } from "./chunks.js";
-import { dot_, dot_image, dot_w, get_biome_info, get_chunk_shapes, init_curr_chunk_ids,
-	g, gL, gJ, g7, gr, wL, wJ, w7, wr, wu, wn, wc, w3, wo,
-	wlhnt, wlhst, wlhet, wlhwt, wlbns, wlbwe
+import { 
+	dot_, dot_image, dot_w, get_biome_info, get_chunk_shapes, init_curr_chunk_ids, biome_variance_index,
+	g, gL, gJ, g7, gr, 
+	wL, wJ, w7, wr, wu, wn, wc, w3, wo, weT, weU, weE, we3, wlhnt, wlhst, wlhet, wlhwt, wlbns, wlbwe,
  } from "./game_functions.js";
 
 //import { tileinfo } from "./objects.js";
@@ -280,7 +281,7 @@ function player1_world_movement() {
 
 }
 
-var Ish = 512;
+var Ish = 768;
 var pw_sheet_id = Ish;
 
 var w_walking = 0;
@@ -7578,6 +7579,7 @@ if (1) {
 	var render_map_m = new TileMap(50, 50);
 	var render_map_particles = new TileMap(50, 50);
 	var render_map_canopy = new TileMap(50, 50);
+	var render_map_canopy_1 = new TileMap(50, 50);
 	var render_map_above = new TileMap(50, 50);
 	
 	/*
@@ -7862,11 +7864,52 @@ var desert_terrain_chunk = [...Array(16)].map(_ => Array(16).fill(4));
 
 
 // each of the 9 3x3 chunks will go through this
-function build_chunk_shape(chs, cid, sp="", ch2="") {
+function build_chunk_shape(chunk_info) { //chs, cid, sp="", b2="", bvi={}) {
+//function build_chunk_shape(chs, cid, sp="", b2="", bvi={}) {
+	//console.log(chunk_info);
+	
+	/*
+	Object { cid: "-1_-1", x: -1, y: -1, b: {…}, s: "g", bvi: {} }
+	​
+	b: {
+	  "biome": "g",
+	  "biome2": "g",
+	  "difficulty": 1,
+	  "color": "rgb(20,100,0)",
+	  "special": 0,
+	  "bvi": {
+	    "0": true,
+	    "1": false,
+	    "2": true,
+	    "3": false,
+	    "4": false,
+	    "5": false,
+	    "6": false,
+	    "7": false
+	  }
+	}
+	bvi: Object {  }
+	cid: "-1_-1"
+	s: "g"
+	x: -1
+	y: -1
+	​/**/
+	
+	
+	
+	let b2 = chunk_info.b.biome2;
+	let bvi = chunk_info.b.bvi;
+	let cid = chunk_info.cid;
+	let chs = chunk_info.s;
+	
+	
+	// sp is "x" as default, will deal with it later
+	
+	
 	//console.log("...."+ch2)
 	//console.log(chs+" "+cid+" "+sp);
 	let events = [...Array(16)].map(_ => Array(16).fill(0)); 
-	let events_canopy = [...Array(16)].map(_ => Array(16).fill(0));
+	//let events_canopy = [...Array(16)].map(_ => Array(16).fill(0));
 	// 0 is default grass, 1 is water, 4 is forest?
 	// cid is e.g. "-4_7" or "100_-98"
 	// chs is e.g. "g" or "w"
@@ -7930,7 +7973,7 @@ function build_chunk_shape(chs, cid, sp="", ch2="") {
 	
 	
 	let ci = 0;
-	let chunk_seed = PRNG(cid, 64);
+	let chunk_seed = PRNG(cid, 128);
 	
 	
 	switch (chs) {
@@ -7952,7 +7995,12 @@ function build_chunk_shape(chs, cid, sp="", ch2="") {
 			*/
 			//console.log("g");
 			//events[8][8] = 1;
-			[events, events_canopy] = g(chunk_seed, ch2);
+			//console.log(bvi);
+			//[events, events_canopy] = g(chunk_seed, ch2);
+			
+			events = g(chunk_seed, b2, bvi);//, ch2);
+			
+			
 			
 			break;
 		case "w":
@@ -8026,6 +8074,20 @@ function build_chunk_shape(chs, cid, sp="", ch2="") {
 		case "wo":
 			events = wo(chunk_seed);
 			break;
+			
+		case "weT":
+			events = weT(chunk_seed);
+			break;
+		case "weE":
+			events = weE(chunk_seed);
+			break;
+		case "we3":
+			events = we3(chunk_seed);
+			break;
+		case "weU":
+			events = weU(chunk_seed);
+			break;
+			
 		case "wlbns":
 			events = wlbns(chunk_seed);
 			break; 
@@ -8044,9 +8106,10 @@ function build_chunk_shape(chs, cid, sp="", ch2="") {
   	case "wlhnt":
 			events = wlhnt(chunk_seed);
 			break;
+		
 	}
 	
-	return [events, events_canopy];
+	return events;//[events, events_canopy];
 }
 
 
@@ -8163,54 +8226,63 @@ function update_world_chunks() {
 		curr_chunk_ids["O"].x = chunkx;
 		curr_chunk_ids["O"].y = chunky;
 		curr_chunk_ids["O"].b = get_biome_info(chunkx, chunky);
+		//curr_chunk_ids["O"].bvi = biome_variance_index(chunkx, chunky);
 		
 		let cidr = (chunkx-1)+"_"+(chunky-1);
 		curr_chunk_ids["r"].cid = cidr;
 		curr_chunk_ids["r"].x = chunkx-1;
 		curr_chunk_ids["r"].y = chunky-1;
 		curr_chunk_ids["r"].b = get_biome_info(chunkx-1, chunky-1);
+		//curr_chunk_ids["r"].bvi = biome_variance_index(chunkx-1, chunky-1);
 		
 		let cidT = chunkx+"_"+(chunky-1);
 		curr_chunk_ids["T"].cid = cidT;
 		curr_chunk_ids["T"].x = chunkx;
 		curr_chunk_ids["T"].y = chunky-1;
 		curr_chunk_ids["T"].b = get_biome_info(chunkx, chunky-1);
+		//curr_chunk_ids["T"].bvi = biome_variance_index(chunkx, chunky-1);
 		
 		let cid7 = (chunkx+1)+"_"+(chunky-1);
 		curr_chunk_ids["7"].cid = cid7;
 		curr_chunk_ids["7"].x = chunkx+1;
 		curr_chunk_ids["7"].y = chunky-1;
 		curr_chunk_ids["7"].b = get_biome_info(chunkx+1, chunky-1);
+		//curr_chunk_ids["7"].bvi = biome_variance_index(chunkx+1, chunky-1);
 		
 		let cidE = (chunkx-1)+"_"+chunky;
 		curr_chunk_ids["E"].cid = cidE;
 		curr_chunk_ids["E"].x = chunkx-1;
 		curr_chunk_ids["E"].y = chunky;
 		curr_chunk_ids["E"].b = get_biome_info(chunkx-1, chunky);
+		//curr_chunk_ids["E"].bvi = biome_variance_index(chunkx-1, chunky);
 		
 		let cid3 = (chunkx+1)+"_"+chunky;
 		curr_chunk_ids["3"].cid = cid3;
 		curr_chunk_ids["3"].x = chunkx+1;
 		curr_chunk_ids["3"].y = chunky;
 		curr_chunk_ids["3"].b = get_biome_info(chunkx+1, chunky);
+		//curr_chunk_ids["3"].bvi = biome_variance_index(chunkx+1, chunky);
 		
 		let cidL = (chunkx-1)+"_"+(chunky+1);
 		curr_chunk_ids["L"].cid = cidL;
 		curr_chunk_ids["L"].x = chunkx-1;
 		curr_chunk_ids["L"].y = chunky+1;
 		curr_chunk_ids["L"].b = get_biome_info(chunkx-1, chunky+1);
+		//curr_chunk_ids["L"].bvi = biome_variance_index(chunkx-1, chunky+1);
 		
 		let cidU = chunkx+"_"+(chunky+1);
 		curr_chunk_ids["U"].cid = cidU;
 		curr_chunk_ids["U"].x = chunkx;
 		curr_chunk_ids["U"].y = chunky+1;
 		curr_chunk_ids["U"].b = get_biome_info(chunkx, chunky+1);
+		//curr_chunk_ids["U"].bvi = biome_variance_index(chunkx, chunky+1);
 		
 		let cidJ = (chunkx+1)+"_"+(chunky+1);
 		curr_chunk_ids["J"].cid = cidJ;
 		curr_chunk_ids["J"].x = chunkx+1;
 		curr_chunk_ids["J"].y = chunky+1;
 		curr_chunk_ids["J"].b = get_biome_info(chunkx+1, chunky+1);
+		//curr_chunk_ids["J"].bvi = biome_variance_index(chunkx+1, chunky+1);
 		
 		
 		
@@ -8290,104 +8362,122 @@ function update_world_chunks() {
 		
 		// TODO: don't need the chunk images after all, just the events for each of the surrounding chunks
 		//                   
-		let [chunk_events_r, cnpy_r] = build_chunk_shape(curr_chunk_ids["r"].s, curr_chunk_ids["r"].cid, "x", curr_chunk_ids["r"].b.biome2 );
+		//let [chunk_events_r, cnpy_r] = build_chunk_shape(curr_chunk_ids["r"].s, curr_chunk_ids["r"].cid, "x", curr_chunk_ids["r"].b.biome2 );
+		let chunk_events_r = build_chunk_shape(curr_chunk_ids["r"]);//.s, curr_chunk_ids["r"].cid, "x", curr_chunk_ids["r"].b.biome2 );
 		//let chunk_image_r = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		//let chunk_image_mid_r = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		chunk_set[cidr] = { 
 			"event": chunk_events_r,
-			"canopy": cnpy_r,
+			//"canopy": cnpy_r,
 			//"image_low": chunk_image_r, 
 			//"image_mid": chunk_image_mid_r, 
-			"b": curr_chunk_ids["r"].b
+			"b": curr_chunk_ids["r"].b,
+			//"biv": curr_chunk_ids["r"].bvi
 		};
 		
-		let [chunk_events_T, cnpy_T] = build_chunk_shape(curr_chunk_ids["T"].s, curr_chunk_ids["T"].cid, "x", curr_chunk_ids["T"].b.biome2);
+		//let [chunk_events_T, cnpy_T] = build_chunk_shape(curr_chunk_ids["T"].s, curr_chunk_ids["T"].cid, "x", curr_chunk_ids["T"].b.biome2);
+		let chunk_events_T = build_chunk_shape(curr_chunk_ids["T"]);//.s, curr_chunk_ids["T"].cid, "x", curr_chunk_ids["T"].b.biome2);
 		//let chunk_image_T = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		//let chunk_image_mid_T = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		chunk_set[cidT] = { 
 			"event": chunk_events_T,
-			"canopy": cnpy_T,
+			//"canopy": cnpy_T,
 			//"image_low": chunk_image_T, 
 			//"image_mid": chunk_image_mid_T,
-			"b": curr_chunk_ids["T"].b
+			"b": curr_chunk_ids["T"].b,
+			//"biv": curr_chunk_ids["T"].bvi
 		};
 		
-		let [chunk_events_7, cnpy_7] = build_chunk_shape(curr_chunk_ids["7"].s, curr_chunk_ids["7"].cid, "x", curr_chunk_ids["7"].b.biome2);
+		//let [chunk_events_7, cnpy_7] = build_chunk_shape(curr_chunk_ids["7"].s, curr_chunk_ids["7"].cid, "x", curr_chunk_ids["7"].b.biome2);
+		let chunk_events_7 = build_chunk_shape(curr_chunk_ids["7"]);//.s, curr_chunk_ids["7"].cid, "x", curr_chunk_ids["7"].b.biome2);
 		//let chunk_image_7 = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		//let chunk_image_mid_7 = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		chunk_set[cid7] = { 
 			"event": chunk_events_7, 
-			"canopy": cnpy_7,
+			//"canopy": cnpy_7,
 			//"image_low": chunk_image_7, 
 			//"image_mid": chunk_image_mid_7,
-			"b": curr_chunk_ids["7"].b
+			"b": curr_chunk_ids["7"].b,
+			//"biv": curr_chunk_ids["7"].bvi
 		};
 		
-		let [chunk_events_E, cnpy_E] = build_chunk_shape(curr_chunk_ids["E"].s, curr_chunk_ids["E"].cid, "x", curr_chunk_ids["E"].b.biome2);
+		//let [chunk_events_E, cnpy_E] = build_chunk_shape(curr_chunk_ids["E"].s, curr_chunk_ids["E"].cid, "x", curr_chunk_ids["E"].b.biome2);
+		let chunk_events_E = build_chunk_shape(curr_chunk_ids["E"]);//.s, curr_chunk_ids["E"].cid, "x", curr_chunk_ids["E"].b.biome2);
 		//let chunk_image_E = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		//let chunk_image_mid_E = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		chunk_set[cidE] = { 
 			"event": chunk_events_E,
-			"canopy": cnpy_E, 
+			//"canopy": cnpy_E, 
 			//"image_low": chunk_image_E, 
 			//"image_mid": chunk_image_mid_E,
-			"b": curr_chunk_ids["E"].b
+			"b": curr_chunk_ids["E"].b,
+			//"biv": curr_chunk_ids["E"].bvi
 		};
 		
-		let [chunk_events_O, cnpy_O] = build_chunk_shape(curr_chunk_ids["O"].s, curr_chunk_ids["O"].cid, "x", curr_chunk_ids["O"].b.biome2);
+		//let [chunk_events_O, cnpy_O] = build_chunk_shape(curr_chunk_ids["O"].s, curr_chunk_ids["O"].cid, "x", curr_chunk_ids["O"].b.biome2);
+		let chunk_events_O = build_chunk_shape(curr_chunk_ids["O"]);//.s, curr_chunk_ids["O"].cid, "x", curr_chunk_ids["O"].b.biome2);
 		//console.log("curr_chunk_ids[O].b.biome2 "+curr_chunk_ids["O"].b.biome2);
 		//let chunk_image_O = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		//let chunk_image_mid_O = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		chunk_set[cidO] = { 
 			"event": chunk_events_O, 
-			"canopy": cnpy_O,
+			//"canopy": cnpy_O,
 			//"image_low": chunk_image_O, 
 			//"image_mid": chunk_image_mid_O,
-			"b": curr_chunk_ids["O"].b
+			"b": curr_chunk_ids["O"].b,
+			//"biv": curr_chunk_ids["O"].bvi
 		};
 		
-		let [chunk_events_3, cnpy_3] = build_chunk_shape(curr_chunk_ids["3"].s, curr_chunk_ids["3"].cid, "x", curr_chunk_ids["3"].b.biome2);
+		//let [chunk_events_3, cnpy_3] = build_chunk_shape(curr_chunk_ids["3"].s, curr_chunk_ids["3"].cid, "x", curr_chunk_ids["3"].b.biome2);
+		let chunk_events_3 = build_chunk_shape(curr_chunk_ids["3"]);//.s, curr_chunk_ids["3"].cid, "x", curr_chunk_ids["3"].b.biome2);
 		//let chunk_image_3 = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		//let chunk_image_mid_3 = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		chunk_set[cid3] = { 
 			"event": chunk_events_3, 
-			"canopy": cnpy_3,
+			//"canopy": cnpy_3,
 			//"image_low": chunk_image_3, 
 			//"image_mid": chunk_image_mid_3,
-			"b": curr_chunk_ids["3"].b
+			"b": curr_chunk_ids["3"].b,
+			//"biv": curr_chunk_ids["3"].bvi
 		};
 		
-		let [chunk_events_L, cnpy_L] = build_chunk_shape(curr_chunk_ids["L"].s, curr_chunk_ids["L"].cid, "x", curr_chunk_ids["L"].b.biome2);
+		//let [chunk_events_L, cnpy_L] = build_chunk_shape(curr_chunk_ids["L"].s, curr_chunk_ids["L"].cid, "x", curr_chunk_ids["L"].b.biome2);
+		let chunk_events_L = build_chunk_shape(curr_chunk_ids["L"]);//.s, curr_chunk_ids["L"].cid, "x", curr_chunk_ids["L"].b.biome2);
 		//let chunk_image_L = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		//let chunk_image_mid_L = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		chunk_set[cidL] = { 
 			"event": chunk_events_L,
-			"canopy": cnpy_L, 
+			//"canopy": cnpy_L, 
 			//"image_low": chunk_image_L, 
 			//"image_mid": chunk_image_mid_L,
-			"b": curr_chunk_ids["L"].b
+			"b": curr_chunk_ids["L"].b,
+			//"biv": curr_chunk_ids["L"].bvi
 		};
 		
-		let [chunk_events_U, cnpy_U] = build_chunk_shape(curr_chunk_ids["U"].s, curr_chunk_ids["U"].cid, "x", curr_chunk_ids["U"].b.biome2);
+		//let [chunk_events_U, cnpy_U] = build_chunk_shape(curr_chunk_ids["U"].s, curr_chunk_ids["U"].cid, "x", curr_chunk_ids["U"].b.biome2);
+		let chunk_events_U = build_chunk_shape(curr_chunk_ids["U"]);//.s, curr_chunk_ids["U"].cid, "x", curr_chunk_ids["U"].b.biome2);
 		//let chunk_image_U = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		//let chunk_image_mid_U = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		chunk_set[cidU] = { 
 			"event": chunk_events_U, 
-			"canopy": cnpy_U,
+			//"canopy": cnpy_U,
 			//"image_low": chunk_image_U, 
 			//"image_mid": chunk_image_mid_U,
-			"b": curr_chunk_ids["U"].b
+			"b": curr_chunk_ids["U"].b,
+			//"biv": curr_chunk_ids["U"].bvi
 		};
 		
-		let [chunk_events_J, cnpy_J] = build_chunk_shape(curr_chunk_ids["J"].s, curr_chunk_ids["J"].cid, "x", curr_chunk_ids["J"].b.biome2);
+		//let [chunk_events_J, cnpy_J] = build_chunk_shape(curr_chunk_ids["J"].s, curr_chunk_ids["J"].cid, "x", curr_chunk_ids["J"].b.biome2);
+		let chunk_events_J = build_chunk_shape(curr_chunk_ids["J"]);//.s, curr_chunk_ids["J"].cid, "x", curr_chunk_ids["J"].b.biome2);
 		//let chunk_image_J = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		//let chunk_image_mid_J = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		chunk_set[cidJ] = { 
 			"event": chunk_events_J,
-			"canopy": cnpy_J,
+			//"canopy": cnpy_J,
 			//"image_low": chunk_image_J, 
 			//"image_mid": chunk_image_mid_J, 
-			"b": curr_chunk_ids["J"].b 
+			"b": curr_chunk_ids["J"].b,
+			//"biv": curr_chunk_ids["J"].bvi 
 		};
 		
 		
@@ -8399,6 +8489,8 @@ function update_world_chunks() {
 		main_map["image_deep_water"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
 		main_map["image_forest"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
 		main_map["image_forest_canopy"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
+		main_map["image_forest_canopy_1"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
+		main_map["image_forest_canopy_2"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
 		main_map["image_mountain"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
 		main_map["image_desert"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
 		
@@ -8455,25 +8547,42 @@ function update_world_chunks() {
 						dot_w( main_map["image_ground"], chx+16+1, chy+16+1);
 						dot_w( main_map["image_deep_water"], chx+16+1, chy+16+1);
 						
-					} else if (chunk_set[cidO]["event"][chy][chx] === 41) { // 41 is the forest tree trunks
+					} else if ([41, 42].includes(chunk_set[cidO]["event"][chy][chx])) { // 41 is the forest tree trunks
 						//dot_w( main_map["image_ground"], chx+16+1, chy+16+1);
 						
 						//dot_w( main_map["image_forest"], chx+16+1, chy+16+1);
+						if (chunk_set[cidO]["event"][chy][chx] === 42) {
+							dot_w( main_map["image_forest_canopy_1"], chx+16+1-1, chy+16+1-1);
+							dot_w( main_map["image_forest_canopy_1"], chx+16+1, chy+16+1-1);
+							dot_w( main_map["image_forest_canopy_1"], chx+16+1+1, chy+16+1-1);
+							dot_w( main_map["image_forest_canopy_1"], chx+16+1-1, chy+16+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+16+1, chy+16+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+16+1+1, chy+16+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+16+1-1, chy+16+1+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+16+1, chy+16+1+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+16+1+1, chy+16+1+1);
+						} else {
+							dot_w( main_map["image_forest_canopy"], chx+16+1-1, chy+16+1-1);
+							dot_w( main_map["image_forest_canopy"], chx+16+1, chy+16+1-1);
+							dot_w( main_map["image_forest_canopy"], chx+16+1+1, chy+16+1-1);
+							dot_w( main_map["image_forest_canopy"], chx+16+1-1, chy+16+1);
+							dot_w( main_map["image_forest_canopy"], chx+16+1, chy+16+1);
+							dot_w( main_map["image_forest_canopy"], chx+16+1+1, chy+16+1);
+							dot_w( main_map["image_forest_canopy"], chx+16+1-1, chy+16+1+1);
+							dot_w( main_map["image_forest_canopy"], chx+16+1, chy+16+1+1);
+							dot_w( main_map["image_forest_canopy"], chx+16+1+1, chy+16+1+1);
+						}
 						
-						dot_w( main_map["image_forest_canopy"], chx+16+1-1, chy+16+1-1);
-						dot_w( main_map["image_forest_canopy"], chx+16+1, chy+16+1-1);
-						dot_w( main_map["image_forest_canopy"], chx+16+1+1, chy+16+1-1);
-						dot_w( main_map["image_forest_canopy"], chx+16+1-1, chy+16+1);
-						dot_w( main_map["image_forest_canopy"], chx+16+1, chy+16+1);
-						dot_w( main_map["image_forest_canopy"], chx+16+1+1, chy+16+1);
-						dot_w( main_map["image_forest_canopy"], chx+16+1-1, chy+16+1+1);
-						dot_w( main_map["image_forest_canopy"], chx+16+1, chy+16+1+1);
-						dot_w( main_map["image_forest_canopy"], chx+16+1+1, chy+16+1+1);
 						
-					} else if (chunk_set[cidO]["event"][chy][chx] === 3) { // mountain
+						
+						
+						
+					} else if (chunk_set[cidO]["event"][chy][chx] === 3) { // mountain CHANGED
 						dot_w( main_map["image_mountain"], chx+16+1, chy+16+1);
-					} else if (chunk_set[cidO]["event"][chy][chx] === 4) { // mountain
+					} else if (chunk_set[cidO]["event"][chy][chx] === 4) { // mountain CHANGED
 						dot_w( main_map["image_desert"], chx+16+1, chy+16+1);
+					} else if (chunk_set[cidO]["event"][chy][chx] === 60) {
+						dot_w( main_map["image_mountain"], chx+16+1, chy+16+1);
 					}
 				} 
 				
@@ -8484,23 +8593,38 @@ function update_world_chunks() {
 					}	else if ([11].includes(chunk_set[cidr]["event"][chy][chx])) { // deep water
 						dot_w( main_map["image_ground"], chx+1, chy+1);
 						dot_w( main_map["image_deep_water"], chx+1, chy+1);
-					} else if (chunk_set[cidr]["event"][chy][chx] === 41) {
+					} else if ([41, 42].includes(chunk_set[cidr]["event"][chy][chx])) {
 						//dot_w( main_map["image_ground"], chx+1, chy+1);
 						//dot_w( main_map["image_forest"], chx+1, chy+1);
-						dot_w( main_map["image_forest_canopy"], chx+1-1, chy+1-1);
-						dot_w( main_map["image_forest_canopy"], chx+1, chy+1-1);
-						dot_w( main_map["image_forest_canopy"], chx+1+1, chy+1-1);
-						dot_w( main_map["image_forest_canopy"], chx+1-1, chy+1);
-						dot_w( main_map["image_forest_canopy"], chx+1, chy+1);
-						dot_w( main_map["image_forest_canopy"], chx+1+1, chy+1);
-						dot_w( main_map["image_forest_canopy"], chx+1-1, chy+1+1);
-						dot_w( main_map["image_forest_canopy"], chx+1, chy+1+1);
-						dot_w( main_map["image_forest_canopy"], chx+1+1, chy+1+1);
+						if (chunk_set[cidr]["event"][chy][chx] === 42) {
+							dot_w( main_map["image_forest_canopy_1"], chx+1-1, chy+1-1);
+							dot_w( main_map["image_forest_canopy_1"], chx+1, chy+1-1);
+							dot_w( main_map["image_forest_canopy_1"], chx+1+1, chy+1-1);
+							dot_w( main_map["image_forest_canopy_1"], chx+1-1, chy+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+1, chy+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+1+1, chy+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+1-1, chy+1+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+1, chy+1+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+1+1, chy+1+1);
+						} else {
+							
+							dot_w( main_map["image_forest_canopy"], chx+1-1, chy+1-1);
+							dot_w( main_map["image_forest_canopy"], chx+1, chy+1-1);
+							dot_w( main_map["image_forest_canopy"], chx+1+1, chy+1-1);
+							dot_w( main_map["image_forest_canopy"], chx+1-1, chy+1);
+							dot_w( main_map["image_forest_canopy"], chx+1, chy+1);
+							dot_w( main_map["image_forest_canopy"], chx+1+1, chy+1);
+							dot_w( main_map["image_forest_canopy"], chx+1-1, chy+1+1);
+							dot_w( main_map["image_forest_canopy"], chx+1, chy+1+1);
+							dot_w( main_map["image_forest_canopy"], chx+1+1, chy+1+1);
+						}
 						
 					} else if (chunk_set[cidr]["event"][chy][chx] === 3) {
 						dot_w( main_map["image_mountain"], chx+1, chy+1);
 					} else if (chunk_set[cidr]["event"][chy][chx] === 4) {
 						dot_w( main_map["image_desert"], chx+1, chy+1);
+					} else if (chunk_set[cidr]["event"][chy][chx] === 60) {
+						dot_w( main_map["image_mountain"], chx+1, chy+1);
 					}
 				}
 				if (chunk_set[cidT]["event"][chy][chx]) {
@@ -8510,23 +8634,38 @@ function update_world_chunks() {
 					} else if ([11].includes(chunk_set[cidT]["event"][chy][chx])) { // deep water
 						dot_w( main_map["image_ground"], chx+16+1, chy+1);
 						dot_w( main_map["image_deep_water"], chx+16+1, chy+1);
-					} else if (chunk_set[cidT]["event"][chy][chx] === 41) {
+					} else if ([41, 42].includes(chunk_set[cidT]["event"][chy][chx])) {
 						//dot_w( main_map["image_ground"], chx+16+1, chy+1);
 						//dot_w( main_map["image_forest"], chx+16+1, chy+1);
-						dot_w( main_map["image_forest_canopy"], chx+16+1-1, chy+1-1);
-						dot_w( main_map["image_forest_canopy"], chx+16+1, chy+1-1);
-						dot_w( main_map["image_forest_canopy"], chx+16+1+1, chy+1-1);
-						dot_w( main_map["image_forest_canopy"], chx+16+1-1, chy+1);
-						dot_w( main_map["image_forest_canopy"], chx+16+1, chy+1);
-						dot_w( main_map["image_forest_canopy"], chx+16+1+1, chy+1);
-						dot_w( main_map["image_forest_canopy"], chx+16+1-1, chy+1+1);
-						dot_w( main_map["image_forest_canopy"], chx+16+1, chy+1+1);
-						dot_w( main_map["image_forest_canopy"], chx+16+1+1, chy+1+1);
+						
+						if (chunk_set[cidT]["event"][chy][chx] === 42) {
+							dot_w( main_map["image_forest_canopy_1"], chx+16+1-1, chy+1-1);
+							dot_w( main_map["image_forest_canopy_1"], chx+16+1, chy+1-1);
+							dot_w( main_map["image_forest_canopy_1"], chx+16+1+1, chy+1-1);
+							dot_w( main_map["image_forest_canopy_1"], chx+16+1-1, chy+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+16+1, chy+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+16+1+1, chy+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+16+1-1, chy+1+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+16+1, chy+1+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+16+1+1, chy+1+1);
+						} else {
+							dot_w( main_map["image_forest_canopy"], chx+16+1-1, chy+1-1);
+							dot_w( main_map["image_forest_canopy"], chx+16+1, chy+1-1);
+							dot_w( main_map["image_forest_canopy"], chx+16+1+1, chy+1-1);
+							dot_w( main_map["image_forest_canopy"], chx+16+1-1, chy+1);
+							dot_w( main_map["image_forest_canopy"], chx+16+1, chy+1);
+							dot_w( main_map["image_forest_canopy"], chx+16+1+1, chy+1);
+							dot_w( main_map["image_forest_canopy"], chx+16+1-1, chy+1+1);
+							dot_w( main_map["image_forest_canopy"], chx+16+1, chy+1+1);
+							dot_w( main_map["image_forest_canopy"], chx+16+1+1, chy+1+1);
+						}
 						
 					} else if (chunk_set[cidT]["event"][chy][chx] === 3) {
 						dot_w( main_map["image_mountain"], chx+16+1, chy+1);
 					} else if (chunk_set[cidT]["event"][chy][chx] === 4) {
 						dot_w( main_map["image_desert"], chx+16+1, chy+1);
+					} else if (chunk_set[cidT]["event"][chy][chx] === 60) {
+						dot_w( main_map["image_mountain"], chx+16+1, chy+1);
 					}
 				}
 				if (chunk_set[cid7]["event"][chy][chx]) {
@@ -8536,23 +8675,38 @@ function update_world_chunks() {
 					} else if ([11].includes(chunk_set[cid7]["event"][chy][chx])) { // deep water
 						dot_w( main_map["image_ground"], chx+32+1, chy+1);
 						dot_w( main_map["image_deep_water"], chx+32+1, chy+1);
-					} else if (chunk_set[cid7]["event"][chy][chx] === 41) {
+					} else if ([41, 42].includes(chunk_set[cid7]["event"][chy][chx])) {
 						//dot_w( main_map["image_ground"], chx+32+1, chy+1);
 						//dot_w( main_map["image_forest"], chx+32+1, chy+1);
-						dot_w( main_map["image_forest_canopy"], chx+32+1-1, chy+1-1);
-						dot_w( main_map["image_forest_canopy"], chx+32+1, chy+1-1);
-						dot_w( main_map["image_forest_canopy"], chx+32+1+1, chy+1-1);
-						dot_w( main_map["image_forest_canopy"], chx+32+1-1, chy+1);
-						dot_w( main_map["image_forest_canopy"], chx+32+1, chy+1);
-						dot_w( main_map["image_forest_canopy"], chx+32+1+1, chy+1);
-						dot_w( main_map["image_forest_canopy"], chx+32+1-1, chy+1+1);
-						dot_w( main_map["image_forest_canopy"], chx+32+1, chy+1+1);
-						dot_w( main_map["image_forest_canopy"], chx+32+1+1, chy+1+1);
+						if (chunk_set[cid7]["event"][chy][chx] === 42) {
+							dot_w( main_map["image_forest_canopy_1"], chx+32+1-1, chy+1-1);
+							dot_w( main_map["image_forest_canopy_1"], chx+32+1, chy+1-1);
+							dot_w( main_map["image_forest_canopy_1"], chx+32+1+1, chy+1-1);
+							dot_w( main_map["image_forest_canopy_1"], chx+32+1-1, chy+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+32+1, chy+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+32+1+1, chy+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+32+1-1, chy+1+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+32+1, chy+1+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+32+1+1, chy+1+1);
+						} else {
+							dot_w( main_map["image_forest_canopy"], chx+32+1-1, chy+1-1);
+							dot_w( main_map["image_forest_canopy"], chx+32+1, chy+1-1);
+							dot_w( main_map["image_forest_canopy"], chx+32+1+1, chy+1-1);
+							dot_w( main_map["image_forest_canopy"], chx+32+1-1, chy+1);
+							dot_w( main_map["image_forest_canopy"], chx+32+1, chy+1);
+							dot_w( main_map["image_forest_canopy"], chx+32+1+1, chy+1);
+							dot_w( main_map["image_forest_canopy"], chx+32+1-1, chy+1+1);
+							dot_w( main_map["image_forest_canopy"], chx+32+1, chy+1+1);
+							dot_w( main_map["image_forest_canopy"], chx+32+1+1, chy+1+1);
+						}
+							
 						
 					} else if (chunk_set[cid7]["event"][chy][chx] === 3) {
 						dot_w( main_map["image_mountain"], chx+32+1, chy+1);
 					} else if (chunk_set[cid7]["event"][chy][chx] === 4) {
 						dot_w( main_map["image_desert"], chx+32+1, chy+1);
+					} else if (chunk_set[cid7]["event"][chy][chx] === 60) {
+						dot_w( main_map["image_mountain"], chx+32+1, chy+1);
 					}
 				}
 				if (chunk_set[cidE]["event"][chy][chx]) {
@@ -8562,23 +8716,39 @@ function update_world_chunks() {
 					} else if ([11].includes(chunk_set[cidE]["event"][chy][chx])) { // deep water
 						dot_w( main_map["image_ground"], chx+1, chy+16+1);
 						dot_w( main_map["image_deep_water"], chx+1, chy+16+1);
-					} else if (chunk_set[cidE]["event"][chy][chx] === 41) {
+					} else if ([41, 42].includes(chunk_set[cidE]["event"][chy][chx])) {
 						//dot_w( main_map["image_ground"], chx+1, chy+16+1);
 						//dot_w( main_map["image_forest"], chx+1, chy+16+1);
-						dot_w( main_map["image_forest_canopy"], chx+1-1, chy+16+1-1);
-						dot_w( main_map["image_forest_canopy"], chx+1, chy+16+1-1);
-						dot_w( main_map["image_forest_canopy"], chx+1+1, chy+16+1-1);
-						dot_w( main_map["image_forest_canopy"], chx+1-1, chy+16+1);
-						dot_w( main_map["image_forest_canopy"], chx+1, chy+16+1);
-						dot_w( main_map["image_forest_canopy"], chx+1+1, chy+16+1);
-						dot_w( main_map["image_forest_canopy"], chx+1-1, chy+16+1+1);
-						dot_w( main_map["image_forest_canopy"], chx+1, chy+16+1+1);
-						dot_w( main_map["image_forest_canopy"], chx+1+1, chy+16+1+1);
+						
+						if (chunk_set[cidE]["event"][chy][chx] === 42) {
+							dot_w( main_map["image_forest_canopy_1"], chx+1-1, chy+16+1-1);
+							dot_w( main_map["image_forest_canopy_1"], chx+1, chy+16+1-1);
+							dot_w( main_map["image_forest_canopy_1"], chx+1+1, chy+16+1-1);
+							dot_w( main_map["image_forest_canopy_1"], chx+1-1, chy+16+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+1, chy+16+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+1+1, chy+16+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+1-1, chy+16+1+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+1, chy+16+1+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+1+1, chy+16+1+1);
+						} else {
+							dot_w( main_map["image_forest_canopy"], chx+1-1, chy+16+1-1);
+							dot_w( main_map["image_forest_canopy"], chx+1, chy+16+1-1);
+							dot_w( main_map["image_forest_canopy"], chx+1+1, chy+16+1-1);
+							dot_w( main_map["image_forest_canopy"], chx+1-1, chy+16+1);
+							dot_w( main_map["image_forest_canopy"], chx+1, chy+16+1);
+							dot_w( main_map["image_forest_canopy"], chx+1+1, chy+16+1);
+							dot_w( main_map["image_forest_canopy"], chx+1-1, chy+16+1+1);
+							dot_w( main_map["image_forest_canopy"], chx+1, chy+16+1+1);
+							dot_w( main_map["image_forest_canopy"], chx+1+1, chy+16+1+1);
+						}
+						
 						
 					} else if (chunk_set[cidE]["event"][chy][chx] === 3) {
 						dot_w( main_map["image_mountain"], chx+1, chy+16+1);
 					} else if (chunk_set[cidE]["event"][chy][chx] === 4) {
 						dot_w( main_map["image_desert"], chx+1, chy+16+1);
+					} else if (chunk_set[cidE]["event"][chy][chx] === 60) {
+						dot_w( main_map["image_mountain"], chx+1, chy+16+1);
 					}
 				}
 				if (chunk_set[cid3]["event"][chy][chx]) {
@@ -8588,23 +8758,38 @@ function update_world_chunks() {
 					} else if ([11].includes(chunk_set[cid3]["event"][chy][chx])) { // deep water
 						dot_w( main_map["image_ground"], chx+32+1, chy+16+1);
 						dot_w( main_map["image_deep_water"], chx+32+1, chy+16+1);
-					} else if (chunk_set[cid3]["event"][chy][chx] === 41) {
+					} else if ([41, 42].includes(chunk_set[cid3]["event"][chy][chx])) {
 						
 						//dot_w( main_map["image_forest"], chx+32+1, chy+16+1);
-						dot_w( main_map["image_forest_canopy"], chx+32+1-1, chy+16+1-1);
-						dot_w( main_map["image_forest_canopy"], chx+32+1, chy+16+1-1);
-						dot_w( main_map["image_forest_canopy"], chx+32+1+1, chy+16+1-1);
-						dot_w( main_map["image_forest_canopy"], chx+32+1-1, chy+16+1);
-						dot_w( main_map["image_forest_canopy"], chx+32+1, chy+16+1);
-						dot_w( main_map["image_forest_canopy"], chx+32+1+1, chy+16+1);
-						dot_w( main_map["image_forest_canopy"], chx+32+1-1, chy+16+1+1);
-						dot_w( main_map["image_forest_canopy"], chx+32+1, chy+16+1+1);
-						dot_w( main_map["image_forest_canopy"], chx+32+1+1, chy+16+1+1);
+						if (chunk_set[cid3]["event"][chy][chx] === 42) {
+							dot_w( main_map["image_forest_canopy_1"], chx+32+1-1, chy+16+1-1);
+							dot_w( main_map["image_forest_canopy_1"], chx+32+1, chy+16+1-1);
+							dot_w( main_map["image_forest_canopy_1"], chx+32+1+1, chy+16+1-1);
+							dot_w( main_map["image_forest_canopy_1"], chx+32+1-1, chy+16+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+32+1, chy+16+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+32+1+1, chy+16+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+32+1-1, chy+16+1+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+32+1, chy+16+1+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+32+1+1, chy+16+1+1);
+						} else {
+							dot_w( main_map["image_forest_canopy"], chx+32+1-1, chy+16+1-1);
+							dot_w( main_map["image_forest_canopy"], chx+32+1, chy+16+1-1);
+							dot_w( main_map["image_forest_canopy"], chx+32+1+1, chy+16+1-1);
+							dot_w( main_map["image_forest_canopy"], chx+32+1-1, chy+16+1);
+							dot_w( main_map["image_forest_canopy"], chx+32+1, chy+16+1);
+							dot_w( main_map["image_forest_canopy"], chx+32+1+1, chy+16+1);
+							dot_w( main_map["image_forest_canopy"], chx+32+1-1, chy+16+1+1);
+							dot_w( main_map["image_forest_canopy"], chx+32+1, chy+16+1+1);
+							dot_w( main_map["image_forest_canopy"], chx+32+1+1, chy+16+1+1);
+						}
+						
 						
 					} else if (chunk_set[cid3]["event"][chy][chx] === 3) {
 						dot_w( main_map["image_mountain"], chx+32+1, chy+16+1);
 					} else if (chunk_set[cid3]["event"][chy][chx] === 4) {
 						dot_w( main_map["image_desert"], chx+32+1, chy+16+1);
+					} else if (chunk_set[cid3]["event"][chy][chx] === 60) {
+						dot_w( main_map["image_mountain"], chx+32+1, chy+16+1);
 					}
 				}
 				if (chunk_set[cidL]["event"][chy][chx]) {
@@ -8614,23 +8799,39 @@ function update_world_chunks() {
 					} else if ([11].includes(chunk_set[cidL]["event"][chy][chx])) { // deep water
 						dot_w( main_map["image_ground"], chx+1, chy+32+1);
 						dot_w( main_map["image_deep_water"], chx+1, chy+32+1);
-					} else if (chunk_set[cidL]["event"][chy][chx] === 41) {
+					} else if ([41, 42].includes(chunk_set[cidL]["event"][chy][chx])) {
 						//dot_w( main_map["image_ground"], chx+1, chy+32+1);
-						dot_w( main_map["image_forest_canopy"], chx+1-1, chy+32+1-1);
-						dot_w( main_map["image_forest_canopy"], chx+1, chy+32+1-1);
-						dot_w( main_map["image_forest_canopy"], chx+1+1, chy+32+1-1);
-						dot_w( main_map["image_forest_canopy"], chx+1-1, chy+32+1);
-						dot_w( main_map["image_forest_canopy"], chx+1, chy+32+1);
-						dot_w( main_map["image_forest_canopy"], chx+1+1, chy+32+1);
-						dot_w( main_map["image_forest_canopy"], chx+1-1, chy+32+1+1);
-						dot_w( main_map["image_forest_canopy"], chx+1, chy+32+1+1);
-						dot_w( main_map["image_forest_canopy"], chx+1+1, chy+32+1+1);
+						
+						if (chunk_set[cidL]["event"][chy][chx] === 42) {
+							dot_w( main_map["image_forest_canopy_1"], chx+1-1, chy+32+1-1);
+							dot_w( main_map["image_forest_canopy_1"], chx+1, chy+32+1-1);
+							dot_w( main_map["image_forest_canopy_1"], chx+1+1, chy+32+1-1);
+							dot_w( main_map["image_forest_canopy_1"], chx+1-1, chy+32+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+1, chy+32+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+1+1, chy+32+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+1-1, chy+32+1+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+1, chy+32+1+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+1+1, chy+32+1+1);
+						} else {
+							dot_w( main_map["image_forest_canopy"], chx+1-1, chy+32+1-1);
+							dot_w( main_map["image_forest_canopy"], chx+1, chy+32+1-1);
+							dot_w( main_map["image_forest_canopy"], chx+1+1, chy+32+1-1);
+							dot_w( main_map["image_forest_canopy"], chx+1-1, chy+32+1);
+							dot_w( main_map["image_forest_canopy"], chx+1, chy+32+1);
+							dot_w( main_map["image_forest_canopy"], chx+1+1, chy+32+1);
+							dot_w( main_map["image_forest_canopy"], chx+1-1, chy+32+1+1);
+							dot_w( main_map["image_forest_canopy"], chx+1, chy+32+1+1);
+							dot_w( main_map["image_forest_canopy"], chx+1+1, chy+32+1+1);
+						}
+							
 						//dot_w( main_map["image_forest"], chx+1, chy+32+1);
 						
 					} else if (chunk_set[cidL]["event"][chy][chx] === 3) {
 						dot_w( main_map["image_mountain"], chx+1, chy+32+1);
 					} else if (chunk_set[cidL]["event"][chy][chx] === 4) {
 						dot_w( main_map["image_desert"], chx+1, chy+32+1);
+					} else if (chunk_set[cidL]["event"][chy][chx] === 60) {
+						dot_w( main_map["image_mountain"], chx+1, chy+32+1);
 					}
 					
 				}
@@ -8641,23 +8842,38 @@ function update_world_chunks() {
 					} else if ([11].includes(chunk_set[cidU]["event"][chy][chx])) { // deep water
 						dot_w( main_map["image_ground"], chx+16+1, chy+32+1);
 						dot_w( main_map["image_deep_water"], chx+16+1, chy+32+1);
-					} else if (chunk_set[cidU]["event"][chy][chx] === 41) {
+					} else if ([41, 42].includes(chunk_set[cidU]["event"][chy][chx])) {
 						//dot_w( main_map["image_ground"], chx+16+1, chy+32+1);
 						//dot_w( main_map["image_forest"], chx+16+1, chy+32+1);
-						dot_w( main_map["image_forest_canopy"], chx+16+1-1, chy+32+1-1);
-						dot_w( main_map["image_forest_canopy"], chx+16+1, chy+32+1-1);
-						dot_w( main_map["image_forest_canopy"], chx+16+1+1, chy+32+1-1);
-						dot_w( main_map["image_forest_canopy"], chx+16+1-1, chy+32+1);
-						dot_w( main_map["image_forest_canopy"], chx+16+1, chy+32+1);
-						dot_w( main_map["image_forest_canopy"], chx+16+1+1, chy+32+1);
-						dot_w( main_map["image_forest_canopy"], chx+16+1-1, chy+32+1+1);
-						dot_w( main_map["image_forest_canopy"], chx+16+1, chy+32+1+1);
-						dot_w( main_map["image_forest_canopy"], chx+16+1+1, chy+32+1+1);
+						if (chunk_set[cidU]["event"][chy][chx] === 42) {
+							dot_w( main_map["image_forest_canopy_1"], chx+16+1-1, chy+32+1-1);
+							dot_w( main_map["image_forest_canopy_1"], chx+16+1, chy+32+1-1);
+							dot_w( main_map["image_forest_canopy_1"], chx+16+1+1, chy+32+1-1);
+							dot_w( main_map["image_forest_canopy_1"], chx+16+1-1, chy+32+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+16+1, chy+32+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+16+1+1, chy+32+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+16+1-1, chy+32+1+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+16+1, chy+32+1+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+16+1+1, chy+32+1+1);
+						} else {
+							dot_w( main_map["image_forest_canopy"], chx+16+1-1, chy+32+1-1);
+							dot_w( main_map["image_forest_canopy"], chx+16+1, chy+32+1-1);
+							dot_w( main_map["image_forest_canopy"], chx+16+1+1, chy+32+1-1);
+							dot_w( main_map["image_forest_canopy"], chx+16+1-1, chy+32+1);
+							dot_w( main_map["image_forest_canopy"], chx+16+1, chy+32+1);
+							dot_w( main_map["image_forest_canopy"], chx+16+1+1, chy+32+1);
+							dot_w( main_map["image_forest_canopy"], chx+16+1-1, chy+32+1+1);
+							dot_w( main_map["image_forest_canopy"], chx+16+1, chy+32+1+1);
+							dot_w( main_map["image_forest_canopy"], chx+16+1+1, chy+32+1+1);
+						}
+						
 						
 					} else if (chunk_set[cidU]["event"][chy][chx] === 3) {
 						dot_w( main_map["image_mountain"], chx+16+1, chy+32+1);
 					} else if (chunk_set[cidU]["event"][chy][chx] === 4) {
 						dot_w( main_map["image_desert"], chx+16+1, chy+32+1);
+					} else if (chunk_set[cidU]["event"][chy][chx] === 60) {
+						dot_w( main_map["image_mountain"], chx+16+1, chy+32+1);
 					}
 				}
 				if (chunk_set[cidJ]["event"][chy][chx]) {
@@ -8667,25 +8883,39 @@ function update_world_chunks() {
 					} else if ([11].includes(chunk_set[cidJ]["event"][chy][chx])) { // deep water
 						dot_w( main_map["image_ground"], chx+32+1, chy+32+1);
 						dot_w( main_map["image_deep_water"], chx+32+1, chy+32+1);
-					} else if (chunk_set[cidJ]["event"][chy][chx] === 41) {
+					} else if ([41, 42].includes(chunk_set[cidJ]["event"][chy][chx])) {
 						//dot_w( main_map["image_ground"], chx+32+1, chy+32+1);
 						//dot_w( main_map["image_forest"], chx+32+1, chy+32+1);
-						dot_w( main_map["image_forest_canopy"], chx+32+1-1, chy+32+1-1);
-						dot_w( main_map["image_forest_canopy"], chx+32+1, chy+32+1-1);
-						dot_w( main_map["image_forest_canopy"], chx+32+1+1, chy+32+1-1);
-						dot_w( main_map["image_forest_canopy"], chx+32+1-1, chy+32+1);
-						dot_w( main_map["image_forest_canopy"], chx+32+1, chy+32+1);
-						dot_w( main_map["image_forest_canopy"], chx+32+1+1, chy+32+1);
-						dot_w( main_map["image_forest_canopy"], chx+32+1-1, chy+32+1+1);
-						dot_w( main_map["image_forest_canopy"], chx+32+1, chy+32+1+1);
-						dot_w( main_map["image_forest_canopy"], chx+32+1+1, chy+32+1+1);
 						
+						if (chunk_set[cidJ]["event"][chy][chx] === 42) {
+							dot_w( main_map["image_forest_canopy_1"], chx+32+1-1, chy+32+1-1);
+							dot_w( main_map["image_forest_canopy_1"], chx+32+1, chy+32+1-1);
+							dot_w( main_map["image_forest_canopy_1"], chx+32+1+1, chy+32+1-1);
+							dot_w( main_map["image_forest_canopy_1"], chx+32+1-1, chy+32+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+32+1, chy+32+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+32+1+1, chy+32+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+32+1-1, chy+32+1+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+32+1, chy+32+1+1);
+							dot_w( main_map["image_forest_canopy_1"], chx+32+1+1, chy+32+1+1);
+						} else {
+							dot_w( main_map["image_forest_canopy"], chx+32+1-1, chy+32+1-1);
+							dot_w( main_map["image_forest_canopy"], chx+32+1, chy+32+1-1);
+							dot_w( main_map["image_forest_canopy"], chx+32+1+1, chy+32+1-1);
+							dot_w( main_map["image_forest_canopy"], chx+32+1-1, chy+32+1);
+							dot_w( main_map["image_forest_canopy"], chx+32+1, chy+32+1);
+							dot_w( main_map["image_forest_canopy"], chx+32+1+1, chy+32+1);
+							dot_w( main_map["image_forest_canopy"], chx+32+1-1, chy+32+1+1);
+							dot_w( main_map["image_forest_canopy"], chx+32+1, chy+32+1+1);
+							dot_w( main_map["image_forest_canopy"], chx+32+1+1, chy+32+1+1);
+						}
 						
 						
 					} else if (chunk_set[cidJ]["event"][chy][chx] === 3) {
 						dot_w( main_map["image_mountain"], chx+32+1, chy+32+1);
 					} else if (chunk_set[cidJ]["event"][chy][chx] === 4) {
 						dot_w( main_map["image_desert"], chx+32+1, chy+32+1);
+					} else if (chunk_set[cidJ]["event"][chy][chx] === 60) {
+						dot_w( main_map["image_mountain"], chx+32+1, chy+32+1);
 					}
 				}
 			
@@ -8844,8 +9074,11 @@ function update_world_chunks() {
 			for (let chx=0; chx<3*world_chunk_size; chx++) {
 				render_map_particles.set(chx+0, chy+0, 79); // clean slate for animation
 				render_map_canopy.set(chx+0, chy+0, 79); // clean slate
+				render_map_canopy_1.set(chx+0, chy+0, 79); // clean slate
 				render_map_above.set(chx+0, chy+0, 79); // clean slate
+				
 				let tile_ = main_map["event"][chy+1][chx+1];
+				
 				if (tile_ === 0) {
 					//render_map_canopy.set(chx+0, chy+0, main_map["image_forest"][chy+1][chx+1] + 128);
 					render_map.set(chx+0, chy+0, 0);
@@ -8874,6 +9107,7 @@ function update_world_chunks() {
 				} 
 				
 				else if (tile_ === 41) { // tree base + trunk
+					//console.log("set 41");
 					//render_map.set(chx+0, chy+0, 0);
 					render_map.set(chx+0, chy+0, 140);
 					try { render_map_above.set(chx+0, chy+0-1, 139); } catch {}
@@ -8881,14 +9115,74 @@ function update_world_chunks() {
 					try { render_map_above.set(chx+0, chy+0-3, 139); } catch {}
 					
 				}
+				
+				else if (tile_ === 42) { // tree base + trunk
+					//console.log(41+64);
+					//render_map.set(chx+0, chy+0, 0);
+					render_map.set(chx+0, chy+0, 140+64); // base
+					
+					/*
+					main_map["image_forest_canopy"][chy+1][chx+1]+= 64;
+					main_map["image_forest_canopy"][chy+1-1][chx+1-1]+= 64;
+					main_map["image_forest_canopy"][chy+1-1][chx+1]+= 64;
+					main_map["image_forest_canopy"][chy+1-1][chx+1+1]+= 64;
+					main_map["image_forest_canopy"][chy+1][chx+1-1]+= 64;
+					main_map["image_forest_canopy"][chy+1][chx+1+1]+= 64;
+					main_map["image_forest_canopy"][chy+1+1][chx+1-1]+= 64;
+					main_map["image_forest_canopy"][chy+1+1][chx+1]+= 64;
+					main_map["image_forest_canopy"][chy+1+1][chx+1+1]+= 64;
+					/**/
+					
+					try { render_map_above.set(chx+0, chy+0-1, 139+64); } catch {}
+					try { render_map_above.set(chx+0, chy+0-2, 139+64); } catch {}
+					try { render_map_above.set(chx+0, chy+0-3, 139+64); } catch {}
+					//try { render_map_above.set(chx+0, chy+0-4, 139+64); } catch {}
+					//try { render_map_above.set(chx+0, chy+0-5, 139+64); } catch {}
+					
+					//let tree_type = chunk_set[cidO]["event"][chy][chx] === 42 ? 64 : 0;
+					
+				}
+				
+				else if (tile_ === 60) {
+					render_map.set(chx+0, chy+0, main_map["image_mountain"][chy+1][chx+1] + 6*64 );
+				}
+				
+				// forest
+				else if (tile_ === 100) {
+					render_map.set(chx+0, chy+0, 141);
+					//console.log("lll");
+				} else if (tile_ === 101) {
+					//console.log("f");
+					render_map.set(chx+0, chy+0, 142);
+				} 
+				
+				// grass
+				else if (tile_ === 110) { render_map.set(chx+0, chy+0, 0); } 
+				else if (tile_ === 111) { render_map.set(chx+0, chy+0, 11); } 
+				else if (tile_ === 112) { render_map.set(chx+0, chy+0, 12); } 
+				else if (tile_ === 113) { render_map.set(chx+0, chy+0, 13); } 
+				else if (tile_ === 114) { render_map.set(chx+0, chy+0, 14); } 
 			}
 		}
 		
+		// need to change image before displaying it
+		
+		// tree canopy
 		for (let chy=0; chy<3*world_chunk_size; chy++) {
 			for (let chx=0; chx<3*world_chunk_size; chx++) {
+				let tree_type = main_map["event"][chy][chx] === 42 ? 64 : 0;
+				
 				if (main_map["image_forest_canopy"][chy][chx]) {
 					
-					render_map_canopy.set(chx+0, chy+0, main_map["image_forest_canopy"][chy][chx] + 128)
+					//console.log(tree_type);
+					
+					render_map_canopy.set(chx+0, chy+0, main_map["image_forest_canopy"][chy][chx] + 128);
+				}
+				if (main_map["image_forest_canopy_1"][chy][chx]) {
+					
+					//console.log(tree_type);
+					
+					render_map_canopy_1.set(chx+0, chy+0, main_map["image_forest_canopy_1"][chy][chx] + 128+64);
 				}
 			}
 		}
@@ -8987,6 +9281,8 @@ function update_world_chunks() {
 		// render_map.items[0][0].x
 		// render_map.items[0][0].y
 		//console.log(render_map.items[5][5].sprite);
+		
+		
 		for (let chy=0; chy<48; chy++) {
 			for (let chx=0; chx<48; chx++) {
 				try {
@@ -9082,22 +9378,31 @@ function flush_chunk_set(cx, cy) {
 
 
 function mini_map(sp_id) {
-	let sprite_id = 330;
-	switch (sp_id) {
+	
+	let sprite_id = 960;
+	
+	
+	switch (sp_id.biome) {
 		case "w": 
-			sprite_id = 320;
+			sprite_id = 960;
 			break;
 		case "g":
-			sprite_id = 321;
+			if (sp_id.biome2 === "m") {
+				sprite_id = 963;
+			} else if (sp_id.biome2 === "f") {
+				sprite_id = 964;
+			} else {
+				sprite_id = 961;
+			}
 			break;
 		case "d":
-			sprite_id = 322;
+			sprite_id = 962;
 			break;
 		case "m":
-			sprite_id = 323;
+			sprite_id = 963;
 			break;
 		case "f":
-			sprite_id = 324;
+			sprite_id = 964;
 			break;
 	}
 	return sprite_id;
@@ -9164,6 +9469,14 @@ function draw_world_chunks() {
 	print("   secondary biome type:  "+curr_chunk_ids["O"].b.biome2, 128, 32);
 	print("biome shape: "+curr_chunk_ids["O"].s, 8, 40);
 	print("biome diff: "+curr_chunk_ids["O"].b.difficulty, 8, 48);
+	
+	print("bvi: "+
+	  curr_chunk_ids["O"].b.bvi[0]+" "+
+		curr_chunk_ids["O"].b.bvi[1]+" "+
+		curr_chunk_ids["O"].b.bvi[2]+" "+
+		curr_chunk_ids["O"].b.bvi[3], 
+	8, 180);
+	
 	if (cbs.length > 0) {
 		
 		print(cbs.length+" specials:", 8, 56)
@@ -9209,64 +9522,65 @@ function draw_world_chunks_canopy() {
 	
 	draw(render_map_above, 0-(pw.x%128+n_x)-ABOVE_X_OFFSET*8, 0-(pw.y%128+n_y)-CHUNK_Y_OFFSET-ABOVE_Y_OFFSET*8);
 	draw(render_map_canopy, 0-(pw.x%128+n_x)-CANOPY_X_OFFSET*8, 0-(pw.y%128+n_y)-CHUNK_Y_OFFSET-CANOPY_Y_OFFSET*8);
+	draw(render_map_canopy_1, 0-(pw.x%128+n_x)-CANOPY_X_OFFSET*8, 0-(pw.y%128+n_y)-CHUNK_Y_OFFSET-CANOPY_Y_OFFSET*8);
 	
 	
 	
 	// MINI MAP
-	let sprite_id = 330;
-	sprite_id = mini_map(curr_chunk_ids["O"].b.biome);
+	let sprite_id = 960;
+	sprite_id = mini_map(curr_chunk_ids["O"].b);
 	sprite(sprite_id, 202, 22);
-	sprite_id = mini_map(curr_chunk_ids["r"].b.biome);
+	sprite_id = mini_map(curr_chunk_ids["r"].b);
 	sprite(sprite_id, 200, 20);
-	sprite_id = mini_map(curr_chunk_ids["T"].b.biome);
+	sprite_id = mini_map(curr_chunk_ids["T"].b);
 	sprite(sprite_id, 202, 20);
-	sprite_id = mini_map(curr_chunk_ids["7"].b.biome);
+	sprite_id = mini_map(curr_chunk_ids["7"].b);
 	sprite(sprite_id, 204, 20);
-	sprite_id = mini_map(curr_chunk_ids["E"].b.biome);
+	sprite_id = mini_map(curr_chunk_ids["E"].b);
 	sprite(sprite_id, 200, 22);
-	sprite_id = mini_map(curr_chunk_ids["3"].b.biome);
+	sprite_id = mini_map(curr_chunk_ids["3"].b);
 	sprite(sprite_id, 204, 22);
-	sprite_id = mini_map(curr_chunk_ids["L"].b.biome);
+	sprite_id = mini_map(curr_chunk_ids["L"].b);
 	sprite(sprite_id, 200, 24);
-	sprite_id = mini_map(curr_chunk_ids["U"].b.biome);
+	sprite_id = mini_map(curr_chunk_ids["U"].b);
 	sprite(sprite_id, 202, 24);
-	sprite_id = mini_map(curr_chunk_ids["J"].b.biome);
+	sprite_id = mini_map(curr_chunk_ids["J"].b);
 	sprite(sprite_id, 204, 24);
 	
-	sprite_id = mini_map(curr_chunk_ids["rr"].b.biome);
+	sprite_id = mini_map(curr_chunk_ids["rr"].b);
 	sprite(sprite_id, 198, 18);
-	sprite_id = mini_map(curr_chunk_ids["rT"].b.biome);
+	sprite_id = mini_map(curr_chunk_ids["rT"].b);
 	sprite(sprite_id, 200, 18);
-	sprite_id = mini_map(curr_chunk_ids["TT"].b.biome);
+	sprite_id = mini_map(curr_chunk_ids["TT"].b);
 	sprite(sprite_id, 202, 18);
-	sprite_id = mini_map(curr_chunk_ids["T7"].b.biome);
+	sprite_id = mini_map(curr_chunk_ids["T7"].b);
 	sprite(sprite_id, 204, 18);
-	sprite_id = mini_map(curr_chunk_ids["77"].b.biome);
+	sprite_id = mini_map(curr_chunk_ids["77"].b);
 	sprite(sprite_id, 206, 18);
 	
-	sprite_id = mini_map(curr_chunk_ids["Er"].b.biome);
+	sprite_id = mini_map(curr_chunk_ids["Er"].b);
 	sprite(sprite_id, 198, 20);
-	sprite_id = mini_map(curr_chunk_ids["EE"].b.biome);
+	sprite_id = mini_map(curr_chunk_ids["EE"].b);
 	sprite(sprite_id, 198, 22);
-	sprite_id = mini_map(curr_chunk_ids["EL"].b.biome);
+	sprite_id = mini_map(curr_chunk_ids["EL"].b);
 	sprite(sprite_id, 198, 24);
 	
-	sprite_id = mini_map(curr_chunk_ids["73"].b.biome);
+	sprite_id = mini_map(curr_chunk_ids["73"].b);
 	sprite(sprite_id, 206, 20);
-	sprite_id = mini_map(curr_chunk_ids["33"].b.biome);
+	sprite_id = mini_map(curr_chunk_ids["33"].b);
 	sprite(sprite_id, 206, 22);
-	sprite_id = mini_map(curr_chunk_ids["J3"].b.biome);
+	sprite_id = mini_map(curr_chunk_ids["J3"].b);
 	sprite(sprite_id, 206, 24);
 	
-	sprite_id = mini_map(curr_chunk_ids["LL"].b.biome);
+	sprite_id = mini_map(curr_chunk_ids["LL"].b);
 	sprite(sprite_id, 198, 26);
-	sprite_id = mini_map(curr_chunk_ids["LU"].b.biome);
+	sprite_id = mini_map(curr_chunk_ids["LU"].b);
 	sprite(sprite_id, 200, 26);
-	sprite_id = mini_map(curr_chunk_ids["UU"].b.biome);
+	sprite_id = mini_map(curr_chunk_ids["UU"].b);
 	sprite(sprite_id, 202, 26);
-	sprite_id = mini_map(curr_chunk_ids["UJ"].b.biome);
+	sprite_id = mini_map(curr_chunk_ids["UJ"].b);
 	sprite(sprite_id, 204, 26);
-	sprite_id = mini_map(curr_chunk_ids["JJ"].b.biome);
+	sprite_id = mini_map(curr_chunk_ids["JJ"].b);
 	sprite(sprite_id, 206, 26);
 
 }

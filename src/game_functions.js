@@ -37,34 +37,34 @@ export function init_curr_chunk_ids(cx,cy) {
 	
 	let curr_chunk_ids_ = {
 	
-		"r": { cid: (cx-1).toString()+"_"+(cy-1).toString(), x: cx-1, y: cy-1, b: {}, s: 0 }, 
+		"r": { cid: (cx-1).toString()+"_"+(cy-1).toString(), x: cx-1, y: cy-1, b: {}, s: 0, bvi: {} }, 
 		"T": { cid: cx.toString()+"_"+(cy-1).toString(), x: cx, y: cy-1, b: {}, s: 0 }, 
-		"7": { cid: (cx+1).toString()+"_"+(cy-1).toString(), x: cx+1, y: cy-1, b: {}, s: 0 },
-		"E": { cid: (cx-1).toString()+"_"+cy.toString(), x: cx-1, y: cy, b: {}, s: 0 }, 
+		"7": { cid: (cx+1).toString()+"_"+(cy-1).toString(), x: cx+1, y: cy-1, b: {}, s: 0, bvi: {} },
+		"E": { cid: (cx-1).toString()+"_"+cy.toString(), x: cx-1, y: cy, b: {}, s: 0, bvi: {} }, 
 
-		"O": { cid: cx.toString()+"_"+cy.toString(), x: cx, y: cy, b: {}, s: 0 }, 
+		"O": { cid: cx.toString()+"_"+cy.toString(), x: cx, y: cy, b: {}, s: 0, bvi: {} }, 
 
-		"3": { cid: (cx+1).toString()+"_"+cy.toString(), x: cx+1, y: cy, b: {}, s: 0 },
-		"L": { cid: (cx-1).toString()+"_"+(cy+1).toString(), x: cx-1, y: cy+1, b: {}, s: 0 }, 
-		"U": { cid: cx.toString()+"_"+(cy+1).toString(), x: cx, y: cy+1, b: {}, s: 0 }, 
-		"J": { cid: (cx+1).toString()+"_"+(cy+1).toString(), x: cx+1, y: cy+1, b: {}, s: 0 },
+		"3": { cid: (cx+1).toString()+"_"+cy.toString(), x: cx+1, y: cy, b: {}, s: 0, bvi: {} },
+		"L": { cid: (cx-1).toString()+"_"+(cy+1).toString(), x: cx-1, y: cy+1, b: {}, s: 0, bvi: {} }, 
+		"U": { cid: cx.toString()+"_"+(cy+1).toString(), x: cx, y: cy+1, b: {}, s: 0, bvi: {} }, 
+		"J": { cid: (cx+1).toString()+"_"+(cy+1).toString(), x: cx+1, y: cy+1, b: {}, s: 0, bvi: {} },
 
-		"rr": { cid: (cx-2).toString()+"_"+(cy-2).toString(), x: cx-2, y: cy-2, b: {}, s: 0 },
-		"rT": { cid: (cx-1).toString()+"_"+(cy-2).toString(), x: cx-1, y: cy-2, b: {}, s: 0 },
-		"TT": { cid: cx.toString()+"_"+(cy-2).toString(), x: cx, y: cy-2, b: {}, s: 0 },
-		"T7": { cid: (cx+1).toString()+"_"+(cy-2).toString(), x: cx+1, y: cy-2, b: {}, s: 0 },
-		"77": { cid: (cx+2).toString()+"_"+(cy-2).toString(), x: cx+2, y: cy-2, b: {}, s: 0 },
-		"Er": { cid: (cx-2).toString()+"_"+(cy-1).toString(), x: cx-2, y: cy-1, b: {}, s: 0 }, 
-		"EE": { cid: (cx-2).toString()+"_"+cy.toString(), x: cx-2, y: cy, b: {}, s: 0 }, 
-		"EL": { cid: (cx-2).toString()+"_"+(cy+1).toString(), x: cx-2, y: cy+1, b: {}, s: 0 }, 
-		"73": { cid: (cx+2).toString()+"_"+(cy-1).toString(), x: cx+2, y: cy-1, b: {}, s: 0 }, 
-		"33": { cid: (cx+2).toString()+"_"+cy.toString(), x: cx+2, y: cy, b: {}, s: 0 }, 
-		"J3": { cid: (cx+2).toString()+"_"+(cy+1).toString(), x: cx+2, y: cy+1, b: {}, s: 0 }, 
-		"LL": { cid: (cx-2).toString()+"_"+(cy+2).toString(), x: cx-2, y: cy+2, b: {}, s: 0 }, 
-		"LU": { cid: (cx-1).toString()+"_"+(cy+2).toString(), x: cx-1, y: cy+2, b: {}, s: 0 }, 
-		"UU": { cid: cx.toString()+"_"+(cy+2).toString(), x: cx, y: cy+2, b: {}, s: 0 }, 
-		"UJ": { cid: (cx+1).toString()+"_"+(cy+2).toString(), x: cx+1, y: cy+2, b: {}, s: 0 }, 
-		"JJ": { cid: (cx+2).toString()+"_"+(cy+2).toString(), x: cx+2, y: cy+2, b: {}, s: 0 }
+		"rr": { cid: (cx-2).toString()+"_"+(cy-2).toString(), x: cx-2, y: cy-2, b: {}, s: 0, bvi: {} },
+		"rT": { cid: (cx-1).toString()+"_"+(cy-2).toString(), x: cx-1, y: cy-2, b: {}, s: 0, bvi: {} },
+		"TT": { cid: cx.toString()+"_"+(cy-2).toString(), x: cx, y: cy-2, b: {}, s: 0, bvi: {} },
+		"T7": { cid: (cx+1).toString()+"_"+(cy-2).toString(), x: cx+1, y: cy-2, b: {}, s: 0, bvi: {} },
+		"77": { cid: (cx+2).toString()+"_"+(cy-2).toString(), x: cx+2, y: cy-2, b: {}, s: 0, bvi: {} },
+		"Er": { cid: (cx-2).toString()+"_"+(cy-1).toString(), x: cx-2, y: cy-1, b: {}, s: 0, bvi: {} }, 
+		"EE": { cid: (cx-2).toString()+"_"+cy.toString(), x: cx-2, y: cy, b: {}, s: 0, bvi: {} }, 
+		"EL": { cid: (cx-2).toString()+"_"+(cy+1).toString(), x: cx-2, y: cy+1, b: {}, s: 0, bvi: {} }, 
+		"73": { cid: (cx+2).toString()+"_"+(cy-1).toString(), x: cx+2, y: cy-1, b: {}, s: 0, bvi: {} }, 
+		"33": { cid: (cx+2).toString()+"_"+cy.toString(), x: cx+2, y: cy, b: {}, s: 0, bvi: {} }, 
+		"J3": { cid: (cx+2).toString()+"_"+(cy+1).toString(), x: cx+2, y: cy+1, b: {}, s: 0, bvi: {} }, 
+		"LL": { cid: (cx-2).toString()+"_"+(cy+2).toString(), x: cx-2, y: cy+2, b: {}, s: 0, bvi: {} }, 
+		"LU": { cid: (cx-1).toString()+"_"+(cy+2).toString(), x: cx-1, y: cy+2, b: {}, s: 0, bvi: {} }, 
+		"UU": { cid: cx.toString()+"_"+(cy+2).toString(), x: cx, y: cy+2, b: {}, s: 0, bvi: {} }, 
+		"UJ": { cid: (cx+1).toString()+"_"+(cy+2).toString(), x: cx+1, y: cy+2, b: {}, s: 0, bvi: {} }, 
+		"JJ": { cid: (cx+2).toString()+"_"+(cy+2).toString(), x: cx+2, y: cy+2, b: {}, s: 0, bvi: {} }
 	
 	};
 	
@@ -72,21 +72,190 @@ export function init_curr_chunk_ids(cx,cy) {
 }
 
 
-export function g(seed, ch2="") {
+
+// 40s are forest
+
+function forest(seed, bvi) {
+	
+	let iR = 0;
+	var chunk = [...Array(16)].map(_ => Array(16).fill(0));
+	var chunk_canopy = [...Array(16)].map(_ => Array(16).fill(0));
+	
+	for (let yy=0; yy<16; yy++) {
+		for (let xx=0; xx<16; xx++) {
+		  let rr = Math.floor(seed[iR]*(2));
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			chunk[yy][xx] = 100+rr;
+		}
+	}
+	
+	
+	//let xi = 8;
+	//let yi = 0;
+	//let randr = 1;
+	let randx = 0;
+	let randy = 0;
+	
+	let tree_type = 41;
+	
+	if (bvi) {
+		//console.log(bvi);
+		if (bvi[1]) {
+			//console.log("3");
+			tree_type = 42;
+		}
+	}
+	//let tree_type = bvi[1] ? 41+64 : 41;
+	
+	for (let i=0; i<15; i++) {
+		randx = 0 + Math.floor(seed[iR]*(15-0)); // min + seed[iR] * (max - min)
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+		randy = 0 + Math.floor(seed[iR]*(15-0)); // min + seed[iR] * (max - min)
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+		
+		chunk[randy][randx] = tree_type;
+		try { 
+			if (![41, 42].includes(chunk[randy-1][randx-1])) {
+				chunk[randy-1][randx-1] = 0; 
+			}
+		} catch {}
+		try { 
+			if (![41, 42].includes(chunk[randy-1][randx])) {
+				chunk[randy-1][randx] = 0; 
+			}
+		} catch {}
+		try { 
+			if (![41, 42].includes(chunk[randy-1][randx+1])) {
+				chunk[randy-1][randx+1] = 0; 
+			}
+		} catch {}
+		try { 
+			if (![41, 42].includes(chunk[randy][randx-1])) {
+				chunk[randy][randx-1] = 0;
+			}
+		} catch {}
+		try { 
+			if (![41, 42].includes(chunk[randy][randx+1])) {
+			  chunk[randy][randx+1] = 0; 
+			}
+		} catch {}
+		try { 
+			if (![41, 42].includes(chunk[randy+1][randx-1])) {
+				chunk[randy+1][randx-1] = 0; 
+			}
+		} catch {}
+		try { 
+			if (![41, 42].includes(chunk[randy+1][randx])) {
+				chunk[randy+1][randx] = 0; 
+			}
+		} catch {}
+		try { 
+			if (![41, 42].includes(chunk[randy+1][randx+1])) {
+				chunk[randy+1][randx+1] = 0; 
+			}
+		} catch {}
+		
+		
+		/*
+		try { chunk_canopy[randy-1][randx-1] = 2; } catch {}
+		try { chunk_canopy[randy-1][randx] = 2; } catch {}
+		try { chunk_canopy[randy-1][randx+1] = 2; } catch {}
+		try { chunk_canopy[randy][randx-1] = 2; } catch {}
+		try { chunk_canopy[randy][randx] = 2; } catch {}
+		try { chunk_canopy[randy][randx+1] = 2; } catch {}
+		try { chunk_canopy[randy+1][randx-1] = 2; } catch {}
+		try { chunk_canopy[randy+1][randx] = 2; } catch {}
+		try { chunk_canopy[randy+1][randx+1] = 2; } catch {}
+		/**/
+		//let random_height = 3 + Math.floor(seed[iR]*(6));
+		//iR = iR >= seed.length-1 ? 0 : iR+1;
+		
+		
+		//for (let h=1; h<random_height && randy-h; h++) {
+		//	try { chunk[randy-h][randx] = 40; } catch {}	
+		//}
+	}
+	
+	
+	
+	return chunk; //[chunk, chunk_canopy];
+}
+
+
+// 60s are mountains
+export function rocky(seed, bvi) {
+	let iR = 0;
+	var chunk = [...Array(16)].map(_ => Array(16).fill(0));
+	
+	let N = 1;
+	
+	if (bvi[0]) {
+		N += 2;
+	}
+	if (bvi[1]) {
+		N += 5;
+	}
+	if (bvi[2]) {
+		N += 10;
+	}
+	if (bvi[3]) {
+		N += 30;
+	}
+	if (bvi[4]) {
+		N += 60;
+	}
+	
+	
+	for (let i=0; i<N; i++) {
+		let rx = Math.floor(seed[iR]*(16));
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+		let ry = Math.floor(seed[iR]*(16));
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+		
+		chunk[ry][rx] = 60;
+		
+		
+		//try { chunk[ry][rx+1] = 60 } catch {}
+		//try { chunk[ry+1][rx] = 60 } catch {}
+		//try { chunk[ry+1][rx+1] = 60 } catch {}
+		
+	}
+	
+	return chunk;
+}
+
+
+// this is where the forest and mountain biomes are determined
+export function g(seed, b2, bvi) {//, ch2="") {
 	let iR = 0;
 	var chunk = [...Array(16)].map(_ => Array(16).fill(0));
 	var chunk_canopy = [...Array(16)].map(_ => Array(16).fill(0));
 	//console.log(ch2);
 	//console.log(ch2 == "f");
-	if (ch2 == "f") {
-		//console.log("fffffff");
-		[chunk, chunk_canopy] = forest(seed);
+	if (b2 == "f") {
+		chunk = forest(seed, bvi);
+	} else if (b2 == "m") {
+		chunk = rocky(seed, bvi);
+	} else {
+		
+		for (let yy=0; yy<16; yy++) {
+			for (let xx=0; xx<16; xx++) {
+			  let rr = Math.floor(seed[iR]*(4));
+				iR = iR >= seed.length-1 ? 0 : iR+1;
+				chunk[yy][xx] = 110+rr;
+			}
+		}
+		
 	}
 	
 	//console.log(chunk);
-	return [chunk, chunk_canopy];
+	return chunk;//[chunk, chunk_canopy];
 	
 }
+
+
+
+
 
 export function g7(seed) {
 	
@@ -1006,82 +1175,7 @@ export function wlbwe(seed) {
 
 
 
-function forest(seed) {
-	
-	let iR = 0;
-	var chunk = [...Array(16)].map(_ => Array(16).fill(0));
-	var chunk_canopy = [...Array(16)].map(_ => Array(16).fill(0));
-	
-	//let xi = 8;
-	//let yi = 0;
-	//let randr = 1;
-	let randx = 0;
-	let randy = 0;
-	
-	for (let i=0; i<15; i++) {
-		randx = 0 + Math.floor(seed[iR]*(15-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		randy = 0 + Math.floor(seed[iR]*(15-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		
-		chunk[randy][randx] = 41;
-		
-		
-		try { chunk_canopy[randy-1][randx-1] = 2; } catch {}
-		try { chunk_canopy[randy-1][randx] = 2; } catch {}
-		try { chunk_canopy[randy-1][randx+1] = 2; } catch {}
-		try { chunk_canopy[randy][randx-1] = 2; } catch {}
-		try { chunk_canopy[randy][randx] = 2; } catch {}
-		try { chunk_canopy[randy][randx+1] = 2; } catch {}
-		try { chunk_canopy[randy+1][randx-1] = 2; } catch {}
-		try { chunk_canopy[randy+1][randx] = 2; } catch {}
-		try { chunk_canopy[randy+1][randx+1] = 2; } catch {}
-		
-		//let random_height = 3 + Math.floor(seed[iR]*(6));
-		//iR = iR >= seed.length-1 ? 0 : iR+1;
-		
-		
-		//for (let h=1; h<random_height && randy-h; h++) {
-		//	try { chunk[randy-h][randx] = 40; } catch {}	
-		//}
-	}
-	
-	/*
-	// large canopy
-	for (let i=0; i<4; i++) {
-		randx = 0 + Math.floor(seed[iR]*(15-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		randy = 0 + Math.floor(seed[iR]*(15-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		
-		try { chunk[randy][randx] = 2; } catch (e) {}
-	  try { chunk[randy][randx+1] = 2; } catch (e) {}
-		try {	chunk[randy+1][randx] = 2; } catch (e) {}
-		try {	chunk[randy+1][randx+1] = 2; } catch (e) {}
-	}/**/
-	
-	
-	//   41 42
-	//   43 44
-	
-	/*
-	// small canopy
-	for (let i=0; i<30; i++) {
-		randx = 0 + Math.floor(seed[iR]*(16-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		randy = 0 + Math.floor(seed[iR]*(16-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		
-		try { chunk[randy][randx] = 2; } catch (e) {}
-	  
-	}/**/
-	
-	//chunk[7][8] = 40;
-	//chunk[8][8] = 41;
-	
-	
-	return [chunk, chunk_canopy];
-}
+
 
 
 
@@ -1162,6 +1256,199 @@ export function wo(seed) {
 	  try { chunk[randy][randx+1] = 1; } catch (e) {}
 		try {	chunk[randy+1][randx] = 1; } catch (e) {}
 		try {	chunk[randy+1][randx+1] = 1; } catch (e) {}
+	}
+	
+	
+	return chunk;
+	
+}
+
+// water edge top
+export function weT(seed) {
+	
+	
+	let iR = 0;
+	var chunk = [...Array(16)].map(_ => Array(16).fill(1));
+	
+	
+	let ry = 0;
+	let rx = 1;
+	let xi = 0;
+	
+	let rugged = 0 + Math.floor(seed[iR]*(2-0));
+	
+	if (rugged) {
+		while (xi<16) {
+			let middle = 4 < xi && xi < 12 ? (6 < xi && xi < 10 ? 2 : 1) : 0;
+			rx = 1 + Math.floor(seed[iR]*(2-0));
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			ry =  middle + Math.floor(seed[iR]*(3-0));
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			for (let n=xi; n<xi+rx && n<16; n++) {
+				for (let yi=0; yi<ry; yi++) {
+					chunk[15-yi][n] = 0;
+				}
+			}
+			xi += rx;
+		}
+	} else {
+		while (xi<16) {
+			let middle = 4 < xi && xi < 12 ? 1 : 0;
+			rx = 1 + Math.floor(seed[iR]*(6-0));
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			ry =  middle + Math.floor(seed[iR]*(2-0));
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			for (let n=xi; n<xi+rx && n<16; n++) {
+				for (let yi=0; yi<ry; yi++) {
+					chunk[15-yi][n] = 0;
+				}
+			}
+			xi += rx;
+		}
+	}
+	
+	
+	return chunk;
+	
+}
+
+// water edge left
+export function weE(seed) {
+	
+	
+	let iR = 0;
+	var chunk = [...Array(16)].map(_ => Array(16).fill(1));
+	
+	
+	let ry = 0;
+	let rx = 1;
+	let xi = 0;
+	
+	let rugged = 0 + Math.floor(seed[iR]*(2-0));
+	
+	if (rugged) {
+		while (xi<16) {
+			let middle = 4 < xi && xi < 12 ? (6 < xi && xi < 10 ? 2 : 1) : 0;
+			rx = 1 + Math.floor(seed[iR]*(2-0));
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			ry =  middle + Math.floor(seed[iR]*(3-0));
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			for (let n=xi; n<xi+rx && n<16; n++) {
+				for (let yi=0; yi<ry; yi++) {
+					chunk[n][15-yi] = 0;
+				}
+			}
+			xi += rx;
+		}
+	} else {
+		while (xi<16) {
+			let middle = 4 < xi && xi < 12 ? 1 : 0;
+			rx = 1 + Math.floor(seed[iR]*(6-0));
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			ry =  middle + Math.floor(seed[iR]*(2-0));
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			for (let n=xi; n<xi+rx && n<16; n++) {
+				for (let yi=0; yi<ry; yi++) {
+					chunk[n][15-yi] = 0;
+				}
+			}
+			xi += rx;
+		}
+	}
+	
+	return chunk;
+	
+}
+
+//water edge right
+export function we3(seed) {
+	
+	
+	let iR = 0;
+	var chunk = [...Array(16)].map(_ => Array(16).fill(1));
+	
+	let ry = 0;
+	let rx = 1;
+	let xi = 0;
+	
+	let rugged = 0 + Math.floor(seed[iR]*(2-0));
+	
+	if (rugged) {
+		while (xi<16) {
+			let middle = 4 < xi && xi < 12 ? (6 < xi && xi < 10 ? 2 : 1) : 0;
+			rx = 1 + Math.floor(seed[iR]*(2-0));
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			ry =  middle + Math.floor(seed[iR]*(3-0));
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			for (let n=xi; n<xi+rx && n<16; n++) {
+				for (let yi=0; yi<ry; yi++) {
+					chunk[n][yi] = 0;
+				}
+			}
+			xi += rx;
+		}
+	} else {
+		while (xi<16) {
+			let middle = 4 < xi && xi < 12 ? 1 : 0;
+			rx = 1 + Math.floor(seed[iR]*(6-0));
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			ry =  middle + Math.floor(seed[iR]*(2-0));
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			for (let n=xi; n<xi+rx && n<16; n++) {
+				for (let yi=0; yi<ry; yi++) {
+					chunk[n][yi] = 0;
+				}
+			}
+			xi += rx;
+		}
+	}
+	
+	return chunk;
+	
+}
+
+// water edge bottom
+export function weU(seed) {
+	
+	
+	let iR = 0;
+	var chunk = [...Array(16)].map(_ => Array(16).fill(1));
+	
+	
+	let ry = 0;
+	let rx = 1;
+	let xi = 0;
+	
+	let rugged = 0 + Math.floor(seed[iR]*(2-0));
+	//console.log(rugged+"?");
+	if (rugged) {
+		while (xi<16) {
+			let middle = 4 < xi && xi < 12 ? (6 < xi && xi < 10 ? 2 : 1) : 0;
+			rx = 1 + Math.floor(seed[iR]*(2-0));
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			ry =  middle + Math.floor(seed[iR]*(3-0));
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			for (let n=xi; n<xi+rx && n<16; n++) {
+				for (let yi=0; yi<ry; yi++) {
+					chunk[yi][n] = 0;
+				}
+			}
+			xi += rx;
+		}
+	} else {
+		while (xi<16) {
+			let middle = 4 < xi && xi < 12 ? 1 : 0;
+			rx = 1 + Math.floor(seed[iR]*(6-0));
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			ry =  middle + Math.floor(seed[iR]*(2-0));
+			iR = iR >= seed.length-1 ? 0 : iR+1;
+			for (let n=xi; n<xi+rx && n<16; n++) {
+				for (let yi=0; yi<ry; yi++) {
+					chunk[yi][n] = 0;
+				}
+			}
+			xi += rx;
+		}
 	}
 	
 	
@@ -2458,11 +2745,20 @@ function is_special(x_,y_) {
 }
 
 
+/*
+
+===============
+
+GET BIOME INFORMATION
+
+---------------
+
+/**/
 
 function get_biome_value(x_,y_,res) {
-	let N = 15*res;
+	let N = 15*res; // 15* res
 	
-	let dxs = [...Array(N)].map((n,i) => i*2+N*100 );
+	let dxs = [...Array(N)].map((n,i) => i*2+N*100 ); // N*100
 	let dys = [...Array(N)].map((n,i) => i*3+N );
 	
 	let xs = dxs.map(dx_ => x_+dx_);
@@ -2491,6 +2787,7 @@ export function get_biome_info(x, y) {
 	let difficulty = Math.floor(Math.sqrt(radius));
 	
 	let xyo = is_special(x,y);
+	let bvi = biome_variance_index(x,y);
 	
 	let z1 = "";
 	let z2 = "";
@@ -2630,6 +2927,8 @@ export function get_biome_info(x, y) {
 		if (biome !== "w" && biome !== "g") {
 			if (["f"].includes(biome)) {
 				biome2 = "f";
+			} else if (["m"].includes(biome)) {
+				biome2 = "m"; // edge of grass, not full mountain
 			}
 			biome = "g";
 		}
@@ -2641,10 +2940,106 @@ export function get_biome_info(x, y) {
 		"difficulty": difficulty,
 		"color": color,
 		"special": xyo,
+		"bvi": bvi
 	};
 	
 	
 }
+
+
+// -------- further biome random spread
+
+function variance_setup(xx, yy, xoffset, yoffset, sparse) {
+	//console.log(xx, yy, xoffset, yoffset, sparse);
+	let x = xx+xoffset;
+	let y = yy+yoffset;
+	let p = (x*y)+((x-y)*(x+y));
+	
+	//console.log((p%2+p%3-p%5+p%7-p%9)+"  "+(p%2-p%3+p%5-p%7+p%9-p%13-p%17-p%19-p%23));
+	
+	let q = 0;
+	
+	switch (sparse) {
+	  case 0:
+		  q = !(p%2+p%3-p%5+p%7-p%9);
+		  break;
+	  case 1:
+		  q = !(p%2-p%3-p%5+p%7-p%9);//+p%13);//+p%17-p%19);
+		  break;
+	  case 2:
+		  q = !(p%2-p%3+p%5-p%7-p%9-p%13+p%17+p%19);
+		  break;
+	  case 3:
+		  q = !(p%2-p%3+p%5-p%7+p%9+p%13);//+p%17-p%19);
+		  break;
+	  case 4:
+		  q = !(p%2+p%3+p%5-p%7+p%9+p%13);//+p%17-p%19);
+		  break;
+	  case 5:
+		  q = !(p%2-p%3-p%5+p%7-p%9-p%13-p%17+p%19-p%23);
+		  break;
+	  case 6:
+		  q = !(p%2+p%3-p%5-p%7+p%9-p%13-p%17-p%19);
+		  break;
+		case 7:
+		  q = !(p%2-p%3+p%5-p%7+p%9-p%13-p%17-p%19-p%23);
+		  break;
+	}
+	
+	//console.log(q);
+	
+	return q;
+}
+
+function variance(x,y, s) {
+	
+	let q1 = variance_setup(x,y,0,0, s);
+	let q2 = variance_setup(x,y,90,20, s);
+	let q3 = variance_setup(x,y,0,990, s);
+	let q4 = variance_setup(x,y,-71,0, s);
+	let q5 = variance_setup(x,y,222,431, s);
+	let q6 = variance_setup(x,y,22,-4311, s);
+	let q7 = variance_setup(x,y,-222,-93108, s);
+	
+	let result = q1 || q2 || q3 || q4 || q5 || q6 || q7;
+	
+	//console.log(result);
+	return result;
+	
+}
+
+function biome_variance_index(x,y) {
+		
+		let bvi = {
+			0: false, 
+			1: false, 
+			2: false, 
+			3: false, 
+			4: false, 
+			5: false, 
+			6: false, 
+			7: false 
+		};
+		
+		if (x == 0 && y == 0) {
+			return bvi;
+	  };
+		
+		
+		bvi[0] = variance(x,y,0);
+		bvi[1] = variance(x,y,1);
+		bvi[2] = variance(x,y,2);
+		bvi[3] = variance(x,y,3);
+		bvi[4] = variance(x,y,4);
+		bvi[5] = variance(x,y,5);
+		bvi[6] = variance(x,y,6);
+		bvi[7] = variance(x,y,7);
+		
+		//console.log(bvi);
+		return bvi;
+}
+		
+
 
 
 /*
@@ -2709,6 +3104,12 @@ b_neg
 */
 
 
+
+
+
+
+
+
 const DIR = {
 		"r": { "up": "rT", "left": "Er", "right": "T", "down": "E", "uLeft": "rr", "uRight": "TT", "dLeft": "EE", "dRight": "O" }, 
 		"T": { "up": "TT", "left": "r", "right": "7", "down": "O", "uLeft": "rT", "uRight": "T7", "dLeft": "E", "dRight": "3"  }, 
@@ -2739,13 +3140,14 @@ const DIR = {
 };
 const CHUNK_ITER = ["r", "T", "7", "E", "O", "3", "L", "U", "J"];
 
-export function get_chunk_shapes(m) {
+export function get_chunk_shapes(m) { // m stands for 'map' I guess
 	
 	
 	
 	for (let i=0; i<CHUNK_ITER.length; i++) {
 		let cid = CHUNK_ITER[i];
 		let biome = m[cid].b["biome"];
+		let biome2 = m[cid].b["biome2"];
 		
 		// temporary
 		if (0) {
@@ -2753,6 +3155,13 @@ export function get_chunk_shapes(m) {
 				biome = "g";
 			}
 		}
+		
+		if (1) {
+			// if biome2 is surrounded by mountains, then this biome should be M
+			if (biome2.charAt(0) === "m") {
+				
+			}
+		} //
 		
 		switch (biome) {
 			case "f":
@@ -2820,6 +3229,15 @@ export function get_chunk_shapes(m) {
 				if (
 					m[ DIR[cid].up ].b["biome"] == "m" && 
 					m[ DIR[cid].left ].b["biome"] == "m" && 
+					m[ DIR[cid].right ].b["biome"] == "m" &&
+					m[ DIR[cid].down ].b["biome"] == "m"
+				) {
+					m[cid].s = "M";
+				}
+				/*
+				if (
+					m[ DIR[cid].up ].b["biome"] == "m" && 
+					m[ DIR[cid].left ].b["biome"] == "m" && 
 					m[ DIR[cid].right ].b["biome"] !== "m" &&
 					m[ DIR[cid].down ].b["biome"] !== "m"
 				) {
@@ -2876,6 +3294,7 @@ export function get_chunk_shapes(m) {
 				} else {
 					m[cid].s = "m";
 				}
+				/**/
 				break;
 			case "d":
 				if (
@@ -3212,6 +3631,42 @@ export function get_chunk_shapes(m) {
 					m[ DIR[cid].down ].b["biome"] == "g" 
 				) {
 					m[cid].s = "wo"; // small water lake
+				} else if (
+					m[ DIR[cid].up ].b["biome"] == "w" && 
+					m[ DIR[cid].left ].b["biome"] == "w" && 
+					m[ DIR[cid].right ].b["biome"] == "w" &&
+					m[ DIR[cid].dLeft ].b["biome"] == "g" &&
+					m[ DIR[cid].down ].b["biome"] == "g" &&
+					m[ DIR[cid].dRight ].b["biome"] == "g" 
+				) {
+					m[cid].s = "weT"; // water edge top
+				} else if (
+					m[ DIR[cid].up ].b["biome"] == "w" && 
+					m[ DIR[cid].left ].b["biome"] == "w" && 
+					m[ DIR[cid].uRight ].b["biome"] == "g" &&
+					m[ DIR[cid].right ].b["biome"] == "g" &&
+					m[ DIR[cid].dRight ].b["biome"] == "g" &&
+					m[ DIR[cid].down ].b["biome"] == "w" 
+				) {
+					m[cid].s = "weE"; // water edge left
+				} else if (
+					m[ DIR[cid].up ].b["biome"] == "w" && 
+					m[ DIR[cid].uLeft ].b["biome"] == "g" && 
+					m[ DIR[cid].left ].b["biome"] == "g" && 
+					m[ DIR[cid].dLeft ].b["biome"] == "g" && 
+					m[ DIR[cid].right ].b["biome"] == "w" &&
+					m[ DIR[cid].down ].b["biome"] == "w" 
+				) {
+					m[cid].s = "we3"; // water edge right
+				} else if (
+					m[ DIR[cid].uLeft ].b["biome"] == "g" && 
+					m[ DIR[cid].up ].b["biome"] == "g" && 
+					m[ DIR[cid].uRight ].b["biome"] == "g" && 
+					m[ DIR[cid].left ].b["biome"] == "w" && 
+					m[ DIR[cid].right ].b["biome"] == "w" &&
+					m[ DIR[cid].down ].b["biome"] == "w" 
+				) {
+					m[cid].s = "weU"; // water edge bottom
 				} else {
 					m[cid].s = "w";
 				}
@@ -4553,6 +5008,16 @@ w7       wr
 
 
 */
+
+
+
+
+
+
+
+
+
+
 
 
 // ------- for testing DONT NEED -------- 
