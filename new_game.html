@@ -2,11 +2,11 @@
 	<head>
 		<title>Thal Pixelbox</title>
 		<meta charset="utf-8">
+		<!--meta name="viewport" content="width=device-width, initial-scale=1.0"-->
 		<link rel="stylesheet" type="text/css" href="build/styles.css">
 	</head>
-	<body style="display: flex; align-items: center; justify-content: center;">
+	<body style="display: flex; align-items: center; justify-content: center;" onMouseDown="pageDpad(event);" onMouseUp="pageDpadClear();">
 		<div><p></p>
-		
 		<!-- Firebase for Multiplayer -->
 		<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 		<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
@@ -17,8 +17,44 @@
 		  const firebaseConfig = {
 		    // copy paste here
 		  };
+			
+			sessionStorage.setItem("X", 0);
+			sessionStorage.setItem("Y", 0);
+			
 			// margin-right: 8px; margin-top: 8px;
 			//firebase.initializeApp(firebaseConfig);
+			function pageDpad(event) {
+				const width  = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+				const height = window.innerHeight|| document.documentElement.clientHeight|| document.body.clientHeight;
+				
+				let x = event.clientX;  // Horizontal
+				let y = event.clientY;  // Vertical
+				
+				let x_dir = 0;
+				let y_dir = 0;
+				if (x/width <= 0.3) {
+					x_dir = -1;
+				} else if (x/width >= 0.7) {
+					x_dir = 1;
+				}
+				
+				if (y/height <= 0.3) {
+					y_dir = -1;
+				} else if (y/height >= 0.7){
+					y_dir = 1;
+				}
+				
+				sessionStorage.setItem("X", x_dir);
+				sessionStorage.setItem("Y", y_dir);
+				
+				//console.log(x_dir+"   "+y_dir);
+			};
+			
+			function pageDpadClear() {
+				sessionStorage.setItem("X", 0);
+				sessionStorage.setItem("Y", 0);
+				//console.log("cleared");
+			}
 			
 		</script>
 		
@@ -32,7 +68,8 @@
 		<div>
 		</div>
     <button class="ng_button-6" id="refresh" onClick="reset_game();"> Reset Game </button>
-    <div class="row">
+    
+		<div class="row">
       <div class="ng_columnWID" id="World_ID" style="background-color:#ccd6c2; bottom: 10px">
         <h3>World ID</h3>
         <p id="world_id_info"></p>
@@ -40,11 +77,9 @@
       <div class="ng_columnPWD" id="Password" style="background-color:#7a6652; bottom: 10px">
         <h3>Password</h3>
         <p id="save_state_info"></p>
-      </div>
-		
+			</div>
     </div>
 		</div>
-    
     <script>
       function reset_game() {
         window.location.href='index.html';
@@ -52,7 +87,6 @@
 			
       document.getElementById("world_id_info").innerHTML = sessionStorage.getItem("ws");
       document.getElementById("save_state_info").innerHTML = sessionStorage.getItem("ss");
-			
     </script>
   </body>
   

@@ -20,8 +20,8 @@ import {
 var WHATAMI = 0;
 
 // temporary for chunks
-const INIT_X = 0;
-const INIT_Y = 0;
+const INIT_X = -11;
+const INIT_Y = -3;
 
 
 // Development/projects/thalgame
@@ -32,6 +32,8 @@ const INIT_Y = 0;
 const WORLD_ID = document.getElementById("world_id_info").innerHTML;
 const SAVE_STATE = document.getElementById("save_state_info").innerHTML;
 
+var X_CLICK = 0;
+var Y_CLICK = 0;
 
 
 
@@ -211,7 +213,51 @@ function player1_world_movement() {
 		if (gamepad1.btn["start"]) { if (GP.Start) { GP.Start = 2; } else { GP.Start = 1; } } else { GP.Start = 0; }
 		if (gamepad1.z >= 1) { GP.D = 1; } else { GP.D = 0; }
 		if (gamepad1.z <= -1) { GP.U = 1; } else { GP.U = 0; }
+	} else {
+		//document.getElementById("world_id_info").innerHTML;
+		// check if page was clicked (touch events)
+		//console.log(sessionStorage.getItem("X")+" "+sessionStorage.getItem("Y"));
+		
+		
+		switch (sessionStorage.getItem("X")) {
+			
+		  case "1":
+				//console.log("right");
+				GP.R = 1;
+				break;
+			case "-1":
+				//console.log("left");
+				GP.L = 1;
+				break;
+			default:
+				GP.R = 0;
+				GP.L = 0;
+				
+				
+			
+		}
+		
+		switch (sessionStorage.getItem("Y")) {
+		  case "1":
+				//console.log("down");
+				GP.D = 1;
+				break;
+			case "-1":
+				//console.log("up");
+				GP.U = 1;
+				break;
+			default:
+				GP.U = 0;
+				GP.D = 0;
+			
+		}
+		
+		
+		
+		
 	}
+	
+	
 	
 	if (btn.P) {
 		//pw.x = 2*8;
@@ -7969,7 +8015,13 @@ function build_chunk_shape(chunk_info) { //chs, cid, sp="", b2="", bvi={}) {
 			break;
 	}
 	*/
+	/* 
+		need to be able to change the main biome based on the secondary biome -- 
+			i.e. if surrounded by m tiles, the main biome should be "m"
+					if surrounded by "f" tiles, the main biome should be "f"
 	
+	
+	/**/ 
 	
 	
 	let ci = 0;
@@ -9144,7 +9196,7 @@ function update_world_chunks() {
 				}
 				
 				else if (tile_ === 60) {
-					render_map.set(chx+0, chy+0, main_map["image_mountain"][chy+1][chx+1] + 6*64 );
+					render_map.set(chx+0, chy+0, main_map["image_mountain"][chy+1][chx+1] + 5*64 );
 				}
 				
 				// forest

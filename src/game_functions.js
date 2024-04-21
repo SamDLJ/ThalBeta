@@ -205,6 +205,8 @@ export function rocky(seed, bvi) {
 		N += 60;
 	}
 	
+	N = 60;
+	
 	
 	for (let i=0; i<N; i++) {
 		let rx = Math.floor(seed[iR]*(16));
@@ -215,9 +217,9 @@ export function rocky(seed, bvi) {
 		chunk[ry][rx] = 60;
 		
 		
-		//try { chunk[ry][rx+1] = 60 } catch {}
-		//try { chunk[ry+1][rx] = 60 } catch {}
-		//try { chunk[ry+1][rx+1] = 60 } catch {}
+		try { chunk[ry][rx+1] = 60 } catch {}
+		try { chunk[ry+1][rx] = 60 } catch {}
+		try { chunk[ry+1][rx+1] = 60 } catch {}
 		
 	}
 	
