@@ -46,6 +46,8 @@ export const T = {
 	
 };
 
+
+
 export const platforms = [
   {
     image: 626,

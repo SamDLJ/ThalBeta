@@ -1956,7 +1956,7 @@
 		}
 	}
 	
-	if (1) {
+	if (0) {
 		forest_variance();
   }	
 	
@@ -1969,48 +1969,48 @@
 		//---------- EDIT HERE ----------
 		// functions finished: wL, w7, wJ, wr, wu, wn, wc, w3
 		
-		//let pixelData = weU(xx,yy);
+		let pixelData = wc(xx,yy);
 		//-------------------------------
 		
 		
 		
-		context.scale(SCALE, SCALE);
+		//context.scale(SCALE, SCALE);
 		
 		// turn on to see biome map
 		
 			
 		
-		context.translate(canvas.width / (SCALE*2), canvas.height / (SCALE*2));
+		//context.translate(canvas.width / (SCALE*2), canvas.height / (SCALE*2));
 		//context.translate(xx,yy);
 		
 		
 		if (1) {
 		
-		/*
+		
 			blackPixelData.forEach(([x, y, color]) => { 
 				context.fillStyle = color;
 				context.fillRect(x*SCALE+xx*SCALE*132, y*SCALE+yy*SCALE*132, SCALE*7, SCALE*7); // Draw a 1x1 pixel at (x, y) with the specified color
 			});/**/
 		
 		
-			
-	    pixelData.forEach(([x, y, color]) => {
+		  
+	    /*pixelData.forEach(([x, y, color]) => {
 	      context.fillStyle = color;
-	      context.fillRect(x*SCALE+xx*SCALE*1, y*SCALE+yy*SCALE*1, SCALE*3, SCALE*3); // Draw a 1x1 pixel at (x, y) with the specified color
+	      context.fillRect(x*SCALE+xx*SCALE*1, y*SCALE+yy*SCALE*1, SCALE*7, SCALE*7); // Draw a 1x1 pixel at (x, y) with the specified color
 	    });/**/
 		
 	
 			// bigger red squares ?
-			/*
+			
 	    pixelData.forEach(([x, y, color]) => {
 	      context.fillStyle = color;
-	      context.fillRect(x*SCALE+xx*SCALE*132, y*SCALE+yy*SCALE*132, SCALE*2, SCALE*2); // Draw a 1x1 pixel at (x, y) with the specified color
+	      context.fillRect(x*SCALE+xx*SCALE*132, y*SCALE+yy*SCALE*132, SCALE*7, SCALE*7); // Draw a 1x1 pixel at (x, y) with the specified color
 	    });/**/
 		
 		
 		
 			// -- This is the middle tile --
-			if (1) {
+			if (0) {
 	      context.fillStyle = "rgb(250,250,250)";
 	      context.fillRect(0, 0, SCALE*1, SCALE*1);
 			}
@@ -2019,7 +2019,7 @@
   }
 
   /*  36 randomized biome tiles  */
-	if (0) {
+	if (1) {
 	  // Call the function to draw the image
 		for (let y_=0; y_<6; y_++) {
 			for (let x_=0; x_<6; x_++) {
@@ -2029,7 +2029,7 @@
 	}
 	
 	/*  1 biome map  */
-	drawImageFromArray(0, 0);
+	//drawImageFromArray(0, 0);
   	
 	
 	

@@ -6,8 +6,8 @@ import { TERRAIN, ZEN, dot_order, pnode, PLAT_STYLE, BRANCH, T } from "./objects
 import { CHUNKS } from "./chunks.js";
 import { 
 	dot_, dot_image, dot_w, get_biome_info, get_chunk_shapes, init_curr_chunk_ids, biome_variance_index,
-	g, gL, gJ, g7, gr, 
-	wL, wJ, w7, wr, wu, wn, wc, w3, wo, weT, weU, weE, we3, wlhnt, wlhst, wlhet, wlhwt, wlbns, wlbwe,
+	herringbone_tile, m_chunk, w_chunk, d_chunk,
+	rocky,
  } from "./game_functions.js";
 
 //import { tileinfo } from "./objects.js";
@@ -20,8 +20,14 @@ import {
 var WHATAMI = 0;
 
 // temporary for chunks
-const INIT_X = -11;
-const INIT_Y = -3;
+const INIT_X = 0; // -11 //-69, -44
+const INIT_Y = 0; // 3 for mountains
+
+/*
+
+-69, -44  is in the middle of the big forest to the northwest
+
+*/
 
 
 // Development/projects/thalgame
@@ -179,7 +185,7 @@ function PRNG(input_string, n){
 
 //const seed = PRNG("who knows", 10000); // "Hello World" -> 0.6276661821175367, ...
 const seed = PRNG(WORLD_ID, 10000); // "Hello World" -> 0.6276661821175367, ...
-
+//const seed = PRNG("devil666", 10000); 
 // each area can have its own seed
 
 // how would this work if exported from another function?
@@ -293,34 +299,39 @@ function player1_world_movement() {
 	if (btn.R || GP.R) {
 		w_walking = 1;
 		going_left = false;
-		if (!([1,2,3,41].includes(check_world_grid(pw.x+2, pw.y)))) { //&& check_world_grid(pw.x+2, pw.y+4) !== 1) {
+		if (!([1,2,20,33,41,61,63,60,610,620,63620,64620,630,640,63610,64610,62610,64630].includes(check_world_grid(pw.x+2, pw.y)))) { //&& check_world_grid(pw.x+2, pw.y+4) !== 1) {
+			//console.log();
 			if (1) {
-				pw.x+=2; 
+				let xspeed = pw.x%3 ? 2 : 1;
+				pw.x+= xspeed; 
 			}
 	 	}
 	} else if (btn.L || GP.L) {
 		w_walking = 1;
 		going_left = true;
-		if (!([1,2,3,41].includes(check_world_grid(pw.x-2, pw.y)))) { //&& check_world_grid(pw.x-2, pw.y+4) !== 1) {
+		if (!([1,2,20,33,41,61,63,60,610,620,63620,64620,630,640,63610,64610,62610,64630].includes(check_world_grid(pw.x-2, pw.y)))) { //&& check_world_grid(pw.x-2, pw.y+4) !== 1) {
 			if (1) {
-				pw.x-=2; 
+				let xspeed = pw.x%3 ? 2 : 1;
+				pw.x-= xspeed; 
 			}
 	 	}
 	}
 	
 	if (btn.A || GP.U) {
 		w_walking = 1;
-		if (!([1,2,3,41].includes(check_world_grid(pw.x, pw.y-4)))) { // && check_world_grid(pw.x+2, pw.y-4) !== 1) {
+		if (!([1,2,20,33,41,61,63,60,610,620,63620,64620,630,640,63610,64610,62610,64630].includes(check_world_grid(pw.x, pw.y-2)))) { // && check_world_grid(pw.x+2, pw.y-4) !== 1) {
 			if (1) {
-				pw.y-=2; 
+				let yspeed = pw.y%3 ? 2 : 1;
+				pw.y-= yspeed; 
 			}
 		}
 	} else if (btn.D || GP.D) {
 		w_walking = 1;
 		// (check_grid(p.x, pB(p.y)) == 0) && (check_grid(p.x+7, pB(p.y)) == 0)
-		if (!([1,2,3,41].includes(check_world_grid(pw.x, pw.y+4)))) { //&& check_world_grid(pw.x+2, pw.y+4) !== 1) {
+		if (!([1,2,20,33,41,61,63,60,610,620,63620,64620,630,640,63610,64610,62610,64630].includes(check_world_grid(pw.x, pw.y+2)))) { //&& check_world_grid(pw.x+2, pw.y+4) !== 1) {
 			if (1) {
-				pw.y+=2; 
+				let yspeed = pw.y%3 ? 2 : 1;
+				pw.y+= yspeed; 
 			}
 		}
 	}
@@ -334,7 +345,7 @@ var w_walking = 0;
 var w_walking_index = 0;
 //var w_walking_frames = [0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,2,2,2,2,2,2,2,2,0,0,0,0,0,0,0]; //,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2];
 //var w_walking_frames = [4,4,4,4,4,4,4,6,6,6,6,6,6,6,8,8,8,8,8,8,8,10,10,10,10,10,10,10,12,12,12,12,12,12,12, 14,14,14,14,14,14,14];
-var w_walking_frames = [4,4,4,6,6,6,8,8,8,8,8,10,10,10,12,12,12,14,14,14,14,14];
+var w_walking_frames = [4,4,4,4,6,6,6,6,8,8,8,8,8,8,8,10,10,10,10,12,12,12,12,14,14,14,14,14,14];
 
 function player1_world_animation() {
 	if (w_walking) {
@@ -352,7 +363,7 @@ function player1_world_animation() {
 }
 
 
-
+var M_LAYER = 0;
 
 
 
@@ -666,6 +677,31 @@ var sugar = 0;
 var cayenne = 0;
 //var 
 
+// deprecated
+function check_world_grid_(px, py) {
+	let px8 = Math.floor(Math.abs(px)/8)%16;
+  let py8 = Math.floor(Math.abs(py)/8)%16;
+	let curr_x8 = Math.floor(Math.abs(pw.x)/8)%16;
+	let curr_y8 = Math.floor(Math.abs(pw.y)/8)%16;
+	
+	// account for negative side of the map (-x -y)
+	if (pw.x < 0) {
+		px8 = 15 - px8;
+		curr_x8 = 15 - curr_x8;
+		
+	}
+	if (pw.y < 0) {
+		py8 = 15 - py8;
+		curr_y8 = 15 - curr_y8;
+	}
+	
+	try {
+		return curr_chunk["collision_event"][py8+16][px8+16];
+	} catch {
+		return 0;
+	}
+	
+}
 
 function check_world_grid(px, py){
 	/*
@@ -692,26 +728,27 @@ function check_world_grid(px, py){
 	}
 	
 	
+	
+	
 	// account for 'loop-collision' with curr_chunk wrap -- find grid for chunk map beside it
 	let next_chunk = "";
+	
 	if (px8 === 15 && curr_x8 === 0) {
 		
 		next_chunk = (pw.cx-1)+"_"+pw.cy;
 		let block_ = 0;
 		try {
 			block_ = chunk_set[next_chunk]["event"][py8][15]; // rightmost grid tile
+			//block_ = chunk_set["collision_event"][py8][15];
+			//block_ = curr_chunk["collision_event"][py8][px8];
 			//console.log(block_);
+			return block_;
 		} catch (e) {
 			//console.log(next_chunk);
 			//console.log(chunk_set[next_chunk]);
 		}
-		if (block_ === 1) {
-			return 1;
-		} else if (block_ === 41) {
-			return 1;
-		} else {
-			return 0;//block_;
-		}
+		
+		
 	}
 	
 	if (px8 === 0 && curr_x8 === 15) {
@@ -719,18 +756,14 @@ function check_world_grid(px, py){
 		let block_ = 0;
 		try {
 			block_ = chunk_set[next_chunk]["event"][py8][0]; // leftmost grid tile
+			//block_ = chunk_set["collision_event"][py8][0];
 			//console.log(block_);
+			return block_;
 		} catch (e) {
 			//console.log(next_chunk);
 			//console.log(chunk_set[next_chunk]);
 		}
-		if (block_ === 1) {
-			return 1;
-		} else if (block_ === 41) {
-			return 1;
-		} else {
-			return 0;//block_;
-		}
+		
 	}
 	
 	if (py8 === 15 && curr_y8 === 0) {
@@ -738,18 +771,14 @@ function check_world_grid(px, py){
 		let block_ = 0;
 		try {
 			block_ = chunk_set[next_chunk]["event"][15][px8]; // bottommost most grid tile
+			//block_ = chunk_set["collision_event"][15][px8];
 			
+			return block_;
 		} catch (e) {
 			//console.log(next_chunk);
 			//console.log(chunk_set[next_chunk]);
 		}
-		if (block_ === 1) {
-			return 1;
-		} else if (block_ === 41) {
-			return 1;
-		} else {
-			return 0;//block_;
-		}
+		
 	}
 	
 	if (py8 === 0 && curr_y8 === 15) {
@@ -757,19 +786,15 @@ function check_world_grid(px, py){
 		let block_ = 0;
 		try {
 			block_ = chunk_set[next_chunk]["event"][0][px8]; // topmost grid tile
+			//block_ = chunk_set["collision_event"][0][px8];
 			//console.log(block_);
+			return block_;
 		} catch (e) {
 			//console.log(next_chunk);
 			//console.log(chunk_set[next_chunk]);
 			
 		}
-		if (block_ === 1) {
-			return 1;
-		} else if (block_ === 41) {
-			return 1;
-		} else {
-			return 0;//block_;
-		}
+		
 	}
 	
 	
@@ -777,25 +802,32 @@ function check_world_grid(px, py){
 	//console.log(pw.cx+"_"+pw.cy+" "+px8+" "+py8+" "+curr_x8+" "+curr_y8);
 	
 	
-	
+	//console.log(curr_chunk["event"]);
 	
 	try {
 		
+		//let grid_value = curr_chunk["collision_event"][py8][px8];
 		let grid_value = curr_chunk["event"][py8][px8];
-		if (grid_value === 1) {
+		
+		/*
+		//let grid_value_1 = curr_chunk["event"][py8+1][px8];
+		if ([1,61,63].includes(grid_value)) {
 			
 			//console.log(curr_chunk);
 			return grid_value;
 			
 		} else if (grid_value === 41) {
 			return 1;
+		} else if (grid_value === 65) {
+			M_LAYER = 1;
+			return 0;
 		} else {
 			return 0;
-		}
-		
+		}/**/
+		return grid_value;
 		//
 	} catch (e) {
-		
+		//console.log("e");
 		return 0;
 	} /**/
 }
@@ -7611,6 +7643,8 @@ if (1) {
 	var render_J = new TileMap(W_IMAGE_SIZE, W_IMAGE_SIZE);
 	/**/
 	var render_map = new TileMap(50, 50);
+	var render_map_mid = new TileMap(50, 50);
+	var render_map_top = new TileMap(50, 50);
 	/*
 	var render_r_m = new TileMap(W_IMAGE_SIZE, W_IMAGE_SIZE);
 	var render_T_m = new TileMap(W_IMAGE_SIZE, W_IMAGE_SIZE);
@@ -7749,7 +7783,10 @@ function update_scene() {
 
 // TODO: temporary, need build_world()
 //var world_image = 
+/*
+			*******************  WORLD UPDATE *********************
 
+*/
 
 var offset_toggle = 0;
 function update_world() {
@@ -7804,10 +7841,15 @@ function update_world() {
 	}/**/
 	
 	update_world_chunks();
-	draw_world_chunks();
+	
+	draw_world_chunks(); // <-- trees, mountains, and player are drawn in here
 	//draw(world_area_image, l_offset+(XMID*offset_toggle)-pw.x, u_offset+(YMID*offset_toggle)-pw.y);
 	
-	draw_player_1();
+	//draw_player_1();
+	//draw_cover();
+	
+	
+	
 	/*
 	sprite(pw_sheet_id+(pframe*2), XMID-4-left_edge-XOFFSET+(8*going_left)+right_edge, YMID-top_edge-16+bottom_edge, going_left);
 	sprite(pw_sheet_id+1+(pframe*2), XMID-4-left_edge+8-XOFFSET-(8*going_left)+right_edge, YMID-top_edge-16+bottom_edge, going_left);
@@ -7821,8 +7863,9 @@ function update_world() {
 	
 	draw_world_particles(); // water, wind and leaves rustling, grass
 	
-	
-	
+	//draw_trees_behind(); // <----- **** TREE **** this needs to be fixed
+	//draw_player_1();
+	//draw_trees_front();
 	
 	//sprite(368, XMID-left_edge-XOFFSET+right_edge, YMID-top_edge-4+bottom_edge, going_left);
   /*sprite(psheet[0]+(pframe*2)+128, XMID-left_edge-XOFFSET+(8*going_left)+right_edge, YMID-top_edge-YOFFSET+bottom_edge-info_box_offset, going_left);
@@ -7839,7 +7882,7 @@ function update_world() {
 
 var PLAYER_Y_WORLD_OFFSET = 8;
 
-function draw_player_1() {
+function draw_player_1_() {
 	sprite(pw_sheet_id+(pframe*2), XMID-4-left_edge-XOFFSET+(8*going_left)+right_edge, YMID-top_edge-16+bottom_edge-PLAYER_Y_WORLD_OFFSET, going_left);
 	sprite(pw_sheet_id+1+(pframe*2), XMID-4-left_edge+8-XOFFSET-(8*going_left)+right_edge, YMID-top_edge-16+bottom_edge-PLAYER_Y_WORLD_OFFSET, going_left);
 	sprite(pw_sheet_id+16+(pframe*2), XMID-4-left_edge-XOFFSET+(8*going_left)+right_edge, YMID-top_edge-16+bottom_edge+8-PLAYER_Y_WORLD_OFFSET, going_left);
@@ -7848,8 +7891,158 @@ function draw_player_1() {
 	sprite(pw_sheet_id+33+(pframe*2), XMID-4-left_edge+8-XOFFSET-(8*going_left)+right_edge, YMID-top_edge-16+bottom_edge+16-PLAYER_Y_WORLD_OFFSET, going_left);
 }
 
+function draw_player_1() {
+	sprite(pw_sheet_id+(pframe*2), XMID-left_edge+right_edge-8+(8*going_left), YMID-top_edge+bottom_edge-22, going_left);
+	sprite(pw_sheet_id+1+(pframe*2), XMID-left_edge+right_edge-(8*going_left), YMID-top_edge+bottom_edge-22, going_left);
+	sprite(pw_sheet_id+16+(pframe*2), XMID-left_edge+right_edge-8+(8*going_left), YMID-top_edge+bottom_edge-14, going_left);
+	sprite(pw_sheet_id+17+(pframe*2), XMID-left_edge+right_edge-(8*going_left), YMID-top_edge+bottom_edge-14, going_left);
+	sprite(pw_sheet_id+32+(pframe*2), XMID-left_edge+right_edge-8+(8*going_left), YMID-top_edge+bottom_edge-6, going_left);
+	sprite(pw_sheet_id+33+(pframe*2), XMID-left_edge+right_edge-(8*going_left), YMID-top_edge+bottom_edge-6, going_left);
+	/*
+	draw(pw_sheet_id+(pframe*2), XMID-4-left_edge-XOFFSET+(8*going_left)+right_edge, YMID-top_edge-16+bottom_edge-PLAYER_Y_WORLD_OFFSET, going_left);
+	draw(pw_sheet_id+1+(pframe*2), XMID-4-left_edge+8-XOFFSET-(8*going_left)+right_edge, YMID-top_edge-16+bottom_edge-PLAYER_Y_WORLD_OFFSET, going_left);
+	draw(pw_sheet_id+16+(pframe*2), XMID-4-left_edge-XOFFSET+(8*going_left)+right_edge, YMID-top_edge-16+bottom_edge+8-PLAYER_Y_WORLD_OFFSET, going_left);
+	draw(pw_sheet_id+17+(pframe*2), XMID-4-left_edge+8-XOFFSET-(8*going_left)+right_edge, YMID-top_edge-16+bottom_edge+8-PLAYER_Y_WORLD_OFFSET, going_left);
+	draw(pw_sheet_id+32+(pframe*2), XMID-4-left_edge-XOFFSET+(8*going_left)+right_edge, YMID-top_edge-16+bottom_edge+16-PLAYER_Y_WORLD_OFFSET, going_left);
+	draw(pw_sheet_id+33+(pframe*2), XMID-4-left_edge+8-XOFFSET-(8*going_left)+right_edge, YMID-top_edge-16+bottom_edge+16-PLAYER_Y_WORLD_OFFSET, going_left);
+	*/
+}
 
 
+function draw_cover() {
+	
+	//sprite()
+}
+
+
+function draw_mount_behind(xpm, ypm) {
+	let n_x = pw.x < 0 ? 128 : 0;
+	let n_y = pw.y < 0 ? 128 : 0;
+	for (let y=0; y<ypm+17; y++) {
+		for (let x=0; x<50; x++) {
+			let bw = main_map["image_m_base_wall"][y][x];
+			let bp = main_map["image_m_base_plat"][y][x];
+			let mw = main_map["image_m_mid_wall"][y][x];
+			let mp = main_map["image_m_mid_plat"][y][x];
+			
+			if (bw) {
+				sprite(64*9+bw, -(pw.x%128+n_x)+(x-1)*8, -(pw.y%128+n_y)+(y-1)*8-CHUNK_Y_OFFSET);
+			}
+			if (bp && (bp !== 33)) {
+				sprite(64*7+bp, -(pw.x%128+n_x)+(x-1)*8, -(pw.y%128+n_y)+(y-1)*8-CHUNK_Y_OFFSET);
+			}
+			if (mw) {
+				sprite(64*9+mw, -(pw.x%128+n_x)+(x-1)*8, -(pw.y%128+n_y)+(y-1)*8-CHUNK_Y_OFFSET);
+			}
+			if (mp && (mp !== 33)) {
+				sprite(64*7+mp, -(pw.x%128+n_x)+(x-1)*8, -(pw.y%128+n_y)+(y-1)*8-CHUNK_Y_OFFSET);
+			}
+			
+		}
+	}
+}
+
+function draw_mount_front(xpm, ypm) {
+	let n_x = pw.x < 0 ? 128 : 0;
+	let n_y = pw.y < 0 ? 128 : 0;
+	for (let y=ypm+17; y<50; y++) {
+		for (let x=0; x<50; x++) {
+			let bw = main_map["image_m_base_wall"][y][x];
+			let bp = main_map["image_m_base_plat"][y][x];
+			let mw = main_map["image_m_mid_wall"][y][x];
+			let mp = main_map["image_m_mid_plat"][y][x];
+			
+			if (bw) {
+				sprite(64*9+bw, -(pw.x%128+n_x)+(x-1)*8, -(pw.y%128+n_y)+(y-1)*8-CHUNK_Y_OFFSET);
+			}
+			if (bp && (bp !== 33)) {
+				sprite(64*7+bp, -(pw.x%128+n_x)+(x-1)*8, -(pw.y%128+n_y)+(y-1)*8-CHUNK_Y_OFFSET);
+			}
+			if (mw) {
+				sprite(64*9+mw, -(pw.x%128+n_x)+(x-1)*8, -(pw.y%128+n_y)+(y-1)*8-CHUNK_Y_OFFSET);
+			}
+			if (mp && (mp !== 33)) {
+				sprite(64*7+mp, -(pw.x%128+n_x)+(x-1)*8, -(pw.y%128+n_y)+(y-1)*8-CHUNK_Y_OFFSET);
+			}
+		}
+	}
+}
+
+function draw_trees_behind() { // **** TREE ****
+	let pwx8 = Math.floor(pw.x/8);
+	let pwy8 = Math.floor(pw.y/8);
+	let pwx8_pacman = pwx8 < 0 ? 16+pwx8%16 : pwx8%16;
+	let pwy8_pacman = pwy8 < 0 ? 16+pwy8%16 : pwy8%16;
+	for (let y=0; y<pwy8_pacman+17; y++) {
+		for (let x=0; x<50; x++) {
+				let tile_ = main_map["event"][y][x];
+				if ([40,41,42,43,44,45].includes(tile_)) {
+					draw_tree(tile_, x, y);
+				}
+		}
+	}
+}
+
+function draw_trees_front() {
+	let pwx8 = Math.floor(pw.x/8);
+	let pwy8 = Math.floor(pw.y/8);
+	let pwx8_pacman = pwx8 < 0 ? 16+pwx8%16 : pwx8%16;
+	let pwy8_pacman = pwy8 < 0 ? 16+pwy8%16 : pwy8%16;
+	for (let y=pwy8_pacman+17; y<50; y++) {
+		for (let x=0; x<50; x++) {
+				let tile_ = main_map["event"][y][x];
+				if ([40,41,42,43,44,45].includes(tile_)) {
+					draw_tree(tile_, x, y);
+				}
+		}
+	}
+}
+
+
+
+
+function draw_tree(tree_type, x, y) {
+	let n_x = pw.x < 0 ? 128 : 0;
+	let n_y = pw.y < 0 ? 128 : 0;
+	
+	
+	switch (tree_type) {
+		case 40:
+			sprite(64*2+12, -(pw.x%128+n_x)+(x-1)*8, -(pw.y%128+n_y)+(y-1)*8-CHUNK_Y_OFFSET);
+			sprite(64*2+11, -(pw.x%128+n_x)+(x-1)*8, -(pw.y%128+n_y)-CHUNK_Y_OFFSET+8*(y-1 - 1));
+			//sprite(64*2+11, -(pw.x%128+n_x)+(x-1)*8, -(pw.y%128+n_y)-CHUNK_Y_OFFSET+8*(y-1 - 2));
+			//sprite(64*2+11, -(pw.x%128+n_x)+(x-1)*8, -(pw.y%128+n_y)-CHUNK_Y_OFFSET+8*(y-1 - 3));
+			
+			
+			break;
+		case 41:
+			sprite(64*2+12, -(pw.x%128+n_x)+(x-1)*8, -(pw.y%128+n_y)+(y-1)*8-CHUNK_Y_OFFSET);
+			sprite(64*2+11, -(pw.x%128+n_x)+(x-1)*8, -(pw.y%128+n_y)-CHUNK_Y_OFFSET+8*(y-1 - 1));
+			sprite(64*2+11, -(pw.x%128+n_x)+(x-1)*8, -(pw.y%128+n_y)-CHUNK_Y_OFFSET+8*(y-1 - 2));
+			sprite(64*2+11, -(pw.x%128+n_x)+(x-1)*8, -(pw.y%128+n_y)-CHUNK_Y_OFFSET+8*(y-1 - 3));
+			//sprite(64*2+11, -(pw.x%128+n_x)+(x-1)*8, -(pw.y%128+n_y)-CHUNK_Y_OFFSET+8*(y-1 - 4));
+			
+			break;
+		case 42:
+			sprite(64*3+12, -(pw.x%128+n_x)+(x-1)*8, -(pw.y%128+n_y)+(y-1)*8-CHUNK_Y_OFFSET);
+			sprite(64*3+11, -(pw.x%128+n_x)+(x-1)*8, -(pw.y%128+n_y)-CHUNK_Y_OFFSET+8*(y-1 - 1));
+			
+			
+			break;
+		case 43:
+			sprite(64*3+39, -(pw.x%128+n_x)+(x-1)*8, -(pw.y%128+n_y)+(y-1)*8-CHUNK_Y_OFFSET);
+			
+			break;
+		case 44:
+			sprite(64*4+39, -(pw.x%128+n_x)+(x-1)*8, -(pw.y%128+n_y)+(y-1)*8-CHUNK_Y_OFFSET);
+			
+			break;
+		case 45:
+			sprite(64*5+39, -(pw.x%128+n_x)+(x-1)*8, -(pw.y%128+n_y)+(y-1)*8-CHUNK_Y_OFFSET);
+			
+			break;
+	}
+}
 
 
 
@@ -7899,6 +8092,14 @@ functions:
   wlhwt 
   wlhnt
 
+
+
+// everything below the middle of the screen should be on the top layer
+// everything above the middle of the screen should be on the bottom layer
+
+
+
+
 */
 
 // ready made
@@ -7931,7 +8132,8 @@ function build_chunk_shape(chunk_info) { //chs, cid, sp="", b2="", bvi={}) {
 	    "4": false,
 	    "5": false,
 	    "6": false,
-	    "7": false
+	    "7": false,
+	    "8": 3
 	  }
 	}
 	bvi: Object {  }
@@ -7942,224 +8144,57 @@ function build_chunk_shape(chunk_info) { //chs, cid, sp="", b2="", bvi={}) {
 	​/**/
 	
 	
-	
+	// should have "M" info by now for biome 2
 	let b2 = chunk_info.b.biome2;
 	let bvi = chunk_info.b.bvi;
 	let cid = chunk_info.cid;
+	let hbid = "";
+	if (bvi[8] === 1) {
+		cid = (chunk_info.x-1)+"_"+chunk_info.y;
+	} else if (bvi[8] === 2) {
+		cid = chunk_info.x+"_"+(chunk_info.y-1);
+	}
 	let chs = chunk_info.s;
-	
 	
 	// sp is "x" as default, will deal with it later
 	
-	
-	//console.log("...."+ch2)
-	//console.log(chs+" "+cid+" "+sp);
 	let events = [...Array(16)].map(_ => Array(16).fill(0)); 
-	//let events_canopy = [...Array(16)].map(_ => Array(16).fill(0));
-	// 0 is default grass, 1 is water, 4 is forest?
-	// cid is e.g. "-4_7" or "100_-98"
-	// chs is e.g. "g" or "w"
-	
-	
-	if (["g", "gr", "g7", "gL", "gJ", ].includes(chs) ){
-		//events = grass_terrain_chunk.map( (a,i) => a.slice() );
-		
-	} else if (["f", "fr", "fL", "f7", "fJ", "fn", "f3", "fc", "fu"].includes(chs)) {
-		//events = forest_terrain_chunk.map( (a,i) => a.slice() );
-		/*events[7][7] = 2;
-		events[7][8] = 2;
-		events[7][9] = 2;
-		events[8][7] = 2;
-		events[8][8] = 2;
-		events[8][9] = 2;
-		events[9][7] = 2;
-		events[9][8] = 2;
-		events[9][9] = 2;/**/
-	} else if (["m", "mr", "mL", "m7", "mJ", "mn", "m3", "mc", "mu"].includes(chs)) {
-		//events = mountain_terrain_chunk.map( (a,i) => a.slice() );
-		/*events[7][7] = 3;
-		events[7][8] = 3;
-		events[7][9] = 3;
-		events[8][7] = 3;
-		events[8][8] = 3;
-		events[8][9] = 3;
-		events[9][7] = 3;
-		events[9][8] = 3;
-		events[9][9] = 3;/**/
-	} else if (["d", "dr", "dL", "d7", "dJ", "dn", "d3", "dc", "du"].includes(chs)) {
-		//events = desert_terrain_chunk.map( (a,i) => a.slice() );
-		/*events[7][7] = 4;
-		events[7][8] = 4;
-		events[7][9] = 4;
-		events[8][7] = 4;
-		events[8][8] = 4;
-		events[8][9] = 4;
-		events[9][7] = 4;
-		events[9][8] = 4;
-		events[9][9] = 4;/**/
-	} else {
-		//console.log(chs);
-		//events = water_terrain_chunk.map( (a,i) => a.slice() );
-	}
-	
-	/*
-	console.log(chs);
-	let events = null; //chs === "g" ? 
-	switch (chs) {
-	  case "g":
-		  events = grass_terrain_chunk.map(function(arr) { return arr.slice(); });
-			//console.log(events);
-		  break;
-	  case "w":
-			events = water_terrain_chunk.map(function(arr) { return arr.slice(); });
-			break;
-	}
-	*/
-	/* 
-		need to be able to change the main biome based on the secondary biome -- 
-			i.e. if surrounded by m tiles, the main biome should be "m"
-					if surrounded by "f" tiles, the main biome should be "f"
-	
-	
-	/**/ 
-	
-	
 	let ci = 0;
+	
 	let chunk_seed = PRNG(cid, 128);
 	
 	
-	switch (chs) {
-	  case "f":
-			//events = wu(chunk_seed);
-			//events[1][1] = 4;
-			break;
-		case "g":
-			//events = wn(chunk_seed);
-			//events = grass_terrain_chunk.map(function(arr) { return arr.slice(); });
-			/*
-			for (let v=0; v<20; v++) {
-				let x = Math.floor(chunk_seed[ci]*(15));
-				ci++;
-				let y = Math.floor(chunk_seed[ci]*(15));
-				ci++;
-				events[y][x] = 1;
-			}
-			*/
-			//console.log("g");
-			//events[8][8] = 1;
-			//console.log(bvi);
-			//[events, events_canopy] = g(chunk_seed, ch2);
-			
-			events = g(chunk_seed, b2, bvi);//, ch2);
-			
-			
-			
-			break;
-		case "w":
-			events = water_terrain_chunk;//.map(function(arr) { return arr.slice(); });
-			/*
-			for (let v=0; v<20; v++) {
-				let x = Math.floor(chunk_seed[ci]*(15));
-				ci++;
-				let y = Math.floor(chunk_seed[ci]*(15));
-				ci++;
-				events[y][x] = 1;
-			}*/
-			
-			//events[8][8] = 1;
-			
-			
-			break;
-		case "gJ":
-			events = gJ(chunk_seed);
-			
-			break;
-		case "gL":
-			events = gL(chunk_seed);
-			
-			break;
-		case "g7":
-			events = g7(chunk_seed);
-			
-			break;
-		case "gr":
-			events = gr(chunk_seed);
-			
-			break;
-		case "wr":
-			events = wr(chunk_seed);
-			
-			break;
-		case "w7":
-			events = w7(chunk_seed);
-			
-			break; 
-		case "wL":
-			events = wL(chunk_seed);
-			
-			break;
-		case "wJ":
-			events = wJ(chunk_seed);
-			
-			break;
-		case "wn":
-			//console.log("hello")
-			events = wn(chunk_seed);
-			
-			break; 
-		case "wc":
-			//events = [...Array(world_chunk_size)].map(_ => Array(world_chunk_size).fill(3));
-			//events[0][0] = 0;
-			//events[15][0] = 0;
-			events = wc(chunk_seed);
-			break; 
-		case "w3":
-			//events = [...Array(world_chunk_size)].map(_ => Array(world_chunk_size).fill(3));
-			//events[0][15] = 0;
-			//events[15][15] = 0;
-			events = w3(chunk_seed);
-			break; 
-		case "wu":
-			events = wu(chunk_seed);
-			
-			break;
-		case "wo":
-			events = wo(chunk_seed);
-			break;
-			
-		case "weT":
-			events = weT(chunk_seed);
-			break;
-		case "weE":
-			events = weE(chunk_seed);
-			break;
-		case "we3":
-			events = we3(chunk_seed);
-			break;
-		case "weU":
-			events = weU(chunk_seed);
-			break;
-			
-		case "wlbns":
-			events = wlbns(chunk_seed);
-			break; 
-		case "wlbwe":
-			events = wlbwe(chunk_seed);
-			break;
-		case "wlhst":
-			events = wlhst(chunk_seed);
-			break; 
-		case "wlhet":
-			events = wlhet(chunk_seed);
-			break;
-		case "wlhwt":
-			events = wlhwt(chunk_seed);
-			break; 
-  	case "wlhnt":
-			events = wlhnt(chunk_seed);
-			break;
+	if (["mr", "m7", "mL", "mJ", "mc", "mn", "m3", "mu", "met", "mer", "mel", "mbv", "mbh"].includes(chs)) {
+		events = m_chunk(chunk_seed, b2, bvi, chs);
 		
+	} else if (["M", "g"].includes(chs)) {
+		if (bvi[8] === 0) {
+			events = herringbone_tile(chunk_seed, b2, bvi, "left"); // should produce the same hb tile as the right one below
+		} else if (bvi[8] === 3) {
+			events = herringbone_tile(chunk_seed, b2, bvi, "top"); // should produce the same hb tile as the bottom one below
+		} else if (bvi[8] === 1) {
+			events = herringbone_tile(chunk_seed, b2, bvi, "right"); // should produce the same hb tile as the left one above
+		} else if (bvi[8] === 2) {
+			events = herringbone_tile(chunk_seed, b2, bvi, "bottom"); // should produce the same hb tile as the top one above
+		}
+		
+	} else if (["d", "dr", "d7", "dL", "dJ","dgr", "dg7", "dgL", "dgJ", "dc", "dn", "d3", "du", "deT", "deU", "deE", "de3", "dlhnt", "dlhst", "dlhet", "dlhwt", "dbns", "dbwe"].includes(chs)) {
+	  
+	  //console.log(chs);
+		events = d_chunk(chunk_seed, b2, bvi, chs);
+		
+	} else if (chs === "w") {
+		events = water_terrain_chunk;
+		
+	} else if ([
+		"gJ", "gL", "g7", "gr", 
+		"wr", "w7", "wL", "wJ", "wn", "wc", "w3", "wu", "wo", 
+		"weT", "weE", "we3", "weU", 
+		"wlbns", "wlbwe", "wlhst", "wlhnt", "wlhwt", "wlhet", 
+		"wdr", "wd7", "wdL", "wdJ"].includes(chs)) {
+		events = w_chunk(chunk_seed, b2, bvi, chs);
 	}
+	
 	
 	return events;//[events, events_canopy];
 }
@@ -8170,80 +8205,12 @@ function build_chunk_shape(chunk_info) { //chs, cid, sp="", b2="", bvi={}) {
 var world_chunk_size = 16;
 var chunk_set = {};
 
-var testing_chunk = [
-	[0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0],
-	[0,0,0,1,1,1,1,0, 0,0,0,0,0,0,0,0],
-	[0,0,0,1,0,0,1,0, 0,0,0,0,1,0,0,0],
-	[0,0,0,1,0,0,1,0, 0,0,0,1,0,1,0,0],
-	[0,0,0,1,1,1,1,0, 0,0,1,0,0,0,1,0],
-	[0,0,0,0,0,0,0,0, 0,0,0,1,0,1,0,0],
-	[0,0,0,0,0,0,0,0, 1,0,0,0,1,0,0,0],
-	[0,0,0,1,1,1,1,1, 1,0,0,0,0,0,0,0],
-	
-	[0,0,1,0,0,0,0,1, 1,0,0,0,0,0,0,0],
-	[0,0,1,0,0,0,0,0, 0,0,0,0,0,0,0,0],
-	[0,0,1,1,0,0,0,1, 1,1,0,0,0,0,0,0],
-	[0,0,0,1,0,0,0,0, 0,1,0,0,0,0,0,0],
-	[0,1,1,1,0,0,0,0, 0,1,0,0,0,0,0,0],
-	[0,1,0,0,0,1,1,1, 0,1,0,0,0,0,0,0],
-	[0,1,1,1,1,1,0,1, 1,1,0,0,0,0,0,0],
-	[0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0],
-];
+
 
 
 // initiate this with the current location
 var curr_chunk_ids = init_curr_chunk_ids(pw.cx, pw.cy);
-/*
-var curr_chunk_ids = {
-	
-	"r": { cid: "-1_-1", x: -1, y: -1, b: {}, s: 0 }, 
-	"T": { cid: "0_-1", x: 0, y: -1, b: {}, s: 0 }, 
-	"7": { cid: "1_-1", x: 1, y: -1, b: {}, s: 0 },
-	"E": { cid: "-1_0", x: -1, y: 0, b: {}, s: 0 }, 
-	
-	"O": { cid: "0_0", x: 0, y: 0, b: {}, s: 0 }, 
-	
-	"3": { cid: "1_0", x: 1, y: 0, b: {}, s: 0 },
-	"L": { cid: "-1_1", x: -1, y: 1, b: {}, s: 0 }, 
-	"U": { cid: "0_1", x: 0, y: 1, b: {}, s: 0 }, 
-	"J": { cid: "1_1", x: 1, y: 1, b: {}, s: 0 },
-	
-	"rr": { cid: "-2_-2", x: -2, y: -2, b: {}, s: 0 },
-	"rT": { cid: "-1_-2", x: -1, y: -2, b: {}, s: 0 },
-	"TT": { cid: "0_-2", x: 0, y: -2, b: {}, s: 0 },
-	"T7": { cid: "1_-2", x: 1, y: -2, b: {}, s: 0 },
-	"77": { cid: "2_-2", x: 2, y: -2, b: {}, s: 0 },
-	"Er": { cid: "-2_-1", x: -2, y: -1, b: {}, s: 0 }, 
-	"EE": { cid: "-2_0", x: -2, y: 0, b: {}, s: 0 }, 
-	"EL": { cid: "-2_1", x: -2, y: 1, b: {}, s: 0 }, 
-	"73": { cid: "2_-1", x: 2, y: -1, b: {}, s: 0 }, 
-	"33": { cid: "2_0", x: 2, y: 0, b: {}, s: 0 }, 
-	"J3": { cid: "2_1", x: 2, y: 1, b: {}, s: 0 }, 
-	"LL": { cid: "-2_2", x: -2, y: 2, b: {}, s: 0 }, 
-	"LU": { cid: "-1_2", x: -1, y: 2, b: {}, s: 0 }, 
-	"UU": { cid: "0_2", x: 0, y: 2, b: {}, s: 0 }, 
-	"UJ": { cid: "1_2", x: 1, y: 2, b: {}, s: 0 }, 
-	"JJ": { cid: "2_2", x: 2, y: 2, b: {}, s: 0 }, 
-	
-};
-/**/
 
-
-
-/*
-function check_9(chx, chy) {
-	return 
-		curr_chunk_ids["r"].cid === (chx-1)+"_"+(chy-1) &&
-		curr_chunk_ids["T"].cid === chx+"_"+(chy-1) &&
-		curr_chunk_ids["7"].cid === (chx+1)+"_"+(chy-1) &&
-		curr_chunk_ids["E"].cid === (chx-1)+"_"+chy &&
-		curr_chunk_ids["3"].cid === (chx+1)+"_"+chy &&
-		curr_chunk_ids["L"].cid === (chx-1)+"_"+(chy+1) &&
-		curr_chunk_ids["U"].cid === chx+"_"+(chy+1) &&
-		curr_chunk_ids["J"].cid === (chx+1)+"_"+(chy+1)
-	;
-	
-}/**/
 
 
 
@@ -8266,6 +8233,7 @@ function update_world_chunks() {
 	let chunky = Math.floor((pwy/8)/world_chunk_size);
 	
 	let cidO = chunkx+"_"+chunky;
+	//let hbid = Math.floor(chunkx/2)+"_"+Math.floor(chunky/2)
 	pw.cx = chunkx;
 	pw.cy = chunky;
 	
@@ -8275,6 +8243,8 @@ function update_world_chunks() {
 	if (curr_chunk_ids["O"].cid != cidO || Object.keys(chunk_set).length < 2) {
 		
 		curr_chunk_ids["O"].cid = cidO;
+		//curr_chunk_ids["O"].hbid = hbid;
+		
 		curr_chunk_ids["O"].x = chunkx;
 		curr_chunk_ids["O"].y = chunky;
 		curr_chunk_ids["O"].b = get_biome_info(chunkx, chunky);
@@ -8360,7 +8330,7 @@ function update_world_chunks() {
 		curr_chunk_ids["JJ"].b = get_biome_info(chunkx+2, chunky+2);
 		
 		
-		
+		//console.log(curr_chunk_ids["O"]);
 		
 		/*
 		let chunk_events_O = [...Array(world_chunk_size)].map(_ => Array(world_chunk_size).fill(0));
@@ -8420,6 +8390,7 @@ function update_world_chunks() {
 		//let chunk_image_mid_r = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		chunk_set[cidr] = { 
 			"event": chunk_events_r,
+			//"collision_event": [...Array(16)].map(_ => Array(16).fill(0)),
 			//"canopy": cnpy_r,
 			//"image_low": chunk_image_r, 
 			//"image_mid": chunk_image_mid_r, 
@@ -8433,6 +8404,7 @@ function update_world_chunks() {
 		//let chunk_image_mid_T = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		chunk_set[cidT] = { 
 			"event": chunk_events_T,
+			//"collision_event": [...Array(16)].map(_ => Array(16).fill(0)),
 			//"canopy": cnpy_T,
 			//"image_low": chunk_image_T, 
 			//"image_mid": chunk_image_mid_T,
@@ -8445,7 +8417,8 @@ function update_world_chunks() {
 		//let chunk_image_7 = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		//let chunk_image_mid_7 = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		chunk_set[cid7] = { 
-			"event": chunk_events_7, 
+			"event": chunk_events_7,
+			//"collision_event": [...Array(16)].map(_ => Array(16).fill(0)),
 			//"canopy": cnpy_7,
 			//"image_low": chunk_image_7, 
 			//"image_mid": chunk_image_mid_7,
@@ -8459,6 +8432,7 @@ function update_world_chunks() {
 		//let chunk_image_mid_E = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		chunk_set[cidE] = { 
 			"event": chunk_events_E,
+			//"collision_event": [...Array(16)].map(_ => Array(16).fill(0)),
 			//"canopy": cnpy_E, 
 			//"image_low": chunk_image_E, 
 			//"image_mid": chunk_image_mid_E,
@@ -8472,7 +8446,8 @@ function update_world_chunks() {
 		//let chunk_image_O = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		//let chunk_image_mid_O = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		chunk_set[cidO] = { 
-			"event": chunk_events_O, 
+			"event": chunk_events_O,
+			//"collision_event": [...Array(16)].map(_ => Array(16).fill(0)),
 			//"canopy": cnpy_O,
 			//"image_low": chunk_image_O, 
 			//"image_mid": chunk_image_mid_O,
@@ -8486,6 +8461,7 @@ function update_world_chunks() {
 		//let chunk_image_mid_3 = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		chunk_set[cid3] = { 
 			"event": chunk_events_3, 
+			//"collision_event": [...Array(16)].map(_ => Array(16).fill(0)),
 			//"canopy": cnpy_3,
 			//"image_low": chunk_image_3, 
 			//"image_mid": chunk_image_mid_3,
@@ -8499,6 +8475,7 @@ function update_world_chunks() {
 		//let chunk_image_mid_L = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		chunk_set[cidL] = { 
 			"event": chunk_events_L,
+			//"collision_event": [...Array(16)].map(_ => Array(16).fill(0)),
 			//"canopy": cnpy_L, 
 			//"image_low": chunk_image_L, 
 			//"image_mid": chunk_image_mid_L,
@@ -8512,6 +8489,7 @@ function update_world_chunks() {
 		//let chunk_image_mid_U = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		chunk_set[cidU] = { 
 			"event": chunk_events_U, 
+			//"collision_event": [...Array(16)].map(_ => Array(16).fill(0)),
 			//"canopy": cnpy_U,
 			//"image_low": chunk_image_U, 
 			//"image_mid": chunk_image_mid_U,
@@ -8525,6 +8503,7 @@ function update_world_chunks() {
 		//let chunk_image_mid_J = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
 		chunk_set[cidJ] = { 
 			"event": chunk_events_J,
+			//"collision_event": [...Array(16)].map(_ => Array(16).fill(0)),
 			//"canopy": cnpy_J,
 			//"image_low": chunk_image_J, 
 			//"image_mid": chunk_image_mid_J, 
@@ -8533,30 +8512,58 @@ function update_world_chunks() {
 		};
 		
 		
-		
 		let chunk_events = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
+		//chunk_set["collision_event"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
+		
+		
+		
+		
 		
 		// grass and water
-		main_map["image_ground"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
+		main_map["image_grass_0"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0)); // no grass
+		main_map["image_grass_1"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0)); // grass
+		main_map["image_grass_2"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0)); // tall grass
+		
 		main_map["image_deep_water"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
 		main_map["image_forest"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
-		main_map["image_forest_canopy"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
+		main_map["image_bushes"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
+		
+		
 		main_map["image_forest_canopy_1"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
 		main_map["image_forest_canopy_2"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
-		main_map["image_mountain"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
+		main_map["image_forest_canopy"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
+		
+		
+		main_map["image_m_base_wall"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
+		main_map["image_m_base_plat"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
+		main_map["image_m_mid_wall"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
+		main_map["image_m_mid_plat"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
+		//main_map["image_mountain_4"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
+		//main_map["image_mountain_5"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
+		//main_map["image_mountain"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
+		
+		
+		//main_map["image_mountain_side"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
+		//let dot_image_mountain = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
+		
 		main_map["image_desert"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
+		main_map["image_desert_rocks"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
 		
 		main_map["event"] = chunk_events;
 		
-		//console.log("hello");
-		// UPDATE current chunk (middle)
-		curr_chunk = chunk_set[cidO];
+		
+		
+		
+		// *******  UPDATE current chunk (middle) ********
+		//curr_chunk = chunk_set[cidO];
+		
+		
 		
 		// chunk_events
 		
 		//main_map["event"][chy]
 		
-		
+		//console.log(chunk_set[cidO]["event"]);
 		
 		/* ------ 2. DOT the 9 tiles ------ 
 		
@@ -8567,11 +8574,10 @@ function update_world_chunks() {
 		
 		*/
 		
-		/*
-		TODO: for forest, can just put the trunk down. Then, wherever that trunk exists, place sprites on top as an image you can walk under
-			
 		
 		/*
+		
+		TODO: for forest, can just put the trunk down. Then, wherever that trunk exists, place sprites on top as an image you can walk under
 		
 		0 = grass (walkable)
 		1 = water (solid)
@@ -8582,552 +8588,138 @@ function update_world_chunks() {
 		
 		*/
 		
+		// ****** DOT the maps *******
+		
+		let chunk_order = [
+			[cidO, 16, 16], 
+			[cidr, 0, 0],
+			[cidT, 16, 0],
+			[cid7, 32, 0],
+			[cidE, 0, 16],
+			[cid3, 32, 16],
+			[cidL, 0, 32],
+			[cidU, 16, 32],
+			[cidJ, 32, 32]
+		];
+		
 		for (let chy=0; chy<world_chunk_size; chy++) {
 			for (let chx=0; chx<world_chunk_size; chx++) {
-				
-				// add + 1 to offset 18-sized chunk image
-				
-				
-				
-				
-				if (chunk_set[cidO]["event"][chy][chx]) {
-					main_map["event"][chy+16+1][chx+16+1] = chunk_set[cidO]["event"][chy][chx];
-					if (chunk_set[cidO]["event"][chy][chx] === 1) { // water
-						dot_w( main_map["image_ground"], chx+16+1, chy+16+1);
+				for (let co=0; co<=8; co++) {
+					let cid_ = chunk_order[co][0];
+					let xx_ = chunk_order[co][1];
+					let yy_ = chunk_order[co][2];
+					if (chunk_set[cid_]["event"][chy][chx]) {
 						
-					} else if ([11].includes(chunk_set[cidO]["event"][chy][chx])) { // deep water
-						dot_w( main_map["image_ground"], chx+16+1, chy+16+1);
-						dot_w( main_map["image_deep_water"], chx+16+1, chy+16+1);
+						// setting the chunk map events but...not using them?
+						main_map["event"][chy+yy_+1][chx+xx_+1] = chunk_set[cid_]["event"][chy][chx];
 						
-					} else if ([41, 42].includes(chunk_set[cidO]["event"][chy][chx])) { // 41 is the forest tree trunks
-						//dot_w( main_map["image_ground"], chx+16+1, chy+16+1);
+						if (chunk_set[cid_]["event"][chy][chx] === 1) { // water
+							dot_w( main_map["image_grass_1"], chx+xx_+1, chy+yy_+1);
 						
-						//dot_w( main_map["image_forest"], chx+16+1, chy+16+1);
-						if (chunk_set[cidO]["event"][chy][chx] === 42) {
-							dot_w( main_map["image_forest_canopy_1"], chx+16+1-1, chy+16+1-1);
-							dot_w( main_map["image_forest_canopy_1"], chx+16+1, chy+16+1-1);
-							dot_w( main_map["image_forest_canopy_1"], chx+16+1+1, chy+16+1-1);
-							dot_w( main_map["image_forest_canopy_1"], chx+16+1-1, chy+16+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+16+1, chy+16+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+16+1+1, chy+16+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+16+1-1, chy+16+1+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+16+1, chy+16+1+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+16+1+1, chy+16+1+1);
-						} else {
-							dot_w( main_map["image_forest_canopy"], chx+16+1-1, chy+16+1-1);
-							dot_w( main_map["image_forest_canopy"], chx+16+1, chy+16+1-1);
-							dot_w( main_map["image_forest_canopy"], chx+16+1+1, chy+16+1-1);
-							dot_w( main_map["image_forest_canopy"], chx+16+1-1, chy+16+1);
-							dot_w( main_map["image_forest_canopy"], chx+16+1, chy+16+1);
-							dot_w( main_map["image_forest_canopy"], chx+16+1+1, chy+16+1);
-							dot_w( main_map["image_forest_canopy"], chx+16+1-1, chy+16+1+1);
-							dot_w( main_map["image_forest_canopy"], chx+16+1, chy+16+1+1);
-							dot_w( main_map["image_forest_canopy"], chx+16+1+1, chy+16+1+1);
-						}
+						} else if ([11].includes(chunk_set[cid_]["event"][chy][chx])) { // deep water
+							dot_w( main_map["image_grass_1"], chx+xx_+1, chy+yy_+1);
+							dot_w( main_map["image_deep_water"], chx+xx_+1, chy+yy_+1);
 						
+						} else if ([20, 21, 22].includes(chunk_set[cid_]["event"][chy][chx])) { // bushes
+							dot_w( main_map["image_bushes"], chx+xx_+1, chy+yy_+1);
+
+						} else if ([41, 42].includes(chunk_set[cid_]["event"][chy][chx])) { // 41 is the forest tree trunks
+							//dot_w( main_map["image_grass_1"], chx+16+1, chy+16+1);
 						
+							//dot_w( main_map["image_forest"], chx+16+1, chy+16+1);
+							if (chunk_set[cid_]["event"][chy][chx] === 42) {
+								/*
+								dot_w( main_map["image_forest_canopy_1"], chx+16+1-1, chy+16+1-1);
+								... /**/
+								
+							} else {
+								/*
+								dot_w( main_map["image_forest_canopy"], chx+16+1-1, chy+16+1-1);
+								... /**/
+							}
 						
-						
-						
-					} else if (chunk_set[cidO]["event"][chy][chx] === 3) { // mountain CHANGED
-						dot_w( main_map["image_mountain"], chx+16+1, chy+16+1);
-					} else if (chunk_set[cidO]["event"][chy][chx] === 4) { // mountain CHANGED
-						dot_w( main_map["image_desert"], chx+16+1, chy+16+1);
-					} else if (chunk_set[cidO]["event"][chy][chx] === 60) {
-						dot_w( main_map["image_mountain"], chx+16+1, chy+16+1);
-					}
-				} 
-				
-				if (chunk_set[cidr]["event"][chy][chx]) {
-					main_map["event"][chy+1][chx+1] = chunk_set[cidr]["event"][chy][chx];
-					if (chunk_set[cidr]["event"][chy][chx] === 1) {
-						dot_w( main_map["image_ground"], chx+1, chy+1);
-					}	else if ([11].includes(chunk_set[cidr]["event"][chy][chx])) { // deep water
-						dot_w( main_map["image_ground"], chx+1, chy+1);
-						dot_w( main_map["image_deep_water"], chx+1, chy+1);
-					} else if ([41, 42].includes(chunk_set[cidr]["event"][chy][chx])) {
-						//dot_w( main_map["image_ground"], chx+1, chy+1);
-						//dot_w( main_map["image_forest"], chx+1, chy+1);
-						if (chunk_set[cidr]["event"][chy][chx] === 42) {
-							dot_w( main_map["image_forest_canopy_1"], chx+1-1, chy+1-1);
-							dot_w( main_map["image_forest_canopy_1"], chx+1, chy+1-1);
-							dot_w( main_map["image_forest_canopy_1"], chx+1+1, chy+1-1);
-							dot_w( main_map["image_forest_canopy_1"], chx+1-1, chy+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+1, chy+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+1+1, chy+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+1-1, chy+1+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+1, chy+1+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+1+1, chy+1+1);
-						} else {
+						} else if ([61,62,63,64,6261,6361,6461,6362,6462,6463,610,620,63620,64620,630,640,63610,64610,62610,64630].includes(chunk_set[cid_]["event"][chy][chx])) {
+						  let chse0 = chunk_set[cid_]["event"][chy][chx];
 							
-							dot_w( main_map["image_forest_canopy"], chx+1-1, chy+1-1);
-							dot_w( main_map["image_forest_canopy"], chx+1, chy+1-1);
-							dot_w( main_map["image_forest_canopy"], chx+1+1, chy+1-1);
-							dot_w( main_map["image_forest_canopy"], chx+1-1, chy+1);
-							dot_w( main_map["image_forest_canopy"], chx+1, chy+1);
-							dot_w( main_map["image_forest_canopy"], chx+1+1, chy+1);
-							dot_w( main_map["image_forest_canopy"], chx+1-1, chy+1+1);
-							dot_w( main_map["image_forest_canopy"], chx+1, chy+1+1);
-							dot_w( main_map["image_forest_canopy"], chx+1+1, chy+1+1);
-						}
-						
-					} else if (chunk_set[cidr]["event"][chy][chx] === 3) {
-						dot_w( main_map["image_mountain"], chx+1, chy+1);
-					} else if (chunk_set[cidr]["event"][chy][chx] === 4) {
-						dot_w( main_map["image_desert"], chx+1, chy+1);
-					} else if (chunk_set[cidr]["event"][chy][chx] === 60) {
-						dot_w( main_map["image_mountain"], chx+1, chy+1);
-					}
-				}
-				if (chunk_set[cidT]["event"][chy][chx]) {
-					main_map["event"][chy+1][chx+16+1] = chunk_set[cidT]["event"][chy][chx];
-					if (chunk_set[cidT]["event"][chy][chx] === 1) {
-						dot_w( main_map["image_ground"], chx+16+1, chy+1);
-					} else if ([11].includes(chunk_set[cidT]["event"][chy][chx])) { // deep water
-						dot_w( main_map["image_ground"], chx+16+1, chy+1);
-						dot_w( main_map["image_deep_water"], chx+16+1, chy+1);
-					} else if ([41, 42].includes(chunk_set[cidT]["event"][chy][chx])) {
-						//dot_w( main_map["image_ground"], chx+16+1, chy+1);
-						//dot_w( main_map["image_forest"], chx+16+1, chy+1);
-						
-						if (chunk_set[cidT]["event"][chy][chx] === 42) {
-							dot_w( main_map["image_forest_canopy_1"], chx+16+1-1, chy+1-1);
-							dot_w( main_map["image_forest_canopy_1"], chx+16+1, chy+1-1);
-							dot_w( main_map["image_forest_canopy_1"], chx+16+1+1, chy+1-1);
-							dot_w( main_map["image_forest_canopy_1"], chx+16+1-1, chy+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+16+1, chy+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+16+1+1, chy+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+16+1-1, chy+1+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+16+1, chy+1+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+16+1+1, chy+1+1);
-						} else {
-							dot_w( main_map["image_forest_canopy"], chx+16+1-1, chy+1-1);
-							dot_w( main_map["image_forest_canopy"], chx+16+1, chy+1-1);
-							dot_w( main_map["image_forest_canopy"], chx+16+1+1, chy+1-1);
-							dot_w( main_map["image_forest_canopy"], chx+16+1-1, chy+1);
-							dot_w( main_map["image_forest_canopy"], chx+16+1, chy+1);
-							dot_w( main_map["image_forest_canopy"], chx+16+1+1, chy+1);
-							dot_w( main_map["image_forest_canopy"], chx+16+1-1, chy+1+1);
-							dot_w( main_map["image_forest_canopy"], chx+16+1, chy+1+1);
-							dot_w( main_map["image_forest_canopy"], chx+16+1+1, chy+1+1);
-						}
-						
-					} else if (chunk_set[cidT]["event"][chy][chx] === 3) {
-						dot_w( main_map["image_mountain"], chx+16+1, chy+1);
-					} else if (chunk_set[cidT]["event"][chy][chx] === 4) {
-						dot_w( main_map["image_desert"], chx+16+1, chy+1);
-					} else if (chunk_set[cidT]["event"][chy][chx] === 60) {
-						dot_w( main_map["image_mountain"], chx+16+1, chy+1);
-					}
-				}
-				if (chunk_set[cid7]["event"][chy][chx]) {
-					main_map["event"][chy+1][chx+32+1] = chunk_set[cid7]["event"][chy][chx];
-					if (chunk_set[cid7]["event"][chy][chx] === 1) {
-						dot_w( main_map["image_ground"], chx+32+1, chy+1);
-					} else if ([11].includes(chunk_set[cid7]["event"][chy][chx])) { // deep water
-						dot_w( main_map["image_ground"], chx+32+1, chy+1);
-						dot_w( main_map["image_deep_water"], chx+32+1, chy+1);
-					} else if ([41, 42].includes(chunk_set[cid7]["event"][chy][chx])) {
-						//dot_w( main_map["image_ground"], chx+32+1, chy+1);
-						//dot_w( main_map["image_forest"], chx+32+1, chy+1);
-						if (chunk_set[cid7]["event"][chy][chx] === 42) {
-							dot_w( main_map["image_forest_canopy_1"], chx+32+1-1, chy+1-1);
-							dot_w( main_map["image_forest_canopy_1"], chx+32+1, chy+1-1);
-							dot_w( main_map["image_forest_canopy_1"], chx+32+1+1, chy+1-1);
-							dot_w( main_map["image_forest_canopy_1"], chx+32+1-1, chy+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+32+1, chy+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+32+1+1, chy+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+32+1-1, chy+1+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+32+1, chy+1+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+32+1+1, chy+1+1);
-						} else {
-							dot_w( main_map["image_forest_canopy"], chx+32+1-1, chy+1-1);
-							dot_w( main_map["image_forest_canopy"], chx+32+1, chy+1-1);
-							dot_w( main_map["image_forest_canopy"], chx+32+1+1, chy+1-1);
-							dot_w( main_map["image_forest_canopy"], chx+32+1-1, chy+1);
-							dot_w( main_map["image_forest_canopy"], chx+32+1, chy+1);
-							dot_w( main_map["image_forest_canopy"], chx+32+1+1, chy+1);
-							dot_w( main_map["image_forest_canopy"], chx+32+1-1, chy+1+1);
-							dot_w( main_map["image_forest_canopy"], chx+32+1, chy+1+1);
-							dot_w( main_map["image_forest_canopy"], chx+32+1+1, chy+1+1);
-						}
+						  if ([61,6261,6361,6461,6362,610,62610,63610,64610,63620].includes(chse0)) { dot_w( main_map["image_m_base_wall"], chx+xx_+1, chy+yy_+1); }
+							if ([62,6261,6362,6462,6463,620,62610,63620,64620,64630].includes(chse0)) { dot_w( main_map["image_m_base_plat"], chx+xx_+1, chy+yy_+1); }
+							if ([63,6361,6362,6463,630,63610,63620,64630].includes(chse0)) { dot_w( main_map["image_m_mid_wall"], chx+xx_+1, chy+yy_+1); }
+							if ([63,64,6461,6462,6463,630,640,64610,64620,64630].includes(chse0)) { dot_w( main_map["image_m_mid_plat"], chx+xx_+1, chy+yy_+1); }
+							
+							
+							//if ([610,620,63620,64620,630,640,63610,64610,62610,64630].includes(chse0)) {} 
 							
 						
-					} else if (chunk_set[cid7]["event"][chy][chx] === 3) {
-						dot_w( main_map["image_mountain"], chx+32+1, chy+1);
-					} else if (chunk_set[cid7]["event"][chy][chx] === 4) {
-						dot_w( main_map["image_desert"], chx+32+1, chy+1);
-					} else if (chunk_set[cid7]["event"][chy][chx] === 60) {
-						dot_w( main_map["image_mountain"], chx+32+1, chy+1);
-					}
-				}
-				if (chunk_set[cidE]["event"][chy][chx]) {
-					main_map["event"][chy+16+1][chx+1] = chunk_set[cidE]["event"][chy][chx];
-					if (chunk_set[cidE]["event"][chy][chx] === 1) {
-						dot_w( main_map["image_ground"], chx+1, chy+16+1);
-					} else if ([11].includes(chunk_set[cidE]["event"][chy][chx])) { // deep water
-						dot_w( main_map["image_ground"], chx+1, chy+16+1);
-						dot_w( main_map["image_deep_water"], chx+1, chy+16+1);
-					} else if ([41, 42].includes(chunk_set[cidE]["event"][chy][chx])) {
-						//dot_w( main_map["image_ground"], chx+1, chy+16+1);
-						//dot_w( main_map["image_forest"], chx+1, chy+16+1);
+						} else if (chunk_set[cid_]["event"][chy][chx] === 3) {
+							dot_w( main_map["image_desert"], chx+xx_+1, chy+yy_+1);
+							//} else if ([60, -61, 61, -62, 62,-63, 63, -64, 64, -65, 65, -66, 66, -67, 67].includes(chunk_set[cidO]["event"][chy][chx])) {
 						
-						if (chunk_set[cidE]["event"][chy][chx] === 42) {
-							dot_w( main_map["image_forest_canopy_1"], chx+1-1, chy+16+1-1);
-							dot_w( main_map["image_forest_canopy_1"], chx+1, chy+16+1-1);
-							dot_w( main_map["image_forest_canopy_1"], chx+1+1, chy+16+1-1);
-							dot_w( main_map["image_forest_canopy_1"], chx+1-1, chy+16+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+1, chy+16+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+1+1, chy+16+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+1-1, chy+16+1+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+1, chy+16+1+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+1+1, chy+16+1+1);
-						} else {
-							dot_w( main_map["image_forest_canopy"], chx+1-1, chy+16+1-1);
-							dot_w( main_map["image_forest_canopy"], chx+1, chy+16+1-1);
-							dot_w( main_map["image_forest_canopy"], chx+1+1, chy+16+1-1);
-							dot_w( main_map["image_forest_canopy"], chx+1-1, chy+16+1);
-							dot_w( main_map["image_forest_canopy"], chx+1, chy+16+1);
-							dot_w( main_map["image_forest_canopy"], chx+1+1, chy+16+1);
-							dot_w( main_map["image_forest_canopy"], chx+1-1, chy+16+1+1);
-							dot_w( main_map["image_forest_canopy"], chx+1, chy+16+1+1);
-							dot_w( main_map["image_forest_canopy"], chx+1+1, chy+16+1+1);
-						}
-						
-						
-					} else if (chunk_set[cidE]["event"][chy][chx] === 3) {
-						dot_w( main_map["image_mountain"], chx+1, chy+16+1);
-					} else if (chunk_set[cidE]["event"][chy][chx] === 4) {
-						dot_w( main_map["image_desert"], chx+1, chy+16+1);
-					} else if (chunk_set[cidE]["event"][chy][chx] === 60) {
-						dot_w( main_map["image_mountain"], chx+1, chy+16+1);
-					}
-				}
-				if (chunk_set[cid3]["event"][chy][chx]) {
-					main_map["event"][chy+16+1][chx+32+1] = chunk_set[cid3]["event"][chy][chx];
-					if (chunk_set[cid3]["event"][chy][chx] === 1) {
-						dot_w( main_map["image_ground"], chx+32+1, chy+16+1);
-					} else if ([11].includes(chunk_set[cid3]["event"][chy][chx])) { // deep water
-						dot_w( main_map["image_ground"], chx+32+1, chy+16+1);
-						dot_w( main_map["image_deep_water"], chx+32+1, chy+16+1);
-					} else if ([41, 42].includes(chunk_set[cid3]["event"][chy][chx])) {
-						
-						//dot_w( main_map["image_forest"], chx+32+1, chy+16+1);
-						if (chunk_set[cid3]["event"][chy][chx] === 42) {
-							dot_w( main_map["image_forest_canopy_1"], chx+32+1-1, chy+16+1-1);
-							dot_w( main_map["image_forest_canopy_1"], chx+32+1, chy+16+1-1);
-							dot_w( main_map["image_forest_canopy_1"], chx+32+1+1, chy+16+1-1);
-							dot_w( main_map["image_forest_canopy_1"], chx+32+1-1, chy+16+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+32+1, chy+16+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+32+1+1, chy+16+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+32+1-1, chy+16+1+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+32+1, chy+16+1+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+32+1+1, chy+16+1+1);
-						} else {
-							dot_w( main_map["image_forest_canopy"], chx+32+1-1, chy+16+1-1);
-							dot_w( main_map["image_forest_canopy"], chx+32+1, chy+16+1-1);
-							dot_w( main_map["image_forest_canopy"], chx+32+1+1, chy+16+1-1);
-							dot_w( main_map["image_forest_canopy"], chx+32+1-1, chy+16+1);
-							dot_w( main_map["image_forest_canopy"], chx+32+1, chy+16+1);
-							dot_w( main_map["image_forest_canopy"], chx+32+1+1, chy+16+1);
-							dot_w( main_map["image_forest_canopy"], chx+32+1-1, chy+16+1+1);
-							dot_w( main_map["image_forest_canopy"], chx+32+1, chy+16+1+1);
-							dot_w( main_map["image_forest_canopy"], chx+32+1+1, chy+16+1+1);
-						}
-						
-						
-					} else if (chunk_set[cid3]["event"][chy][chx] === 3) {
-						dot_w( main_map["image_mountain"], chx+32+1, chy+16+1);
-					} else if (chunk_set[cid3]["event"][chy][chx] === 4) {
-						dot_w( main_map["image_desert"], chx+32+1, chy+16+1);
-					} else if (chunk_set[cid3]["event"][chy][chx] === 60) {
-						dot_w( main_map["image_mountain"], chx+32+1, chy+16+1);
-					}
-				}
-				if (chunk_set[cidL]["event"][chy][chx]) {
-					main_map["event"][chy+32+1][chx+1] = chunk_set[cidL]["event"][chy][chx];
-					if (chunk_set[cidL]["event"][chy][chx] === 1) {
-						dot_w( main_map["image_ground"], chx+1, chy+32+1);
-					} else if ([11].includes(chunk_set[cidL]["event"][chy][chx])) { // deep water
-						dot_w( main_map["image_ground"], chx+1, chy+32+1);
-						dot_w( main_map["image_deep_water"], chx+1, chy+32+1);
-					} else if ([41, 42].includes(chunk_set[cidL]["event"][chy][chx])) {
-						//dot_w( main_map["image_ground"], chx+1, chy+32+1);
-						
-						if (chunk_set[cidL]["event"][chy][chx] === 42) {
-							dot_w( main_map["image_forest_canopy_1"], chx+1-1, chy+32+1-1);
-							dot_w( main_map["image_forest_canopy_1"], chx+1, chy+32+1-1);
-							dot_w( main_map["image_forest_canopy_1"], chx+1+1, chy+32+1-1);
-							dot_w( main_map["image_forest_canopy_1"], chx+1-1, chy+32+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+1, chy+32+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+1+1, chy+32+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+1-1, chy+32+1+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+1, chy+32+1+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+1+1, chy+32+1+1);
-						} else {
-							dot_w( main_map["image_forest_canopy"], chx+1-1, chy+32+1-1);
-							dot_w( main_map["image_forest_canopy"], chx+1, chy+32+1-1);
-							dot_w( main_map["image_forest_canopy"], chx+1+1, chy+32+1-1);
-							dot_w( main_map["image_forest_canopy"], chx+1-1, chy+32+1);
-							dot_w( main_map["image_forest_canopy"], chx+1, chy+32+1);
-							dot_w( main_map["image_forest_canopy"], chx+1+1, chy+32+1);
-							dot_w( main_map["image_forest_canopy"], chx+1-1, chy+32+1+1);
-							dot_w( main_map["image_forest_canopy"], chx+1, chy+32+1+1);
-							dot_w( main_map["image_forest_canopy"], chx+1+1, chy+32+1+1);
-						}
+							// 
+							//dot_w( main_map["image_mountain"], chx+16+1, chy+16+1);
+						} else if (chunk_set[cid_]["event"][chy][chx] === 33) {
+							dot_w( main_map["image_desert_rocks"], chx+xx_+1, chy+yy_+1);
+							dot_w( main_map["image_desert"], chx+xx_+1, chy+yy_+1);
 							
-						//dot_w( main_map["image_forest"], chx+1, chy+32+1);
-						
-					} else if (chunk_set[cidL]["event"][chy][chx] === 3) {
-						dot_w( main_map["image_mountain"], chx+1, chy+32+1);
-					} else if (chunk_set[cidL]["event"][chy][chx] === 4) {
-						dot_w( main_map["image_desert"], chx+1, chy+32+1);
-					} else if (chunk_set[cidL]["event"][chy][chx] === 60) {
-						dot_w( main_map["image_mountain"], chx+1, chy+32+1);
+						} else if (chunk_set[cid_]["event"][chy][chx] === 110) { // grass paths, etc
+							dot_w( main_map["image_grass_0"], chx+xx_+1, chy+yy_+1);
+						} else if (chunk_set[cid_]["event"][chy][chx] === 112) { // grass paths, etc
+							dot_w( main_map["image_grass_2"], chx+xx_+1, chy+yy_+1);
+					
+					
+						} else if ([400,401,402,403,404].includes(chunk_set[cid_]["event"][chy][chx])) { // flowers
+							//chunk_set[cidO]["event"][chy][chx]
+						}
 					}
 					
 				}
-				if (chunk_set[cidU]["event"][chy][chx]) {
-					main_map["event"][chy+32+1][chx+16+1] = chunk_set[cidU]["event"][chy][chx];
-					if (chunk_set[cidU]["event"][chy][chx] === 1) {
-						dot_w( main_map["image_ground"], chx+16+1, chy+32+1);
-					} else if ([11].includes(chunk_set[cidU]["event"][chy][chx])) { // deep water
-						dot_w( main_map["image_ground"], chx+16+1, chy+32+1);
-						dot_w( main_map["image_deep_water"], chx+16+1, chy+32+1);
-					} else if ([41, 42].includes(chunk_set[cidU]["event"][chy][chx])) {
-						//dot_w( main_map["image_ground"], chx+16+1, chy+32+1);
-						//dot_w( main_map["image_forest"], chx+16+1, chy+32+1);
-						if (chunk_set[cidU]["event"][chy][chx] === 42) {
-							dot_w( main_map["image_forest_canopy_1"], chx+16+1-1, chy+32+1-1);
-							dot_w( main_map["image_forest_canopy_1"], chx+16+1, chy+32+1-1);
-							dot_w( main_map["image_forest_canopy_1"], chx+16+1+1, chy+32+1-1);
-							dot_w( main_map["image_forest_canopy_1"], chx+16+1-1, chy+32+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+16+1, chy+32+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+16+1+1, chy+32+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+16+1-1, chy+32+1+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+16+1, chy+32+1+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+16+1+1, chy+32+1+1);
-						} else {
-							dot_w( main_map["image_forest_canopy"], chx+16+1-1, chy+32+1-1);
-							dot_w( main_map["image_forest_canopy"], chx+16+1, chy+32+1-1);
-							dot_w( main_map["image_forest_canopy"], chx+16+1+1, chy+32+1-1);
-							dot_w( main_map["image_forest_canopy"], chx+16+1-1, chy+32+1);
-							dot_w( main_map["image_forest_canopy"], chx+16+1, chy+32+1);
-							dot_w( main_map["image_forest_canopy"], chx+16+1+1, chy+32+1);
-							dot_w( main_map["image_forest_canopy"], chx+16+1-1, chy+32+1+1);
-							dot_w( main_map["image_forest_canopy"], chx+16+1, chy+32+1+1);
-							dot_w( main_map["image_forest_canopy"], chx+16+1+1, chy+32+1+1);
-						}
-						
-						
-					} else if (chunk_set[cidU]["event"][chy][chx] === 3) {
-						dot_w( main_map["image_mountain"], chx+16+1, chy+32+1);
-					} else if (chunk_set[cidU]["event"][chy][chx] === 4) {
-						dot_w( main_map["image_desert"], chx+16+1, chy+32+1);
-					} else if (chunk_set[cidU]["event"][chy][chx] === 60) {
-						dot_w( main_map["image_mountain"], chx+16+1, chy+32+1);
-					}
-				}
-				if (chunk_set[cidJ]["event"][chy][chx]) {
-					main_map["event"][chy+32+1][chx+32+1] = chunk_set[cidJ]["event"][chy][chx];
-					if (chunk_set[cidJ]["event"][chy][chx] === 1) {
-						dot_w( main_map["image_ground"], chx+32+1, chy+32+1);
-					} else if ([11].includes(chunk_set[cidJ]["event"][chy][chx])) { // deep water
-						dot_w( main_map["image_ground"], chx+32+1, chy+32+1);
-						dot_w( main_map["image_deep_water"], chx+32+1, chy+32+1);
-					} else if ([41, 42].includes(chunk_set[cidJ]["event"][chy][chx])) {
-						//dot_w( main_map["image_ground"], chx+32+1, chy+32+1);
-						//dot_w( main_map["image_forest"], chx+32+1, chy+32+1);
-						
-						if (chunk_set[cidJ]["event"][chy][chx] === 42) {
-							dot_w( main_map["image_forest_canopy_1"], chx+32+1-1, chy+32+1-1);
-							dot_w( main_map["image_forest_canopy_1"], chx+32+1, chy+32+1-1);
-							dot_w( main_map["image_forest_canopy_1"], chx+32+1+1, chy+32+1-1);
-							dot_w( main_map["image_forest_canopy_1"], chx+32+1-1, chy+32+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+32+1, chy+32+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+32+1+1, chy+32+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+32+1-1, chy+32+1+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+32+1, chy+32+1+1);
-							dot_w( main_map["image_forest_canopy_1"], chx+32+1+1, chy+32+1+1);
-						} else {
-							dot_w( main_map["image_forest_canopy"], chx+32+1-1, chy+32+1-1);
-							dot_w( main_map["image_forest_canopy"], chx+32+1, chy+32+1-1);
-							dot_w( main_map["image_forest_canopy"], chx+32+1+1, chy+32+1-1);
-							dot_w( main_map["image_forest_canopy"], chx+32+1-1, chy+32+1);
-							dot_w( main_map["image_forest_canopy"], chx+32+1, chy+32+1);
-							dot_w( main_map["image_forest_canopy"], chx+32+1+1, chy+32+1);
-							dot_w( main_map["image_forest_canopy"], chx+32+1-1, chy+32+1+1);
-							dot_w( main_map["image_forest_canopy"], chx+32+1, chy+32+1+1);
-							dot_w( main_map["image_forest_canopy"], chx+32+1+1, chy+32+1+1);
-						}
-						
-						
-					} else if (chunk_set[cidJ]["event"][chy][chx] === 3) {
-						dot_w( main_map["image_mountain"], chx+32+1, chy+32+1);
-					} else if (chunk_set[cidJ]["event"][chy][chx] === 4) {
-						dot_w( main_map["image_desert"], chx+32+1, chy+32+1);
-					} else if (chunk_set[cidJ]["event"][chy][chx] === 60) {
-						dot_w( main_map["image_mountain"], chx+32+1, chy+32+1);
-					}
-				}
-			
-				// again
 				
-				/*
-				if (chunk_set[cidO]["event"][chy][chx] !== 1) {
-					main_map["event"][chy+16+1][chx+16+1] = chunk_set[cidO]["event"][chy][chx];
-					dot_w( main_map["image_forest"], chx+16+1, chy+16+1);
-				} 
-				
-				if (chunk_set[cidr]["event"][chy][chx] === 1) {
-					main_map["event"][chy+1][chx+1] = chunk_set[cidr]["event"][chy][chx];
-					dot_w( main_map["image_ground"], chx+1, chy+1);
-				}
-				if (chunk_set[cidT]["event"][chy][chx] === 1) {
-					main_map["event"][chy+1][chx+16+1] = chunk_set[cidT]["event"][chy][chx];
-					dot_w( main_map["image_ground"], chx+16+1, chy+1);
-				}
-				if (chunk_set[cid7]["event"][chy][chx] === 1) {
-					main_map["event"][chy+1][chx+32+1] = chunk_set[cid7]["event"][chy][chx];
-					dot_w( main_map["image_ground"], chx+32+1, chy+1);
-				}
-				if (chunk_set[cidE]["event"][chy][chx] === 1) {
-					main_map["event"][chy+16+1][chx+1] = chunk_set[cidE]["event"][chy][chx];
-					dot_w( main_map["image_ground"], chx+1, chy+16+1);
-				}
-				if (chunk_set[cid3]["event"][chy][chx] === 1) {
-					main_map["event"][chy+16+1][chx+32+1] = chunk_set[cid3]["event"][chy][chx];
-					dot_w( main_map["image_ground"], chx+32+1, chy+16+1);
-				}
-				if (chunk_set[cidL]["event"][chy][chx] === 1) {
-					main_map["event"][chy+32+1][chx+1] = chunk_set[cidL]["event"][chy][chx];
-					dot_w( main_map["image_ground"], chx+1, chy+32+1);
-				}
-				if (chunk_set[cidU]["event"][chy][chx] === 1) {
-					main_map["event"][chy+32+1][chx+16+1] = chunk_set[cidU]["event"][chy][chx];
-					dot_w( main_map["image_ground"], chx+16+1, chy+32+1);
-				}
-				if (chunk_set[cidJ]["event"][chy][chx] === 1) {
-					main_map["event"][chy+32+1][chx+32+1] = chunk_set[cidJ]["event"][chy][chx];
-					dot_w( main_map["image_ground"], chx+32+1, chy+32+1);
-				}
-				/**/
-				
-				
-				
-				/*
-				if ([3].includes(chunk_set[cidO]["event"][chy][chx])) {
-					//dot_w(chunk_set[cidO]["image_low"], chx+1, chy+1);
-					dot_w( main_map["image_ground"], chx+16+1, chy+16+1);
-				} 
-				if ([3].includes(chunk_set[cidr]["event"][chy][chx])) {
-					//dot_w(chunk_set[cidr]["image_low"], chx+1, chy+1);
-					dot_w( main_map["image_ground"], chx+1, chy+1);
-				}
-				if ([3].includes(chunk_set[cidT]["event"][chy][chx])) {
-					//dot_w(chunk_set[cidT]["image_low"], chx+1, chy+1);
-					dot_w( main_map["image_forest"], chx+16+1, chy+1);
-				}
-				if ([3].includes(chunk_set[cid7]["event"][chy][chx])) {
-					//dot_w(chunk_set[cid7]["image_low"], chx+1, chy+1);
-					dot_w( main_map["image_forest"], chx+32+1, chy+1);
-				}
-				if ([3].includes(chunk_set[cidE]["event"][chy][chx])) {
-					//dot_w(chunk_set[cidE]["image_low"], chx+1, chy+1);
-					dot_w( main_map["image_forest"], chx+1, chy+16+1);
-				}
-				if ([3].includes(chunk_set[cid3]["event"][chy][chx])) {
-					//dot_w(chunk_set[cid3]["image_low"], chx+1, chy+1);
-					dot_w( main_map["image_forest"], chx+32+1, chy+16+1);
-				}
-				if ([3].includes(chunk_set[cidL]["event"][chy][chx])) {
-					//dot_w(chunk_set[cidL]["image_low"], chx+1, chy+1);
-					dot_w( main_map["image_forest"], chx+1, chy+32+1);
-				}
-				if ([3].includes(chunk_set[cidU]["event"][chy][chx])) {
-					//dot_w(chunk_set[cidU]["image_low"], chx+1, chy+1);
-					dot_w( main_map["image_forest"], chx+16+1, chy+32+1);
-				}
-				if ([3].includes(chunk_set[cidJ]["event"][chy][chx])) {
-					//dot_w(chunk_set[cidJ]["image_low"], chx+1, chy+1);
-					dot_w( main_map["image_forest"], chx+32+1, chy+32+1);
-				}/**/
-				
-				/*
-				if ([1, 2].includes(chunk_set[cidO]["event"][chy][chx])) {
-					//dot_image(chunk_set[cidO]["image"], chx, chy, chunkx, chunky);
-					dot_w
-				}
-				if ([1, 2].includes(chunk_set[cidr]["event"][chy][chx])) {
-					//dot_image(chunk_set[cidr]["image"], chx, chy, chunkx-1, chunky-1);
-				}
-				if ([1, 2].includes(chunk_set[cidT]["event"][chy][chx])) {
-					//dot_image(chunk_set[cidT]["image"], chx, chy, chunkx, chunky-1);
-				}
-				if ([1, 2].includes(chunk_set[cid7]["event"][chy][chx])) {
-					//dot_image(chunk_set[cid7]["image"], chx, chy, chunkx+1, chunky-1);
-				}
-				if ([1, 2].includes(chunk_set[cidE]["event"][chy][chx])) {
-					dot_image(chunk_set[cidE]["image"], chx, chy, chunkx-1, chunky);
-				}
-				if ([1, 2].includes(chunk_set[cid3]["event"][chy][chx])) {
-					dot_image(chunk_set[cid3]["image"], chx, chy, chunkx+1, chunky);
-				}
-				if ([1, 2].includes(chunk_set[cidL]["event"][chy][chx])) {
-					dot_image(chunk_set[cidL]["image"], chx, chy, chunkx-1, chunky+1);
-				}
-				if ([1, 2].includes(chunk_set[cidU]["event"][chy][chx])) {
-					dot_image(chunk_set[cidU]["image"], chx, chy, chunkx, chunky+1);
-				}
-				if ([1, 2].includes(chunk_set[cidJ]["event"][chy][chx])) {
-					dot_image(chunk_set[cidJ]["image"], chx, chy, chunkx+1, chunky+1);
-				}/**/
-				
-				/*
-				if ([3, 4].includes(chunk_set[cidO]["event"][chy][chx])) {
-					dot_image(chunk_set[cidO]["image_mid"], chx, chy, chunkx, chunky);
-				}
-				if ([3, 4].includes(chunk_set[cidr]["event"][chy][chx])) {
-					dot_image(chunk_set[cidr]["image_mid"], chx, chy, chunkx-1, chunky-1);
-				}
-				if ([3, 4].includes(chunk_set[cidT]["event"][chy][chx])) {
-					dot_image(chunk_set[cidT]["image_mid"], chx, chy, chunkx, chunky-1);
-				}
-				if ([3, 4].includes(chunk_set[cid7]["event"][chy][chx])) {
-					dot_image(chunk_set[cid7]["image_mid"], chx, chy, chunkx+1, chunky-1);
-				}
-				if ([3, 4].includes(chunk_set[cidE]["event"][chy][chx])) {
-					dot_image(chunk_set[cidE]["image_mid"], chx, chy, chunkx-1, chunky);
-				}
-				if ([3, 4].includes(chunk_set[cid3]["event"][chy][chx])) {
-					dot_image(chunk_set[cid3]["image_mid"], chx, chy, chunkx+1, chunky);
-				}
-				if ([3, 4].includes(chunk_set[cidL]["event"][chy][chx])) {
-					dot_image(chunk_set[cidL]["image_mid"], chx, chy, chunkx-1, chunky+1);
-				}
-				if ([3, 4].includes(chunk_set[cidU]["event"][chy][chx])) {
-					dot_image(chunk_set[cidU]["image_mid"], chx, chy, chunkx, chunky+1);
-				}
-				if ([3, 4].includes(chunk_set[cidJ]["event"][chy][chx])) {
-					dot_image(chunk_set[cidJ]["image_mid"], chx, chy, chunkx+1, chunky+1);
-				}
-				/**/
 			}
 		}
+		
+		
+		//main_map["event"][chy+16+1][chx+16+1] = chunk_set[cid_]["event"][chy][chx];
+		
+		
 		
 		/* ------ 3. SET dotted image for 3x3 map ------ 
 		need to add +16*T["w_forest_tileset"] or whatever to each of these
 		
-		*/
 		
+			16 17 18  19 20 21  22 23 24  25 26 27  28 29 30 31
+		  32 33 34  35 36 37  38 39 40  41 42 43  44 45 46 47
+		  48 49 50  51 52 53  54 55 56  57 58 59  60 61 62 63
+		
+		/**/
+		
+		/*
+		for (let chy=0; chy<3*world_chunk_size; chy++) {
+			for (let chx=0; chx<3*world_chunk_size; chx++) {
+				
+			}
+		}/**/
+		
+		// mountain, other layers
+		/*
+		for (let chy=0; chy<world_chunk_size; chy++) {
+			for (let chx=0; chx<world_chunk_size; chx++) {
+				
+			}
+		}/**/
+		
+		
+		//mountain_cliff_fill_in_side(main_map["image_mountain_side"])
 		
 		
 		for (let chy=0; chy<3*world_chunk_size; chy++) {
 			for (let chx=0; chx<3*world_chunk_size; chx++) {
 				render_map_particles.set(chx+0, chy+0, 79); // clean slate for animation
-				render_map_canopy.set(chx+0, chy+0, 79); // clean slate
-				render_map_canopy_1.set(chx+0, chy+0, 79); // clean slate
-				render_map_above.set(chx+0, chy+0, 79); // clean slate
+				//render_map_canopy.set(chx+0, chy+0, 79); // clean slate
+				//render_map_canopy_1.set(chx+0, chy+0, 79); // clean slate
+				//render_map_above.set(chx+0, chy+0, 79); // clean slate
+				render_map.set(chx+0, chy+0, 79);
+				//render_map_mid.set(chx+0, chy+0, 79); // clean slate
+				//render_map_top.set(chx+0, chy+0, 79); // clean slate
+				
 				
 				let tile_ = main_map["event"][chy+1][chx+1];
 				
@@ -9136,21 +8728,50 @@ function update_world_chunks() {
 					render_map.set(chx+0, chy+0, 0);
 				} else if (tile_ === 1) {
 					
-					render_map.set(chx+0, chy+0, main_map["image_ground"][chy+1][chx+1]);
+					render_map.set(chx+0, chy+0, main_map["image_grass_1"][chy+1][chx+1]);
 					//render_map_canopy.set(chx+0, chy+0, main_map["image_forest"][chy+1][chx+1] + 128);
+					
+				} else if (tile_ === 110) {
+					
+					render_map.set(chx+0, chy+0, main_map["image_grass_0"][chy+1][chx+1] + 64*5);
+					//render_map_canopy.set(chx+0, chy+0, main_map["image_forest"][chy+1][chx+1] + 128);
+					
+				} else if (tile_ === 111) { 
+					//render_map.set(chx+0, chy+0, 11); 
+				} else if (tile_ === 112) { 
+					render_map.set(chx+0, chy+0, main_map["image_grass_2"][chy+1][chx+1] + 64*4);
+					//render_map.set(chx+0, chy+0, 12); 
+				} else if (tile_ === 113) { 
+					//render_map.set(chx+0, chy+0, 13); 
+				} else if (tile_ === 114) { 
+					//render_map.set(chx+0, chy+0, 14);
+					
 					
 				} else if (tile_ === 11) {
 					render_map.set(chx+0, chy+0, main_map["image_deep_water"][chy+1][chx+1] + 64);
 					
 					//render_map_f.set(chx+0, chy+0, main_map["image_forest"][chy+1][chx+1]+64);
+				} else if (tile_ === 20) {
+					render_map.set(chx+0, chy+0, main_map["image_bushes"][chy+1][chx+1] + 64*8);
+					
+					//render_map_f.set(chx+0, chy+0, main_map["image_forest"][chy+1][chx+1]+64);
 				} else if (tile_ === 2) {
+					
+					
 					//render_map_canopy.set(chx+0, chy+0, main_map["image_forest"][chy+1][chx+1] + 128);
 					//render_map.set(chx+0, chy+0, 0);
 					//render_map_f.set(14,10, 100);
 				} else if (tile_ === 3) {
-					render_map.set(chx+0, chy+0, main_map["image_mountain"][chy+1][chx+1] + 128);
+					//console.log("if tile_ === 3");
+					//render_map.set(chx+0, chy+0, main_map["image_mountain"][chy+1][chx+1] + 128);
+					render_map.set(chx+0, chy+0, main_map["image_desert"][chy+1][chx+1] + 64*11);
+				} else if (tile_ === 33) { // desert rocks
+					//console.log("if tile_ === 3");
+					//render_map.set(chx+0, chy+0, main_map["image_mountain"][chy+1][chx+1] + 128);
+					render_map.set(chx+0, chy+0, main_map["image_desert_rocks"][chy+1][chx+1] + 64*6);
 				} else if (tile_ === 4) {
-					render_map.set(chx+0, chy+0, main_map["image_desert"][chy+1][chx+1] + 192);
+					//render_map.set(chx+0, chy+0, main_map["image_desert"][chy+1][chx+1] + 192);
+					
 				} 
 				
 				else if (tile_ === 40) {
@@ -9161,17 +8782,19 @@ function update_world_chunks() {
 				else if (tile_ === 41) { // tree base + trunk
 					//console.log("set 41");
 					//render_map.set(chx+0, chy+0, 0);
-					render_map.set(chx+0, chy+0, 140);
-					try { render_map_above.set(chx+0, chy+0-1, 139); } catch {}
-					try { render_map_above.set(chx+0, chy+0-2, 139); } catch {}
-					try { render_map_above.set(chx+0, chy+0-3, 139); } catch {}
+					//render_map.set(chx+0, chy+0, 140); // **** TREE ****
+					//try { render_map_above.set(chx+0, chy+0-1, 139); } catch {}
+					//try { render_map_above.set(chx+0, chy+0-2, 139); } catch {}
+					//try { render_map_above.set(chx+0, chy+0-3, 139); } catch {}
+					
+					// set the mob info
 					
 				}
 				
 				else if (tile_ === 42) { // tree base + trunk
 					//console.log(41+64);
 					//render_map.set(chx+0, chy+0, 0);
-					render_map.set(chx+0, chy+0, 140+64); // base
+					//render_map.set(chx+0, chy+0, 140+64); // **** TREE **** base
 					
 					/*
 					main_map["image_forest_canopy"][chy+1][chx+1]+= 64;
@@ -9185,41 +8808,117 @@ function update_world_chunks() {
 					main_map["image_forest_canopy"][chy+1+1][chx+1+1]+= 64;
 					/**/
 					
-					try { render_map_above.set(chx+0, chy+0-1, 139+64); } catch {}
-					try { render_map_above.set(chx+0, chy+0-2, 139+64); } catch {}
-					try { render_map_above.set(chx+0, chy+0-3, 139+64); } catch {}
+					//try { render_map_above.set(chx+0, chy+0-1, 139+64); } catch {}
+					//try { render_map_above.set(chx+0, chy+0-2, 139+64); } catch {}
+					//try { render_map_above.set(chx+0, chy+0-3, 139+64); } catch {}
 					//try { render_map_above.set(chx+0, chy+0-4, 139+64); } catch {}
 					//try { render_map_above.set(chx+0, chy+0-5, 139+64); } catch {}
 					
 					//let tree_type = chunk_set[cidO]["event"][chy][chx] === 42 ? 64 : 0;
+					//main_map["image_m_base_plat"]
+				} else if ([61,62,63,64,6261,6361,6461,6362,6462,6463,610,620,630,640,62610,63610,64610,63620,64620,64630].includes(tile_)) {
 					
-				}
+					
+					let bw = main_map["image_m_base_wall"][chy+1][chx+1];
+					let bp = main_map["image_m_base_plat"][chy+1][chx+1];
+					let mw = main_map["image_m_mid_wall"][chy+1][chx+1];
+					let mp = main_map["image_m_mid_plat"][chy+1][chx+1];
+					
+					if (bw || (bp && bp !== 33) || mw || (mp && mp !== 33)) {
+						
+						//try { chunk_set["collision_event"][chy-16][chx-16] = 1; } catch {}
+						//try { chunk_set[cidT]["collision_event"][chy][chx-16] = 1; } catch {}
+						//try { chunk_set[cidU]["collision_event"][chy-32][chx-16] = 1; } catch {}
+						//try { chunk_set[cidE]["collision_event"][chy-16][chx] = 1; } catch {}
+						//try { chunk_set[cid3]["collision_event"][chy-16][chx-32] = 1; } catch {}
+						//try { chunk_set[cidU]["collision_event"][chy-32][chx-16] = 1; } catch {}
+					} else {
+						render_map.set(chx+0, chy+0, 0);
+					}
+					
+			  } else if (tile_ === 61999) {
+					if (main_map["image_m_base_wall"][chy+1][chx+1]) {
+						//try { chunk_set[cidO]["event"][chy-16][chx-16] = 60; } catch {}
+						//chunk_set[cidO]["collision_event"]
+						try { chunk_set[cidO]["collision_event"][chy-16][chx-16] = 1; } catch {}
+					}
+					let rock_type = 9;
+					//render_map.set(chx+0, chy+0, main_map["image_m_base_wall"][chy+1][chx+1] + rock_type*64 );
+					
+				} else if (tile_ === 62999) {
+					let rock_type = 7;
+					//if (main_map["image_m_base_plat"][chy+1][chx+1] !== 33) {
+						//try { chunk_set[cidO]["collision_event"][chy-16][chx-16] = 1; } catch {}
+						//try { curr_chunk["event"][chy-16][chx-16] = 60; } catch {}
+						//render_map_mid.set(chx+0, chy+0, main_map["image_m_base_plat"][chy+1][chx+1] + rock_type*64 );
+						
+						//} else {
+						//render_map.set(chx+0, chy+0, 0);
+						
+						//}
+				} else if (tile_ === 63999) {
+					let rock_type = 9;
+					//render_map_mid.set(chx+0, chy+0, main_map["image_m_mid_wall"][chy+1][chx+1] + rock_type*64 );
+					if (main_map["image_m_mid_wall"][chy+1][chx+1]) {
+						try { chunk_set[cidO]["collision_event"][chy-16][chx-16] = 1; } catch {}
+					}
+					
+				} else if (tile_ === 64999) {
+					let rock_type = 7;
+					//render_map_top.set(chx+0, chy+0, main_map["image_m_mid_plat"][chy+1][chx+1] + rock_type*64 );
+					if (main_map["image_m_mid_plat"][chy+1][chx+1] !== 33) {
+						try { chunk_set[cidO]["collision_event"][chy-16][chx-16] = 1; } catch {}
+					}
+					
+				} else if (tile_ === 6362999) {
+					let rock_type = 9;
+					//render_map_mid.set(chx+0, chy+0, main_map["image_m_mid_wall"][chy+1][chx+1] + rock_type*64 );
+					
+				} else if (tile_ === 6462999) {
+					let rock_type = 7;
+					//render_map_mid.set(chx+0, chy+0, main_map["image_m_mid_plat"][chy+1][chx+1] + rock_type*64 );
+					
+				} else if (tile_ === 6361999) {
+					let rock_type = 9;
+					//render_map_mid.set(chx+0, chy+0, main_map["image_m_mid_wall"][chy+1][chx+1] + rock_type*64 );
+					
+				} else if (tile_ === 6461999) {
+					let rock_type = 7;
+					//render_map_mid.set(chx+0, chy+0, main_map["image_m_mid_plat"][chy+1][chx+1] + rock_type*64 );
+					
+				} else if (tile_ === 6261999) {
+					let rock_type = 7;
+					//render_map_mid.set(chx+0, chy+0, main_map["image_m_base_plat"][chy+1][chx+1] + rock_type*64 );
+					
+				} else if (tile_ === 6463999) {
+					let rock_type = 7;
+					//render_map_top.set(chx+0, chy+0, main_map["image_m_mid_plat"][chy+1][chx+1] + rock_type*64 );
+					
 				
-				else if (tile_ === 60) {
-					render_map.set(chx+0, chy+0, main_map["image_mountain"][chy+1][chx+1] + 5*64 );
-				}
-				
-				// forest
-				else if (tile_ === 100) {
+				} else if (tile_ === 65) { // stairs
+					render_map.set(chx+0, chy+0, 64*9 + 11);
+					
+				} else if (tile_ === 100) { // forest
 					render_map.set(chx+0, chy+0, 141);
 					//console.log("lll");
 				} else if (tile_ === 101) {
 					//console.log("f");
 					render_map.set(chx+0, chy+0, 142);
-				} 
+				} else if (tile_ === 120) { 
+					render_map.set(chx+0, chy+0, 5*64+39); 
 				
-				// grass
-				else if (tile_ === 110) { render_map.set(chx+0, chy+0, 0); } 
-				else if (tile_ === 111) { render_map.set(chx+0, chy+0, 11); } 
-				else if (tile_ === 112) { render_map.set(chx+0, chy+0, 12); } 
-				else if (tile_ === 113) { render_map.set(chx+0, chy+0, 13); } 
-				else if (tile_ === 114) { render_map.set(chx+0, chy+0, 14); } 
+				} else if ([400,401,402,403,404,405].includes(tile_)) { // flowers
+					//console.log("flowers: "+(tile_-400));
+					//render_map.set(chx+0, chy+0, 16*64+(400-tile_));
+					render_map.set(chx+0, chy+0, 16*64+(tile_-400));
+				}// testing
 			}
 		}
 		
 		// need to change image before displaying it
 		
 		// tree canopy
+		/*
 		for (let chy=0; chy<3*world_chunk_size; chy++) {
 			for (let chx=0; chx<3*world_chunk_size; chx++) {
 				let tree_type = main_map["event"][chy][chx] === 42 ? 64 : 0;
@@ -9237,11 +8936,27 @@ function update_world_chunks() {
 					render_map_canopy_1.set(chx+0, chy+0, main_map["image_forest_canopy_1"][chy][chx] + 128+64);
 				}
 			}
-		}
+		}*/
+		//console.log("jjjjjjjj");
 		/*
 		for (let chy=0; chy<3*world_chunk_size; chy++) {
 			for (let chx=0; chx<3*world_chunk_size; chx++) {
-				//let tile_ = main_map["image_ground"][chy+1][chx+1];
+				let m_edge = main_map["image_mountain"][chy+1][chx+1];
+				
+				if (m_edge === 48) { // avoid tree trunks and other things
+					try { render_map.set(chx+0, chy+1, 48 + 5*64 ); } catch {}
+				} else if (m_edge === 49) {
+					try { render_map.set(chx+0, chy+1, 49 + 5*64 ); } catch {}
+				} else if (m_edge === 50) {
+					try { render_map.set(chx+0, chy+1, 50 + 5*64 ); } catch {}
+				}
+			}
+		}/**/
+		
+		/*
+		for (let chy=0; chy<3*world_chunk_size; chy++) {
+			for (let chx=0; chx<3*world_chunk_size; chx++) {
+				//let tile_ = main_map["image_grass_1"][chy+1][chx+1];
 				render_map.set(chx+0, chy+0, main_map["image_forest"][chy+1][chx+1]);
 				//render_map_m.set(chx+0, chy+0, main_map["image_forest"][chy+1][chx+1]); // need to change to sprites if we want to be able to walk under them
 			}
@@ -9249,90 +8964,6 @@ function update_world_chunks() {
 		
 		
 		
-		
-		/*
-		for (let chy=0; chy<world_chunk_size; chy++) {
-			for (let chx=0; chx<world_chunk_size; chx++) {
-				
-				
-				//render_O.set(chx, chy, 33);//chunk_set[cidO]["image"][chy][chx]);
-				//render_r.set(chx, chy, 33);//chunk_set[cidr]["image"][chy][chx]);
-				//render_T.set(chx, chy, 33);//chunk_set[cidT]["image"][chy][chx]);
-				//render_7.set(chx, chy, 33);//chunk_set[cid7]["image"][chy][chx]);
-				//render_E.set(chx, chy, 33);//chunk_set[cidE]["image"][chy][chx]);
-				//render_3.set(chx, chy, 33);//chunk_set[cid3]["image"][chy][chx]);
-				//render_L.set(chx, chy, 33);//chunk_set[cidL]["image"][chy][chx]);
-				//render_U.set(chx, chy, 33);//chunk_set[cidU]["image"][chy][chx]);
-				//render_J.set(chx, chy, 33);//chunk_set[cidJ]["image"][chy][chx]);
-				
-				
-				
-				
-				render_O.set(chx, chy, chunk_set[cidO]["image_low"][chy+1][chx+1]);
-				render_r.set(chx, chy, chunk_set[cidr]["image_low"][chy+1][chx+1]);
-				render_T.set(chx, chy, chunk_set[cidT]["image_low"][chy+1][chx+1]);
-				render_7.set(chx, chy, chunk_set[cid7]["image_low"][chy+1][chx+1]);
-				render_E.set(chx, chy, chunk_set[cidE]["image_low"][chy+1][chx+1]);
-				render_3.set(chx, chy, chunk_set[cid3]["image_low"][chy+1][chx+1]);
-				render_L.set(chx, chy, chunk_set[cidL]["image_low"][chy+1][chx+1]);
-				render_U.set(chx, chy, chunk_set[cidU]["image_low"][chy+1][chx+1]);
-				render_J.set(chx, chy, chunk_set[cidJ]["image_low"][chy+1][chx+1]);
-				
-				
-				render_O_m.set(chx, chy, chunk_set[cidO]["image_mid"][chy+1][chx+1]+16*4);
-				render_r_m.set(chx, chy, chunk_set[cidr]["image_mid"][chy+1][chx+1]+16*4);
-				render_T_m.set(chx, chy, chunk_set[cidT]["image_mid"][chy+1][chx+1]+16*4);
-				render_7_m.set(chx, chy, chunk_set[cid7]["image_mid"][chy+1][chx+1]+16*4);
-				render_E_m.set(chx, chy, chunk_set[cidE]["image_mid"][chy+1][chx+1]+16*4);
-				render_3_m.set(chx, chy, chunk_set[cid3]["image_mid"][chy+1][chx+1]+16*4);
-				render_L_m.set(chx, chy, chunk_set[cidL]["image_mid"][chy+1][chx+1]+16*4);
-				render_U_m.set(chx, chy, chunk_set[cidU]["image_mid"][chy+1][chx+1]+16*4);
-				render_J_m.set(chx, chy, chunk_set[cidJ]["image_mid"][chy+1][chx+1]+16*4);
-				
-				
-				
-				
-				
-				
-				
-				
-				//render_O.set(chx, chy, chunk_set[cidO]["image"][chy][chx] + 16*T["w_forest_tiles"]);
-				//render_r.set(chx, chy, chunk_set[cidr]["image"][chy][chx] + 16*T["w_forest_tiles"]);
-			  //render_T.set(chx, chy, chunk_set[cidT]["image"][chy][chx] + 16*T["w_forest_tiles"]);
-				//render_7.set(chx, chy, chunk_set[cid7]["image"][chy][chx] + 16*T["w_forest_tiles"]);
-				//render_E.set(chx, chy, chunk_set[cidE]["image"][chy][chx] + 16*T["w_forest_tiles"]);
-				//render_3.set(chx, chy, chunk_set[cid3]["image"][chy][chx] + 16*T["w_forest_tiles"]);
-				//render_L.set(chx, chy, chunk_set[cidL]["image"][chy][chx] + 16*T["w_forest_tiles"]);
-				//render_U.set(chx, chy, chunk_set[cidU]["image"][chy][chx] + 16*T["w_forest_tiles"]);
-				//render_J.set(chx, chy, chunk_set[cidJ]["image"][chy][chx] + 16*T["w_forest_tiles"]);
-				
-				
-				//render_O.set(chx, chy, chunk_set[cidO]["image"][chy][chx] + 16*T["w_water_tiles"]);
-				//render_r.set(chx, chy, chunk_set[cidr]["image"][chy][chx] + 16*T["w_water_tiles"]);
-				//render_T.set(chx, chy, chunk_set[cidT]["image"][chy][chx] + 16*T["w_water_tiles"]);
-				//render_7.set(chx, chy, chunk_set[cid7]["image"][chy][chx] + 16*T["w_water_tiles"]);
-				//render_E.set(chx, chy, chunk_set[cidE]["image"][chy][chx] + 16*T["w_water_tiles"]);
-				//render_3.set(chx, chy, chunk_set[cid3]["image"][chy][chx] + 16*T["w_water_tiles"]);
-				//render_L.set(chx, chy, chunk_set[cidL]["image"][chy][chx] + 16*T["w_water_tiles"]);
-				//render_U.set(chx, chy, chunk_set[cidU]["image"][chy][chx] + 16*T["w_water_tiles"]);
-				//render_J.set(chx, chy, chunk_set[cidJ]["image"][chy][chx] + 16*T["w_water_tiles"]);
-				
-				
-			}
-		}
-		/**/
-		
-		//console.log("render map:");
-		//console.log(render_map);
-		
-		// render_map.width
-		// render_map.height
-		// render_map.items
-		// render_map.texture
-		// render_map.tilesheet
-		// render_map.items[0][0].x
-		// render_map.items[0][0].y
-		//console.log(render_map.items[5][5].sprite);
 		
 		
 		for (let chy=0; chy<48; chy++) {
@@ -9374,7 +9005,7 @@ function update_world_chunks() {
 	}
 	/**/
 		
-		
+	curr_chunk = chunk_set[cidO];
 	
 	
 	//console.log(chunk_count);
@@ -9439,7 +9070,7 @@ function mini_map(sp_id) {
 			sprite_id = 960;
 			break;
 		case "g":
-			if (sp_id.biome2 === "m") {
+			if (["m", "M"].includes(sp_id.biome2)) {
 				sprite_id = 963;
 			} else if (sp_id.biome2 === "f") {
 				sprite_id = 964;
@@ -9451,6 +9082,9 @@ function mini_map(sp_id) {
 			sprite_id = 962;
 			break;
 		case "m":
+			sprite_id = 963;
+			break;
+		case "M":
 			sprite_id = 963;
 			break;
 		case "f":
@@ -9472,8 +9106,21 @@ function draw_world_chunks() {
 	
 	let n_x = pw.x < 0 ? 128 : 0;
 	let n_y = pw.y < 0 ? 128 : 0;
+	let pwx8 = Math.floor(pw.x/8);
+	let pwy8 = Math.floor(pw.y/8);
+	let pwx8_pacman = pwx8 < 0 ? 16+pwx8%16 : pwx8%16;
+	let pwy8_pacman = pwy8 < 0 ? 16+pwy8%16 : pwy8%16;
 	
 	
+	/*
+	sprite(pw_sheet_id+(pframe*2), XMID-4-left_edge-XOFFSET+(8*going_left)+right_edge, YMID-top_edge-16+bottom_edge-PLAYER_Y_WORLD_OFFSET, going_left);
+	sprite(pw_sheet_id+1+(pframe*2), XMID-4-left_edge+8-XOFFSET-(8*going_left)+right_edge, YMID-top_edge-16+bottom_edge-PLAYER_Y_WORLD_OFFSET, going_left);
+	sprite(pw_sheet_id+16+(pframe*2), XMID-4-left_edge-XOFFSET+(8*going_left)+right_edge, YMID-top_edge-16+bottom_edge+8-PLAYER_Y_WORLD_OFFSET, going_left);
+	sprite(pw_sheet_id+17+(pframe*2), XMID-4-left_edge+8-XOFFSET-(8*going_left)+right_edge, YMID-top_edge-16+bottom_edge+8-PLAYER_Y_WORLD_OFFSET, going_left);
+	sprite(pw_sheet_id+32+(pframe*2), XMID-4-left_edge-XOFFSET+(8*going_left)+right_edge, YMID-top_edge-16+bottom_edge+16-PLAYER_Y_WORLD_OFFSET, going_left);
+	sprite(pw_sheet_id+33+(pframe*2), XMID-4-left_edge+8-XOFFSET-(8*going_left)+right_edge, YMID-top_edge-16+bottom_edge+16-PLAYER_Y_WORLD_OFFSET, going_left);
+	
+	*/
 	
 	/*
 	draw(render_r, 0-(pw.x%128+n_x), 0-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
@@ -9486,8 +9133,40 @@ function draw_world_chunks() {
 	draw(render_U, 128-(pw.x%128+n_x), 256-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
 	draw(render_J, 256-(pw.x%128+n_x), 256-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
 	/**/
+	
+	
 	draw(render_map, 0-(pw.x%128+n_x), 0-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
+	
 	draw(render_map_particles, 0-(pw.x%128+n_x), 0-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
+	
+	if (M_LAYER === 0) {
+		draw_mount_behind(pwx8_pacman, pwy8_pacman);
+		draw_trees_behind();
+		draw_player_1();
+		draw_mount_front(pwx8_pacman, pwy8_pacman);
+		draw_trees_front();
+		//draw(render_map_mid, 0-(pw.x%128+n_x), 0-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
+		//draw(render_map_top, 0-(pw.x%128+n_x), 0-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
+	} else if (M_LAYER === 1) {
+		//draw(render_map_mid, 0-(pw.x%128+n_x), 0-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
+		draw_mount_behind(pwx8_pacman, pwy8_pacman);
+		draw_trees_behind();
+		draw_player_1();
+		draw_mount_front(pwx8_pacman, pwy8_pacman);
+		draw_trees_front();
+		//draw(render_map_top, 0-(pw.x%128+n_x), 0-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
+	} else if (M_LAYER === 2) {
+		//draw(render_map_mid, 0-(pw.x%128+n_x), 0-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
+		//draw(render_map_top, 0-(pw.x%128+n_x), 0-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
+		draw_mount_behind(pwx8_pacman, pwy8_pacman);
+		draw_trees_behind();
+		draw_player_1();
+		draw_mount_front(pwx8_pacman, pwy8_pacman);
+		draw_trees_front();
+	}/**/
+	
+	
+	
 	//draw(render_map_m, 0-(pw.x%128+n_x), 0-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
 	
 	/*
@@ -9505,8 +9184,8 @@ function draw_world_chunks() {
 	
 	//draw(visible_world, XMID-pw.x, YMID-pw.y);
 	
-	let pwx8 = Math.floor(pw.x/8);
-	let pwy8 = Math.floor(pw.y/8);
+	
+	
 	
 	//let ttcx = pw.cx >= 0 ? pw.cx-1 : pw.cx;
 	//let ttcy = pw.cy >= 0 ? pw.cy-1 : pw.cy;
@@ -9515,10 +9194,15 @@ function draw_world_chunks() {
 	let cbs = curr_chunk_ids["O"].b.special;
 	
 	print("x y  : "+pw.x+" "+pw.y, 8, 8);
-	print("grid : "+pwx8+" "+pwy8, 8, 16);
+	print("grid : "+pwx8+" "+pwy8+" /  "+pwx8_pacman+" "+pwy8_pacman, 8, 16);
 	print("chunk: "+pw.cx+" "+pw.cy+"  (total: "+Object.keys(chunk_set).length+")", 8, 24);
 	print("biome type:  "+curr_chunk_ids["O"].b.biome, 8, 32);
-	print("   secondary biome type:  "+curr_chunk_ids["O"].b.biome2, 128, 32);
+	if (curr_chunk_ids["O"].b.biome2 === "M") {
+		print("   secondary biome type: Mount ", 128, 32);
+	} else {
+		print("   secondary biome type: "+curr_chunk_ids["O"].b.biome2, 128, 32);
+	}
+	
 	print("biome shape: "+curr_chunk_ids["O"].s, 8, 40);
 	print("biome diff: "+curr_chunk_ids["O"].b.difficulty, 8, 48);
 	
@@ -9526,7 +9210,8 @@ function draw_world_chunks() {
 	  curr_chunk_ids["O"].b.bvi[0]+" "+
 		curr_chunk_ids["O"].b.bvi[1]+" "+
 		curr_chunk_ids["O"].b.bvi[2]+" "+
-		curr_chunk_ids["O"].b.bvi[3], 
+		curr_chunk_ids["O"].b.bvi[3]+" "+
+	  curr_chunk_ids["O"].b.bvi[8], 
 	8, 180);
 	
 	if (cbs.length > 0) {

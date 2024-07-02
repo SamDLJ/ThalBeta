@@ -1,4 +1,11 @@
 import { dot_order } from "./objects.js";
+import { GRASS_HBTILES } from "./grass_herringbone.js";
+import { MOUNT_HBTILES } from "./mount_herringbone.js";
+import { FOREST_HBTILES } from "./forest_herringbone.js";
+
+import { MOUNTAINS } from "./mountain_chunks.js";
+import { COAST } from "./coast_chunks.js";
+import { DESERT } from "./desert_chunks.js"
 
 /* =============== random number generator ================ */
 /* random number generator for seed. n is how many you need (source?)*/
@@ -73,977 +80,156 @@ export function init_curr_chunk_ids(cx,cy) {
 
 
 
-// 40s are forest
 
-function forest(seed, bvi) {
-	
+/*
+
+110 dirt
+112 long grass
+20 small connected bushes
+
+
+
+/**/
+// why dont we just use hb tiles for all biomes?
+
+export function herringbone_tile(seed, b2, bvi, hbtype="") {
 	let iR = 0;
 	var chunk = [...Array(16)].map(_ => Array(16).fill(0));
 	var chunk_canopy = [...Array(16)].map(_ => Array(16).fill(0));
 	
-	for (let yy=0; yy<16; yy++) {
-		for (let xx=0; xx<16; xx++) {
-		  let rr = Math.floor(seed[iR]*(2));
-			iR = iR >= seed.length-1 ? 0 : iR+1;
-			chunk[yy][xx] = 100+rr;
-		}
-	}
+	let num_tiles = 0;
+	let tile_index = 0;
 	
-	
-	//let xi = 8;
-	//let yi = 0;
-	//let randr = 1;
-	let randx = 0;
-	let randy = 0;
-	
-	let tree_type = 41;
-	
-	if (bvi) {
-		//console.log(bvi);
-		if (bvi[1]) {
-			//console.log("3");
-			tree_type = 42;
-		}
-	}
-	//let tree_type = bvi[1] ? 41+64 : 41;
-	
-	for (let i=0; i<15; i++) {
-		randx = 0 + Math.floor(seed[iR]*(15-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		randy = 0 + Math.floor(seed[iR]*(15-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		
-		chunk[randy][randx] = tree_type;
-		try { 
-			if (![41, 42].includes(chunk[randy-1][randx-1])) {
-				chunk[randy-1][randx-1] = 0; 
-			}
-		} catch {}
-		try { 
-			if (![41, 42].includes(chunk[randy-1][randx])) {
-				chunk[randy-1][randx] = 0; 
-			}
-		} catch {}
-		try { 
-			if (![41, 42].includes(chunk[randy-1][randx+1])) {
-				chunk[randy-1][randx+1] = 0; 
-			}
-		} catch {}
-		try { 
-			if (![41, 42].includes(chunk[randy][randx-1])) {
-				chunk[randy][randx-1] = 0;
-			}
-		} catch {}
-		try { 
-			if (![41, 42].includes(chunk[randy][randx+1])) {
-			  chunk[randy][randx+1] = 0; 
-			}
-		} catch {}
-		try { 
-			if (![41, 42].includes(chunk[randy+1][randx-1])) {
-				chunk[randy+1][randx-1] = 0; 
-			}
-		} catch {}
-		try { 
-			if (![41, 42].includes(chunk[randy+1][randx])) {
-				chunk[randy+1][randx] = 0; 
-			}
-		} catch {}
-		try { 
-			if (![41, 42].includes(chunk[randy+1][randx+1])) {
-				chunk[randy+1][randx+1] = 0; 
-			}
-		} catch {}
-		
-		
-		/*
-		try { chunk_canopy[randy-1][randx-1] = 2; } catch {}
-		try { chunk_canopy[randy-1][randx] = 2; } catch {}
-		try { chunk_canopy[randy-1][randx+1] = 2; } catch {}
-		try { chunk_canopy[randy][randx-1] = 2; } catch {}
-		try { chunk_canopy[randy][randx] = 2; } catch {}
-		try { chunk_canopy[randy][randx+1] = 2; } catch {}
-		try { chunk_canopy[randy+1][randx-1] = 2; } catch {}
-		try { chunk_canopy[randy+1][randx] = 2; } catch {}
-		try { chunk_canopy[randy+1][randx+1] = 2; } catch {}
-		/**/
-		//let random_height = 3 + Math.floor(seed[iR]*(6));
-		//iR = iR >= seed.length-1 ? 0 : iR+1;
-		
-		
-		//for (let h=1; h<random_height && randy-h; h++) {
-		//	try { chunk[randy-h][randx] = 40; } catch {}	
-		//}
-	}
-	
-	
-	
-	return chunk; //[chunk, chunk_canopy];
-}
-
-
-// 60s are mountains
-export function rocky(seed, bvi) {
-	let iR = 0;
-	var chunk = [...Array(16)].map(_ => Array(16).fill(0));
-	
-	let N = 1;
-	
-	if (bvi[0]) {
-		N += 2;
-	}
-	if (bvi[1]) {
-		N += 5;
-	}
-	if (bvi[2]) {
-		N += 10;
-	}
-	if (bvi[3]) {
-		N += 30;
-	}
-	if (bvi[4]) {
-		N += 60;
-	}
-	
-	N = 60;
-	
-	
-	for (let i=0; i<N; i++) {
-		let rx = Math.floor(seed[iR]*(16));
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		let ry = Math.floor(seed[iR]*(16));
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		
-		chunk[ry][rx] = 60;
-		
-		
-		try { chunk[ry][rx+1] = 60 } catch {}
-		try { chunk[ry+1][rx] = 60 } catch {}
-		try { chunk[ry+1][rx+1] = 60 } catch {}
-		
-	}
-	
-	return chunk;
-}
-
-
-// this is where the forest and mountain biomes are determined
-export function g(seed, b2, bvi) {//, ch2="") {
-	let iR = 0;
-	var chunk = [...Array(16)].map(_ => Array(16).fill(0));
-	var chunk_canopy = [...Array(16)].map(_ => Array(16).fill(0));
-	//console.log(ch2);
-	//console.log(ch2 == "f");
-	if (b2 == "f") {
-		chunk = forest(seed, bvi);
-	} else if (b2 == "m") {
-		chunk = rocky(seed, bvi);
-	} else {
-		
-		for (let yy=0; yy<16; yy++) {
-			for (let xx=0; xx<16; xx++) {
-			  let rr = Math.floor(seed[iR]*(4));
+	if (["left", "right"].includes(hbtype)) {
+		if (b2 === "g") {
+			try {
+				num_tiles = GRASS_HBTILES["horizontal"].length;
+				tile_index = Math.floor(seed[iR]*(num_tiles));
 				iR = iR >= seed.length-1 ? 0 : iR+1;
-				chunk[yy][xx] = 110+rr;
-			}
+				chunk = GRASS_HBTILES["horizontal"][tile_index][hbtype];
+			} catch {}
+		} else if (b2 === "f") {
+			try {
+				num_tiles = FOREST_HBTILES["horizontal"].length;
+				tile_index = Math.floor(seed[iR]*(num_tiles));
+				iR = iR >= seed.length-1 ? 0 : iR+1;
+				chunk = FOREST_HBTILES["horizontal"][tile_index][hbtype];
+			} catch {}
+		} else if (b2 === "m") {
+			try {
+				num_tiles = MOUNT_HBTILES["horizontal"].length;
+				tile_index = Math.floor(seed[iR]*(num_tiles));
+				iR = iR >= seed.length-1 ? 0 : iR+1;
+				chunk = MOUNT_HBTILES["horizontal"][tile_index][hbtype];
+			} catch {}
+		}
+	} else if (["top", "bottom"].includes(hbtype)) {
+		if (b2 === "g") {
+			try {
+				num_tiles = GRASS_HBTILES["vertical"].length;
+				tile_index = Math.floor(seed[iR]*(num_tiles));
+				iR = iR >= seed.length-1 ? 0 : iR+1;
+				chunk = GRASS_HBTILES["vertical"][tile_index][hbtype];
+			} catch {}
+		} else if (b2 === "f") {
+			try {
+				num_tiles = FOREST_HBTILES["vertical"].length;
+				tile_index = Math.floor(seed[iR]*(num_tiles));
+				iR = iR >= seed.length-1 ? 0 : iR+1;
+				chunk = FOREST_HBTILES["vertical"][tile_index][hbtype];
+			} catch {}
+		} else if (b2 === "m") {
+			try {
+				num_tiles = MOUNT_HBTILES["vertical"].length;
+				tile_index = Math.floor(seed[iR]*(num_tiles));
+				iR = iR >= seed.length-1 ? 0 : iR+1;
+				chunk = MOUNT_HBTILES["vertical"][tile_index][hbtype];
+			} catch {}
 		}
 		
-	}
+	} 
 	
-	//console.log(chunk);
-	return chunk;//[chunk, chunk_canopy];
+  return chunk;
 	
 }
 
 
-
-
-
-export function g7(seed) {
-	
-	//const seed = PRNG(xx+"_"+yy, 64);
-	let iR = 0;
-	
-	//let chunk_data = [];
-	
-	var chunk = [...Array(16)].map(_ => Array(16).fill(0));
-	
-	let xi = 8;
-	let yi = 0;
-	let r = 0;
-	while (xi < 16 && yi < 16) {
-		for (let xi_=xi; xi_<16; xi_++){
-			chunk[yi][xi_] = 1;
-		}
-		xi++;
-		r = 0+Math.floor(seed[iR]*(2-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		if (!r) { yi++; }
-	}
-	
-	xi = 15;
-	yi = 7;
-	r = 0;
-	while (xi >= 0 && yi >= 0) {
-		for (let yi_=yi; yi_>=0; yi_--){
-			chunk[yi_][xi] = 1;
-		}
-		yi--;
-		r = 0+Math.floor(seed[iR]*(2-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		if (!r) { xi--; }
-	}
-	
-	chunk[0][15] = 11;
-	/*
-	for (let y=0; y<16; y++) {
-		for (let x=0; x<16; x++) {
-			if (chunk[y][x]) {
-				pixelData.push([x*8,y*8, "rgb(0,200,250)"]);
-			}
-		}
-	}/**/
-	//chunk[14][14] = 2;
-	return chunk;//pixelData;
-}
-
-export function gr(seed) {
-	
-	//const seed = PRNG(xx+"_"+yy, 64);
-	let iR = 0;
-	
-	//let chunk_data = [];
-	
-	var chunk = [...Array(16)].map(_ => Array(16).fill(0));
-	
-	let xi = 7;
-	let yi = 0;
-	let r = 0;
-	while (xi >= 0 && yi < 8) {
-		for (let xi_=xi; xi_>=0; xi_--) {
-			chunk[yi][xi_] = 1;
-		}
-		xi--;
-		r = 0+Math.floor(seed[iR]*(2-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		yi+=r;
-	}
-	
-	xi = 0;
-	yi = 7;
-	r = 0;
-	while (xi >= 0 && yi >= 0) {
-		for (let yi_=yi; yi_>=0; yi_--){
-			chunk[yi_][xi] = 1;
-		}
-		yi--;
-		r = 0+Math.floor(seed[iR]*(2-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		xi+=r;
-	}
-	
-	chunk[0][0] = 11;
-	/*
-	for (let y=0; y<16; y++) {
-		for (let x=0; x<16; x++) {
-			if (chunk[y][x]) {
-				pixelData.push([x*8,y*8, "rgb(0,200,250)"]);
-			}
-		}
-	}/**/
-	
-	return chunk;//pixelData;
-}
-
-export function gL(seed) {
-	
-	//const seed = PRNG(xx+"_"+yy, 64);
-	let iR = 0;
-	
-	//let chunk_data = [];
-	
-	var chunk = [...Array(16)].map(_ => Array(16).fill(0));
-	
-	let xi = 7;
-	let yi = 15;
-	let r = 0;
-	while (xi >= 0 && yi >= 0) {
-		for (let xi_=xi; xi_>=0; xi_--) {
-			chunk[yi][xi_] = 1;
-		}
-		xi--;
-		r = 0+Math.floor(seed[iR]*(2-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		yi-=r;
-	}
-	
-	xi = 0;
-	yi = 8;
-	r = 0;
-	while (xi >= 0 && yi < 16) {
-		for (let yi_=yi; yi_<16; yi_++){
-			chunk[yi_][xi] = 1;
-		}
-		yi++;
-		r = 0+Math.floor(seed[iR]*(2-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		xi+=r;
-	}
-	
-	chunk[15][0] = 11;
-	/*
-	for (let y=0; y<16; y++) {
-		for (let x=0; x<16; x++) {
-			if (chunk[y][x]) {
-				pixelData.push([x*8,y*8, "rgb(0,200,250)"]);
-			}
-		}
-	}/**/
-	
-	return chunk;//pixelData;
-}
-
-export function gJ(seed) {
-	
-	//const seed = PRNG(xx+"_"+yy, 64);
-	let iR = 0;
-	
-	//let chunk_data = [];
-	
-	var chunk = [...Array(16)].map(_ => Array(16).fill(0));
-	
-	let xi = 8;
-	let yi = 15;
-	let r = 0;
-	while (xi < 16 && yi >= 0) {
-		for (let xi_=xi; xi_<16; xi_++) {
-			chunk[yi][xi_] = 1;
-		}
-		xi++;
-		r = 0+Math.floor(seed[iR]*(2-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		yi-=r;
-	}
-	
-	xi = 15;
-	yi = 8;
-	r = 0;
-	while (xi >= 0 && yi < 16) {
-		for (let yi_=yi; yi_<16; yi_++){
-			chunk[yi_][xi] = 1;
-		}
-		yi++;
-		r = 0+Math.floor(seed[iR]*(2-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		xi-=r;
-	}
-	
-	/*
-	for (let y=0; y<16; y++) {
-		for (let x=0; x<16; x++) {
-			if (chunk[y][x]) {
-				pixelData.push([x*8,y*8, "rgb(0,200,250)"]);
-			}
-		}
-	}/**/
-	
-	return chunk;//pixelData;
-}
-
-
-export function wL(seed) {
-	let iR = 0;
-	
-	var chunk = [...Array(16)].map(_ => Array(16).fill(1));
-	
-	let xi = 0;
-	let yi = 8;
-	let r = 0;
-	
-	while (xi < 8 && yi < 16) {
-		for (let yi_=yi; yi_<16; yi_++){
-			chunk[yi_][xi] = 0;
-		}
-		xi++;
-		r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		yi+=r;
-	}
-	
-	xi = 7;
-	yi = 15;
-	r = 0;
-	while (xi >= 0 && yi >= 8) {
-		for (let xi_=xi; xi_>=0; xi_--) {
-			chunk[yi][xi_] = 0;
-		}
-		yi--;
-		r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		xi-=r;
-	}
-	
-	return chunk;
-}
-
-export function wJ(seed) {
-	let iR = 0;
-	
-	var chunk = [...Array(16)].map(_ => Array(16).fill(1));
-	
-	let xi = 15;
-	let yi = 8;
-	let r = 0;
-	
-	while (xi > 8 && yi < 16) {
-		for (let yi_=yi; yi_<16; yi_++){
-			chunk[yi_][xi] = 0;
-		}
-		xi--;
-		r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		yi+=r;
-	}
-	
-	xi = 8;
-	yi = 15;
-	r = 0;
-	while (xi < 16 && yi >= 8) {
-		for (let xi_=xi; xi_<16; xi_++) {
-			chunk[yi][xi_] = 0;
-		}
-		yi--;
-		r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		xi+=r;
-	}
-	
-	return chunk;
-}
-
-export function w7(seed) {
-	let iR = 0;
-	
-	var chunk = [...Array(16)].map(_ => Array(16).fill(1));
-	
-	let xi = 8;
-	let yi = 0;
-	let r = 0;
-	
-	while (xi < 16 && yi < 8) {
-		for (let xi_=xi; xi_<16; xi_++){
-			chunk[yi][xi_] = 0;
-		}
-		yi++;
-		r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		xi+=r;
-	}
-	
-	xi = 15;
-	yi = 7;
-	r = 0;
-	while (xi >=8 && yi > 0) {
-		for (let yi_=yi; yi_>=0; yi_--) {
-			chunk[yi_][xi] = 0;
-		}
-		xi--;
-		r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		yi-=r;
-	}
-	
-	return chunk;
-}
-
-export function wr(seed) {
-	let iR = 0;
-	
-	var chunk = [...Array(16)].map(_ => Array(16).fill(1));
-	
-	let xi = 7;
-	let yi = 0;
-	let r = 0;
-	
-	while (xi >= 0 && yi < 8) {
-		for (let xi_=xi; xi_>=0; xi_--){
-			chunk[yi][xi_] = 0;
-		}
-		yi++;
-		r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		xi-=r;
-	}
-	
-	xi = 0;
-	yi = 7;
-	r = 0;
-	while (xi < 8 && yi > 0) {
-		for (let yi_=yi; yi_>=0; yi_--) {
-			chunk[yi_][xi] = 0;
-		}
-		xi++;
-		r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		yi-=r;
-	}
-	
-	return chunk;
-}
-
-export function wu(seed) {
-	let iR = 0;
-	var chunk = [...Array(16)].map(_ => Array(16).fill(1));
-	
-	/*
-	let xi = 0;
-	let yi = 0;
-	let r = 0;
-	while (xi < 8 && yi < 16) {
-		chunk[yi][xi] = 1;
-		for (let yi_=yi; yi_>=0; yi_--){
-			chunk[yi_][xi] = 1;
-		}
-		r = 0+Math.floor(seed[iR]*(2-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		yi+=r;
-		r = 0+Math.floor(seed[iR]*(2-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		xi+=r;
-	}
-	if (yi > 15) {
-		yi = 15;
-	}
-	while (xi < 8) {
-		for (let yi_=yi; yi_>=0; yi_--){
-			chunk[yi_][xi] = 1;
-		}
-		xi++;
-	}
-	
-	xi = 15;
-	yi = 0;
-	r = 0;
-	while (xi > 7 && yi < 16) {
-		chunk[yi][xi] = 1;
-		for (let yi_=yi; yi_>=0; yi_--){
-			chunk[yi_][xi] = 1;
-		} 
-		r = 0+Math.floor(seed[iR]*(2-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		yi+=r;
-		r = 0+Math.floor(seed[iR]*(2-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		xi-=r;
-	}
-	if (yi > 15) {
-		yi = 15;
-	}
-	while (xi > 7) {
-		for (let yi_=yi; yi_>=0; yi_--){
-			chunk[yi_][xi] = 1;
-		}
-		xi--;
-	}/**/
-	
-	let xi = 15;
-	let yi = 8;
-	let r = 0;
-	
-	while (xi > 8 && yi < 16) {
-		for (let yi_=yi; yi_<16; yi_++){
-			chunk[yi_][xi] = 0;
-		}
-		xi--;
-		r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		yi+=r;
-	}
-	
-	xi = 8;
-	yi = 15;
-	r = 0;
-	while (xi < 16 && yi >= 8) {
-		for (let xi_=xi; xi_<16; xi_++) {
-			chunk[yi][xi_] = 0;
-		}
-		yi--;
-		r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		xi+=r;
-	}
-	
-	xi = 0;
-	yi = 8;
-	r = 0;
-	
-	while (xi < 8 && yi < 16) {
-		for (let yi_=yi; yi_<16; yi_++){
-			chunk[yi_][xi] = 0;
-		}
-		xi++;
-		r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		yi+=r;
-	}
-	
-	xi = 7;
-	yi = 15;
-	r = 0;
-	while (xi >= 0 && yi >= 8) {
-		for (let xi_=xi; xi_>=0; xi_--) {
-			chunk[yi][xi_] = 0;
-		}
-		yi--;
-		r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		xi-=r;
-	}
-	
-	
-	return chunk;
-}
-
-
-export function wn(seed) {
-	let iR = 0;
-	var chunk = [...Array(16)].map(_ => Array(16).fill(1));
-	
-	let xi = 7;
-	let yi = 0;
-	let r = 0;
-	
-	while (xi < 16 && yi < 8) {
-		for (let xi_=xi; xi_<16; xi_++){
-			chunk[yi][xi_] = 0;
-		}
-		yi++;
-		r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		xi+=r;
-	}
-	
-	xi = 15;
-	yi = 7;
-	r = 0;
-	while (xi >=8 && yi >= 0) {
-		for (let yi_=yi; yi_>=0; yi_--) {
-			chunk[yi_][xi] = 0;
-		}
-		xi--;
-		r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		yi-=r;
-	}/**/
-	
-	
-	xi = 7;
-	yi = 0;
-	r = 0;
-	while (xi >= 0 && yi < 8) {
-		for (let xi_=xi; xi_>=0; xi_--){
-			chunk[yi][xi_] = 0;
-		}
-		yi++;
-		r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		xi-=r;
-	}
-	
-	xi = 0;
-	yi = 7;
-	r = 0;
-	while (xi < 7 && yi >= 0) {
-		for (let yi_=yi; yi_>=0; yi_--) {
-			chunk[yi_][xi] = 0;
-		}
-		xi++;
-		r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		yi-=r;
-	}/**/
-	
-	
-	return chunk;
-}
-
-
-export function wc(seed) {
-	
-	let iR = 0;
-	var chunk = [...Array(16)].map(_ => Array(16).fill(1));
-	
-	
-	let yi = 7;
-	let xi = 0;
-	let r = 0;
-	
-	
-	while (yi < 16 && xi < 8) {
-		for (let yi_=yi; yi_<16; yi_++){
-			chunk[yi_][xi] = 0;
-		}
-		xi++;
-		r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		yi+=r;
-	}
-	/**/
-	
-	
-	yi = 15;
-	xi = 7;
-	r = 0;
-	while (yi >=8 && xi >= 0) {
-		for (let xi_=xi; xi_>=0; xi_--) {
-			chunk[yi][xi_] = 0;
-		}
-		yi--;
-		r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		xi-=r;
-	}/**/
-	
-	
-	xi = 7;
-	yi = 0;
-	r = 0;
-	while (xi >= 0 && yi < 8) {
-		for (let xi_=xi; xi_>=0; xi_--){
-			chunk[yi][xi_] = 0;
-		}
-		yi++;
-		r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		xi-=r;
-	}/**/
-	
-	
-	xi = 0;
-	yi = 7;
-	r = 0;
-	while (xi < 7 && yi >= 0) {
-		for (let yi_=yi; yi_>=0; yi_--) {
-			chunk[yi_][xi] = 0;
-		}
-		xi++;
-		r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		yi-=r;
-	}/**/
-	
-	
-	
-	return chunk;
-}
-
-
-export function w3(seed) {
-	
-	let iR = 0;
-	var chunk = [...Array(16)].map(_ => Array(16).fill(1));
-	
-	let yi = 15;
-	let xi = 8;
-	let r = 0;
-	
-	while (yi > 8 && xi < 16) {
-		for (let xi_=xi; xi_<16; xi_++){
-			chunk[yi][xi_] = 0;
-		}
-		yi--;
-		r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		xi+=r;
-	}
-	
-	yi = 8;
-	xi = 15;
-	r = 0;
-	while (yi < 16 && xi >= 8) {
-		for (let yi_=yi; yi_<16; yi_++) {
-			chunk[yi_][xi] = 0;
-		}
-		xi--;
-		r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		yi+=r;
-	}
-	
-	yi = 0;
-	xi = 8;
-	r = 0;
-	
-	while (yi < 8 && xi < 16) {
-		for (let xi_=xi; xi_<16; xi_++){
-			chunk[yi][xi_] = 0;
-		}
-		yi++;
-		r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		xi+=r;
-	}
-	
-	yi = 7;
-	xi = 15;
-	r = 0;
-	while (yi >= 0 && xi >= 8) {
-		for (let yi_=yi; yi_>=0; yi_--) {
-			chunk[yi_][xi] = 0;
-		}
-		xi--;
-		r = 1+Math.floor(seed[iR]*(4-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		yi-=r;
-	}/**/
-	
-	
-	return chunk;
-}
-
-
-
-export function wlhnt(seed) {
-	let iR = 0;
-	//let pixelData = [];
-	var chunk = [...Array(16)].map(_ => Array(16).fill(0));
-	
-	
-	//let xi = 7;
-	//let yi = 0;
-	let r = 0;
-	
-	let xi = 0;
-	let yi = 15;
-	while (xi < 16 && yi >= 0) {
-		for (let yi_=yi; yi_>=0; yi_--) {
-			chunk[yi_][xi] = 1;
-		}
-		xi++;
-		r = Math.floor(seed[iR]*(2-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		yi-=r;
-	}
-	
-	xi = 15;
-	yi = 15;
-	while (xi >= 0 && yi >= 0) {
-		for (let yi_=yi; yi_>=0; yi_--) {
-			chunk[yi_][xi] = 1;
-		}
-		xi--;
-		r = Math.floor(seed[iR]*(2-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		yi-=r;
-	}
-	
-	return chunk;
-}
-
-export function wlhst(seed) {
-	let iR = 0;
-	//let pixelData = [];
-	var chunk = [...Array(16)].map(_ => Array(16).fill(0));
-	
-	
-	let xi = 0;
-	let yi = 0;
-	let r = 0;
-	while (xi < 16 && yi < 16) {
-		for (let yi_=yi; yi_<16; yi_++) {
-			chunk[yi_][xi] = 1;
-		}
-		xi++;
-		r = Math.floor(seed[iR]*(3-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		yi+=r;
-	}
-	
-	xi = 15;
-	yi = 0;
-	while (xi >= 0 && yi < 16) {
-		for (let yi_=yi; yi_<16; yi_++) {
-			chunk[yi_][xi] = 1;
-		}
-		xi--;
-		r = Math.floor(seed[iR]*(3-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		yi+=r;
-	}
-	
-	return chunk;
-}
-
-export function wlhet(seed) {
-
+export function m_chunk(seed, b2, bvi, chs) {
 	let iR = 0;
 	var chunk = [...Array(16)].map(_ => Array(16).fill(0));
-
-
-	let xi = 0;
-	let yi = 0;
-	let r = 0;
-	while (xi < 16 && yi < 16) {
-		for (let xi_=xi; xi_<16; xi_++) {
-			chunk[yi][xi_] = 1;
-		}
-		yi++;
-		r = Math.floor(seed[iR]*(3-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		xi+=r;
-	}
-
-
-	xi = 0;
-	yi = 15;
-	while (xi < 16 && yi > 0) {
-		for (let xi_=xi; xi_<16; xi_++) {
-			chunk[yi][xi_] = 1;
-		}
-		yi--;
-		r = Math.floor(seed[iR]*(3-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		xi+=r;
-	}/**/
+	var chunk_canopy = [...Array(16)].map(_ => Array(16).fill(0));
 	
-	return chunk;
-
+	let num_tiles = 0;
+	let tile_index = 0;
+	//console.log(chs);
+	try {
+		num_tiles = MOUNTAINS[chs].length;
+		tile_index = Math.floor(seed[iR]*(num_tiles));
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+		chunk = MOUNTAINS[chs][tile_index];
+	} catch {}
+  return chunk;
+	
 }
 
-export function wlhwt(seed) {
-
+export function w_chunk(seed, b2, bvi, chs) {
 	let iR = 0;
 	var chunk = [...Array(16)].map(_ => Array(16).fill(0));
+	var chunk_canopy = [...Array(16)].map(_ => Array(16).fill(0));
 	
-	let xi = 15;
-	let yi = 0;
-	let r = 0;
-	while (xi >= 0 && yi < 16) {
-		for (let xi_=xi; xi_>=0; xi_--) {
-			chunk[yi][xi_] = 1;
-		}
-		yi++;
-		r = Math.floor(seed[iR]*(3-0)); // min + seed[iR] * (max - min)
+	let num_tiles = 0;
+	let tile_index = 0;
+	//console.log(chs);
+	try {
+		num_tiles = COAST[chs].length;
+		tile_index = Math.floor(seed[iR]*(num_tiles));
 		iR = iR >= seed.length-1 ? 0 : iR+1;
-		xi-=r;
-	}
+		chunk = COAST[chs][tile_index];
+	} catch {}
+  return chunk;
 	
-	
-	xi = 15;
-	yi = 15;
-	while (xi >= 0 && yi > 0) {
-		for (let xi_=xi; xi_>=0; xi_--) {
-			chunk[yi][xi_] = 1;
-		}
-		yi--;
-		r = Math.floor(seed[iR]*(3-0)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		xi-=r;
-	}/**/
-	
-	return chunk;
-
 }
+
+export function d_chunk(seed, b2, bvi, chs) {
+	let iR = 0;
+	var chunk = [...Array(16)].map(_ => Array(16).fill(0));
+	var chunk_canopy = [...Array(16)].map(_ => Array(16).fill(0));
+	
+	let num_tiles = 0;
+	let tile_index = 0;
+	//console.log(chs);
+	try {
+		num_tiles = DESERT[chs].length;
+		tile_index = Math.floor(seed[iR]*(num_tiles));
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+		chunk = DESERT[chs][tile_index];
+	} catch {}
+  return chunk;
+	
+}
+
+
+
+/*
+
+GRASS/MEADOW/FIELD types
+
+plain
+- short
+- thick patches
+- dirt spots
+
+trails - connects to other grass chunks
+- dirt
+- fences, wooden things
+- bushes
+
+
+
+*/
+
+
+
 
 function lift(array, index, lift_height=1) {
 	
@@ -1086,93 +272,6 @@ function lift(array, index, lift_height=1) {
 }
 
 
-export function wlbns(seed) {
-	
-	let iR = 0;
-	var chunk = [...Array(16)].map(_ => Array(16).fill(0));
-	
-	let xi = 0;
-	let yi = 0;
-	let r = 0;
-	let coast = [1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1];
-	
-	
-	for (let i=0; i<25; i++) {
-		r = 1 + Math.floor(seed[iR]*(14-1)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-	  coast = lift(coast, r, 1);
-	}/**/
-	
-	while (yi < 16) {
-		for (let xi_=0; xi_<coast[yi]; xi_++) {
-			chunk[yi][xi_] = 1;
-		}
-		yi++;
-	}
-	
-	yi = 0;
-	coast = [1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1];
-	
-	for (let i=0; i<25; i++) {
-		r = 1 + Math.floor(seed[iR]*(14-1)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-	  coast = lift(coast, r, 1);
-	}/**/
-	
-	while (yi < 16) {
-		for (let xi_=0; xi_<coast[yi]; xi_++) {
-			chunk[yi][15-xi_] = 1;
-		}
-		yi++;
-	}
-	
-	return chunk;
-	
-}
-
-export function wlbwe(seed) {
-	let iR = 0;
-	var chunk = [...Array(16)].map(_ => Array(16).fill(0));
-	
-	
-	let xi = 0;
-	let yi = 0;
-	let r = 0;
-	let coast = [1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1];
-	
-	
-	for (let i=0; i<25; i++) {
-		r = 1 + Math.floor(seed[iR]*(14-1)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-	  coast = lift(coast, r, 1);
-	}/**/
-	
-	while (xi < 16) {
-		for (let yi_=0; yi_<coast[xi]; yi_++) {
-			chunk[yi_][xi] = 1;
-		}
-		xi++;
-	}
-	
-	xi = 0;
-	coast = [1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1];
-	
-	for (let i=0; i<25; i++) {
-		r = 1 + Math.floor(seed[iR]*(14-1)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-	  coast = lift(coast, r, 1);
-	}/**/
-	
-	while (xi < 16) {
-		for (let yi_=0; yi_<coast[xi]; yi_++) {
-			chunk[15-yi_][xi] = 1;
-		}
-		xi++;
-	}
-	
-	return chunk;
-}
-
 
 
 
@@ -1198,265 +297,6 @@ function xyWithinRadius(r, x, y) {
 }
 
 
-export function wo(seed) {
-	
-	
-	let iR = 0;
-	var chunk = [...Array(16)].map(_ => Array(16).fill(0));
-	
-	
-	//let xi = 8;
-	//let yi = 0;
-	let randr = 1;
-	let randx = 0;
-	let randy = 0;
-	
-	for (let i=0; i<2; i++) {
-		randx = 4 + Math.floor(seed[iR]*(12-4)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		randy = 4 + Math.floor(seed[iR]*(12-4)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		
-		randr = 3 + Math.floor(seed[iR]*(5-3)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		
-		let coords = xyWithinRadius(randr, randx, randy);
-		
-		for (let c=0; c<coords.length; c++){
-			let x = coords[c][0];
-			let y = coords[c][1];
-			try { chunk[y][x] = 1; } catch(e){}
-		}
-	}
-	
-	
-	for (let i=0; i<15; i++) {
-		randx = 3 + Math.floor(seed[iR]*(13-3)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		randy = 3 + Math.floor(seed[iR]*(13-3)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		
-		randr = 0 + Math.floor(seed[iR]*(4-1)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		
-		let coords = xyWithinRadius(randr, randx, randy);
-		
-		for (let c=0; c<coords.length; c++){
-			let x = coords[c][0];
-			let y = coords[c][1];
-			try { chunk[y][x] = 1; } catch(e){}
-		}
-	}
-	
-	for (let i=0; i<20; i++) {
-		randx = 1 + Math.floor(seed[iR]*(14-1)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		randy = 1 + Math.floor(seed[iR]*(14-1)); // min + seed[iR] * (max - min)
-		iR = iR >= seed.length-1 ? 0 : iR+1;
-		
-		try { chunk[randy][randx] = 1; } catch (e) {}
-	  try { chunk[randy][randx+1] = 1; } catch (e) {}
-		try {	chunk[randy+1][randx] = 1; } catch (e) {}
-		try {	chunk[randy+1][randx+1] = 1; } catch (e) {}
-	}
-	
-	
-	return chunk;
-	
-}
-
-// water edge top
-export function weT(seed) {
-	
-	
-	let iR = 0;
-	var chunk = [...Array(16)].map(_ => Array(16).fill(1));
-	
-	
-	let ry = 0;
-	let rx = 1;
-	let xi = 0;
-	
-	let rugged = 0 + Math.floor(seed[iR]*(2-0));
-	
-	if (rugged) {
-		while (xi<16) {
-			let middle = 4 < xi && xi < 12 ? (6 < xi && xi < 10 ? 2 : 1) : 0;
-			rx = 1 + Math.floor(seed[iR]*(2-0));
-			iR = iR >= seed.length-1 ? 0 : iR+1;
-			ry =  middle + Math.floor(seed[iR]*(3-0));
-			iR = iR >= seed.length-1 ? 0 : iR+1;
-			for (let n=xi; n<xi+rx && n<16; n++) {
-				for (let yi=0; yi<ry; yi++) {
-					chunk[15-yi][n] = 0;
-				}
-			}
-			xi += rx;
-		}
-	} else {
-		while (xi<16) {
-			let middle = 4 < xi && xi < 12 ? 1 : 0;
-			rx = 1 + Math.floor(seed[iR]*(6-0));
-			iR = iR >= seed.length-1 ? 0 : iR+1;
-			ry =  middle + Math.floor(seed[iR]*(2-0));
-			iR = iR >= seed.length-1 ? 0 : iR+1;
-			for (let n=xi; n<xi+rx && n<16; n++) {
-				for (let yi=0; yi<ry; yi++) {
-					chunk[15-yi][n] = 0;
-				}
-			}
-			xi += rx;
-		}
-	}
-	
-	
-	return chunk;
-	
-}
-
-// water edge left
-export function weE(seed) {
-	
-	
-	let iR = 0;
-	var chunk = [...Array(16)].map(_ => Array(16).fill(1));
-	
-	
-	let ry = 0;
-	let rx = 1;
-	let xi = 0;
-	
-	let rugged = 0 + Math.floor(seed[iR]*(2-0));
-	
-	if (rugged) {
-		while (xi<16) {
-			let middle = 4 < xi && xi < 12 ? (6 < xi && xi < 10 ? 2 : 1) : 0;
-			rx = 1 + Math.floor(seed[iR]*(2-0));
-			iR = iR >= seed.length-1 ? 0 : iR+1;
-			ry =  middle + Math.floor(seed[iR]*(3-0));
-			iR = iR >= seed.length-1 ? 0 : iR+1;
-			for (let n=xi; n<xi+rx && n<16; n++) {
-				for (let yi=0; yi<ry; yi++) {
-					chunk[n][15-yi] = 0;
-				}
-			}
-			xi += rx;
-		}
-	} else {
-		while (xi<16) {
-			let middle = 4 < xi && xi < 12 ? 1 : 0;
-			rx = 1 + Math.floor(seed[iR]*(6-0));
-			iR = iR >= seed.length-1 ? 0 : iR+1;
-			ry =  middle + Math.floor(seed[iR]*(2-0));
-			iR = iR >= seed.length-1 ? 0 : iR+1;
-			for (let n=xi; n<xi+rx && n<16; n++) {
-				for (let yi=0; yi<ry; yi++) {
-					chunk[n][15-yi] = 0;
-				}
-			}
-			xi += rx;
-		}
-	}
-	
-	return chunk;
-	
-}
-
-//water edge right
-export function we3(seed) {
-	
-	
-	let iR = 0;
-	var chunk = [...Array(16)].map(_ => Array(16).fill(1));
-	
-	let ry = 0;
-	let rx = 1;
-	let xi = 0;
-	
-	let rugged = 0 + Math.floor(seed[iR]*(2-0));
-	
-	if (rugged) {
-		while (xi<16) {
-			let middle = 4 < xi && xi < 12 ? (6 < xi && xi < 10 ? 2 : 1) : 0;
-			rx = 1 + Math.floor(seed[iR]*(2-0));
-			iR = iR >= seed.length-1 ? 0 : iR+1;
-			ry =  middle + Math.floor(seed[iR]*(3-0));
-			iR = iR >= seed.length-1 ? 0 : iR+1;
-			for (let n=xi; n<xi+rx && n<16; n++) {
-				for (let yi=0; yi<ry; yi++) {
-					chunk[n][yi] = 0;
-				}
-			}
-			xi += rx;
-		}
-	} else {
-		while (xi<16) {
-			let middle = 4 < xi && xi < 12 ? 1 : 0;
-			rx = 1 + Math.floor(seed[iR]*(6-0));
-			iR = iR >= seed.length-1 ? 0 : iR+1;
-			ry =  middle + Math.floor(seed[iR]*(2-0));
-			iR = iR >= seed.length-1 ? 0 : iR+1;
-			for (let n=xi; n<xi+rx && n<16; n++) {
-				for (let yi=0; yi<ry; yi++) {
-					chunk[n][yi] = 0;
-				}
-			}
-			xi += rx;
-		}
-	}
-	
-	return chunk;
-	
-}
-
-// water edge bottom
-export function weU(seed) {
-	
-	
-	let iR = 0;
-	var chunk = [...Array(16)].map(_ => Array(16).fill(1));
-	
-	
-	let ry = 0;
-	let rx = 1;
-	let xi = 0;
-	
-	let rugged = 0 + Math.floor(seed[iR]*(2-0));
-	//console.log(rugged+"?");
-	if (rugged) {
-		while (xi<16) {
-			let middle = 4 < xi && xi < 12 ? (6 < xi && xi < 10 ? 2 : 1) : 0;
-			rx = 1 + Math.floor(seed[iR]*(2-0));
-			iR = iR >= seed.length-1 ? 0 : iR+1;
-			ry =  middle + Math.floor(seed[iR]*(3-0));
-			iR = iR >= seed.length-1 ? 0 : iR+1;
-			for (let n=xi; n<xi+rx && n<16; n++) {
-				for (let yi=0; yi<ry; yi++) {
-					chunk[yi][n] = 0;
-				}
-			}
-			xi += rx;
-		}
-	} else {
-		while (xi<16) {
-			let middle = 4 < xi && xi < 12 ? 1 : 0;
-			rx = 1 + Math.floor(seed[iR]*(6-0));
-			iR = iR >= seed.length-1 ? 0 : iR+1;
-			ry =  middle + Math.floor(seed[iR]*(2-0));
-			iR = iR >= seed.length-1 ? 0 : iR+1;
-			for (let n=xi; n<xi+rx && n<16; n++) {
-				for (let yi=0; yi<ry; yi++) {
-					chunk[yi][n] = 0;
-				}
-			}
-			xi += rx;
-		}
-	}
-	
-	
-	return chunk;
-	
-}
 
 
 // Example usage:
@@ -1481,6 +321,7 @@ export function w3(seed) {
 
 
 export function dot_(img, i, j) {
+	//return;
 	// return if on corner or edge 
 	// to avoid array index oob errors, 2D img array should 
 	//  be +2 wider and +2 higher than the actual image.
@@ -2497,222 +1338,17 @@ export function dot_w(img, i, j) {
 }
 
 
+
+
 /*
 
-	'dot' is a bitwise or with the cells around it:
+===============
 
-	0 0  0 0  0 0
-  0 1  1 1  1 0
+GET BIOME INFORMATION
 
-  0 1  1 1  1 0
-  0 1  1 1  1 0
+---------------
 
-  0 1  1 1  1 0
-  0 0  0 0  0 0
-
-
-	 1    3    2
-
-   5    15   10
-
-   4    12   8 
-	
-	
-	
-	TODO: update the corresponding adjacent chunks
-	
-*/
-export function dot_image(grid_image, x, y, cx, cy) {
-	let chunkO = cx+"_"+cy;
-	let check_ = "";
-	
-	grid_image[y][x] = 15;
-	
-	if (x === 0) {
-		if (y === 0) {
-			/*
-				 _|__ __
-					|o
-			    |
-			
-				top-left corner
-			*/
-			
-			check_ = (cx-1)+"_"+(cy-1);
-			try { chunk_set[check_]["image"][15][15] = chunk_set[check_]["image"][15][15] | 1; } catch (e) {}
-			check_ = cx+"_"+(cy-1);
-			try { chunk_set[check_]["image"][15][0] = chunk_set[check_]["image"][15][0] | 3; } catch (e) {}
-			try { chunk_set[check_]["image"][15][1] = chunk_set[check_]["image"][15][1] | 2; } catch (e) {}
-			check_ = (cx-1)+"_"+cy;
-			try { chunk_set[check_]["image"][0][15] = chunk_set[check_]["image"][0][15] | 5; } catch (e) {}
-			try { chunk_set[check_]["image"][1][15] = chunk_set[check_]["image"][1][15] | 4; } catch (e) {}
-			
-			grid_image[y][x+1] = grid_image[y][x+1] | 10;
-			grid_image[y+1][x] = grid_image[y+1][x] | 12;
-			grid_image[y+1][x+1] = grid_image[y+1][x+1] | 8;
-			
-		} else if (y === 15) {
-			/*
-				  |
-				 _|o_ __
-					|
-			
-				bottom-left corner
-			*/
-			
-			check_ = (cx-1)+"_"+cy;
-			try { chunk_set[check_]["image"][14][15] = chunk_set[check_]["image"][14][15] | 1; } catch (e) {}
-			try { chunk_set[check_]["image"][15][15] = chunk_set[check_]["image"][15][15] | 5; } catch (e) {}
-			check_ = (cx-1)+"_"+(cy+1);
-			try { chunk_set[check_]["image"][0][15] = chunk_set[check_]["image"][0][15] | 4; } catch (e) {}
-			check_ = cx+"_"+(cy+1);
-			try { chunk_set[check_]["image"][0][0] = chunk_set[check_]["image"][0][0] | 12; } catch (e) {}
-			try { chunk_set[check_]["image"][0][1] = chunk_set[check_]["image"][0][1] | 8; } catch (e) {}
-		
-			grid_image[y-1][x] = grid_image[y-1][x] | 3;
-			grid_image[y-1][x+1] = grid_image[y-1][x+1] | 2;
-			grid_image[y][x+1] = grid_image[y][x+1] | 10;
-			
-		} else {
-			/*
-				  |
-				  |o  
-					|
-				
-				left
-			*/
-			
-			check_ = (cx-1)+"_"+cy;
-			try { chunk_set[check_]["image"][y-1][15] = chunk_set[check_]["image"][y-1][15] | 1; } catch (e) {}
-			try { chunk_set[check_]["image"][y][15] = chunk_set[check_]["image"][y][15] | 5; } catch (e) {}
-			try { chunk_set[check_]["image"][y+1][15] = chunk_set[check_]["image"][y+1][15] | 4; } catch (e) {}
-			
-			grid_image[y-1][x] = grid_image[y-1][x] | 3;
-			grid_image[y-1][x+1] = grid_image[y-1][x+1] | 2;
-			grid_image[y][x+1] = grid_image[y][x+1] | 10;
-			grid_image[y+1][x+1] = grid_image[y+1][x+1] | 8;
-			grid_image[y+1][x] = grid_image[y+1][x] | 12;
-			
-		}
-	} else if (x === 15) {
-		if (y === 0) {
-			/*
-				 __ __|_
-				     o|
-					    |
-				
-				top-right corner
-			*/
-			check_ = (cx+1)+"_"+(cy-1);
-			try { chunk_set[check_]["image"][0][15] = chunk_set[check_]["image"][0][15] | 2; } catch (e) {}
-			check_ = (cx+1)+"_"+cy;
-			try { chunk_set[check_]["image"][0][0] = chunk_set[check_]["image"][0][0] | 10; } catch (e) {}
-			try { chunk_set[check_]["image"][1][0] = chunk_set[check_]["image"][1][0] | 8; } catch (e) {}
-			check_ = cx+"_"+(cy-1);
-			try { chunk_set[check_]["image"][15][15] = chunk_set[check_]["image"][15][15] | 3; } catch (e) {}
-			try { chunk_set[check_]["image"][15][14] = chunk_set[check_]["image"][15][14] | 1; } catch (e) {}
-			
-			grid_image[y][x-1] = grid_image[y][x-1] | 5;
-			grid_image[y+1][x-1] = grid_image[y+1][x-1] | 4;
-			grid_image[y+1][x] = grid_image[y+1][x] | 12;
-			
-		} else if (y === 15) {
-			/*
-				      |
-				 __ _o|_
-					    |
-			
-				bottom-right corner
-			*/
-			check_ = (cx+1)+"_"+(cy+1);
-			try { chunk_set[check_]["image"][0][0] = chunk_set[check_]["image"][0][0] | 8; } catch (e) {}
-			check_ = (cx+1)+"_"+cy;
-			try { chunk_set[check_]["image"][14][0] = chunk_set[check_]["image"][14][0] | 2; } catch (e) {}
-			try { chunk_set[check_]["image"][15][0] = chunk_set[check_]["image"][15][0] | 10; } catch (e) {}
-			check_ = cx+"_"+(cy+1);
-			try { chunk_set[check_]["image"][0][15] = chunk_set[check_]["image"][0][15] | 12; } catch (e) {}
-			try { chunk_set[check_]["image"][0][14] = chunk_set[check_]["image"][0][14] | 4; } catch (e) {}
-			
-			grid_image[y][x-1] = grid_image[y][x-1] | 5;
-			grid_image[y-1][x-1] = grid_image[y-1][x-1] | 1;
-			grid_image[y-1][x] = grid_image[y-1][x] | 3;
-			
-		} else {
-			/*
-				  |
-				 o|  
-					|
-			
-				right
-			*/
-			check_ = (cx+1)+"_"+cy;
-			try { chunk_set[check_]["image"][y-1][0] = chunk_set[check_]["image"][y-1][0] | 2; } catch (e) {}
-			try { chunk_set[check_]["image"][y][0] = chunk_set[check_]["image"][y][0] | 10; } catch (e) {}
-			try { chunk_set[check_]["image"][y+1][0] = chunk_set[check_]["image"][y+1][0] | 8; } catch (e) {}
-			
-			grid_image[y-1][x] = grid_image[y-1][x] | 3;
-			grid_image[y-1][x-1] = grid_image[y-1][x-1] | 1;
-			grid_image[y][x-1] = grid_image[y][x-1] | 5;
-			grid_image[y+1][x-1] = grid_image[y+1][x-1] | 4;
-			grid_image[y+1][x] = grid_image[y+1][x] | 12;
-			
-		}
-	} else {
-		if (y === 0) {
-			/*
-			  __ __ __
-			     o
-			
-				top
-			*/
-			check_ = cx+"_"+(cy-1);
-			try { chunk_set[check_]["image"][15][x-1] = chunk_set[check_]["image"][15][x-1] | 1; } catch (e) {}
-			try { chunk_set[check_]["image"][15][x] = chunk_set[check_]["image"][15][x] | 3; } catch (e) {}
-			try { chunk_set[check_]["image"][15][x+1] = chunk_set[check_]["image"][15][x+1] | 2; } catch (e) {}
-			
-			grid_image[y][x-1] = grid_image[y][x-1] | 5;
-			grid_image[y+1][x-1] = grid_image[y+1][x-1] | 4;
-			grid_image[y+1][x] = grid_image[y+1][x] | 12;
-			grid_image[y+1][x+1] = grid_image[y+1][x+1] | 8;
-			grid_image[y][x+1] = grid_image[y][x+1] | 10;
-			
-			
-		} else if (y === 15) {
-			/*
-			  __ o_ __
-			  
-				
-				bottom
-			*/
-			
-			check_ = cx+"_"+(cy+1);
-			try { chunk_set[check_]["image"][0][x-1] = chunk_set[check_]["image"][0][x-1] | 4; } catch (e) {}
-			try { chunk_set[check_]["image"][0][x] = chunk_set[check_]["image"][0][x] | 12; } catch (e) {}
-			try { chunk_set[check_]["image"][0][x+1] = chunk_set[check_]["image"][0][x+1] | 8; } catch (e) {}
-			
-			grid_image[y][x-1] = grid_image[y][x-1] | 5;
-			grid_image[y-1][x-1] = grid_image[y-1][x-1] | 1;
-			grid_image[y-1][x] = grid_image[y-1][x] | 3;
-			grid_image[y-1][x+1] = grid_image[y-1][x+1] | 2;
-			grid_image[y][x+1] = grid_image[y][x+1] | 10;
-			
-			
-		} else {
-			// not on edge
-			try { grid_image[y-1][x-1] = grid_image[y-1][x-1] | 1; } catch (e) {}
-			try { grid_image[y-1][x] = grid_image[y-1][x] | 3; } catch (e) {}
-			try { grid_image[y-1][x+1] = grid_image[y-1][x+1] | 2; } catch (e) {}
-			try { grid_image[y][x-1] = grid_image[y][x-1] | 5; } catch (e) {}
-			try { grid_image[y][x+1] = grid_image[y][x+1] | 10; } catch (e) {}
-			try { grid_image[y+1][x-1] = grid_image[y+1][x-1] | 4; } catch (e) {}
-			try { grid_image[y+1][x] = grid_image[y+1][x] | 12; } catch (e) {}
-			try { grid_image[y+1][x+1] = grid_image[y+1][x+1] | 8; } catch (e) {}
-		}
-	}
-	
-}
-
-
+/**/
 
 function is_special(x_,y_) {
 	let radius = Math.floor(Math.sqrt((x_)**2 + (y_)**2));
@@ -2747,15 +1383,7 @@ function is_special(x_,y_) {
 }
 
 
-/*
 
-===============
-
-GET BIOME INFORMATION
-
----------------
-
-/**/
 
 function get_biome_value(x_,y_,res) {
 	let N = 15*res; // 15* res
@@ -2925,16 +1553,23 @@ export function get_biome_info(x, y) {
 	
 	// ********* testing DELETE after
 	let biome2 = "g";
-	if (1) {
-		if (biome !== "w" && biome !== "g") {
-			if (["f"].includes(biome)) {
-				biome2 = "f";
-			} else if (["m"].includes(biome)) {
-				biome2 = "m"; // edge of grass, not full mountain
-			}
-			biome = "g";
-		}
+	
+	if (biome === "w") {
+		
+	} else if (biome === "m") {
+		biome = "g";
+		biome2 = "m";
+	} else if (biome === "d") {
+		biome = "d";
+		biome2 = "d";
+	} else if (biome === "f") {
+		biome = "g";
+		biome2 = "f";
+	} else if (biome === "F") {
+		biome = "g";
+		biome2 = "Q";
 	}
+	
 	
 	return {
 		"biome": biome, 
@@ -2949,7 +1584,7 @@ export function get_biome_info(x, y) {
 }
 
 
-// -------- further biome random spread
+// -------- further biome random spread VARIANCE
 
 function variance_setup(xx, yy, xoffset, yoffset, sparse) {
 	//console.log(xx, yy, xoffset, yoffset, sparse);
@@ -3020,7 +1655,8 @@ function biome_variance_index(x,y) {
 			4: false, 
 			5: false, 
 			6: false, 
-			7: false 
+			7: false,
+			8: 0,
 		};
 		
 		if (x == 0 && y == 0) {
@@ -3036,11 +1672,22 @@ function biome_variance_index(x,y) {
 		bvi[5] = variance(x,y,5);
 		bvi[6] = variance(x,y,6);
 		bvi[7] = variance(x,y,7);
+		//bvi[8] = trail_type(x,y);
+		
+		let hb_i = (x-y%4)%4;
+		hb_i = hb_i < 0 ? 4+hb_i : hb_i;
+		
+		bvi[8] = hb_i;
+		//console.log(bvi[8]);
 		
 		//console.log(bvi);
 		return bvi;
 }
-		
+
+
+
+
+
 
 
 
@@ -3144,90 +1791,549 @@ const CHUNK_ITER = ["r", "T", "7", "E", "O", "3", "L", "U", "J"];
 
 export function get_chunk_shapes(m) { // m stands for 'map' I guess
 	
+	/*
+		g and w are the main shapes
 	
+	  f and m are 'second-tier' biomes since they depend on the shape of g and w
+	
+	/**/
 	
 	for (let i=0; i<CHUNK_ITER.length; i++) {
 		let cid = CHUNK_ITER[i];
 		let biome = m[cid].b["biome"];
 		let biome2 = m[cid].b["biome2"];
-		
+		//console.log(biome+" "+biome2);
 		// temporary
-		if (0) {
-			if (["f", "m", "F", "d"].includes(biome.charAt(0))) {
-				biome = "g";
+		
+		
+		
+		
+		if (biome == "g") {
+			//console.log("get chunk shape for g");
+			// need to account for other tiles instead of just g and w
+			if (
+				m[ DIR[cid].up ].b["biome"] == "g" && 
+				m[ DIR[cid].left ].b["biome"] == "g" && 
+				m[ DIR[cid].right ].b["biome"] == "w" &&
+				m[ DIR[cid].down ].b["biome"] == "w" &&
+				m[ DIR[cid].dRight ].b["biome"] == "w"
+			) {
+				m[cid].s = "gJ";
+			} else if (
+				
+				m[ DIR[cid].left ].b["biome"] == "w" &&
+				m[ DIR[cid].down ].b["biome"] == "w" && 
+				!(m[ DIR[cid].uLeft ].b["biome"] == "w" && m[ DIR[cid].up ].b["biome"] == "w") &&
+				!(
+					m[ DIR[cid].left ].b["biome"] == "w" && 
+					m[ DIR[cid].dLeft ].b["biome"] == "w" && 
+					m[ DIR[cid].down ].b["biome"] == "w" &&
+					m[ DIR[cid].dRight ].b["biome"] == "w" &&
+					m[ DIR[cid].right ].b["biome"] == "w"
+				) &&
+				m[ DIR[cid].dLeft ].b["biome"] == "w"
+				/*m[ DIR[cid].up ].b["biome"] == "w" && 
+				
+				//m[ DIR[cid].right ].b["biome"] !== "w" &&
+				//m[ DIR[cid].dLeft ].b["biome"] == "w" && // ?
+				m[ DIR[cid].dRight ].b["biome"] !== "w" && 
+				(m[ DIR[cid].uLeft ].b["biome"] !== "w" || m[ DIR[cid].right ].b["biome"] !== "w")  // not both water
+				/**/
+				
+			) {
+				m[cid].s = "gL";
+			} else if (
+				m[ DIR[cid].up ].b["biome"] == "w" && 
+				//m[ DIR[cid].left ].b["biome"] == "w" && 
+				m[ DIR[cid].right ].b["biome"] == "w" &&
+				//m[ DIR[cid].down ].b["biome"] == "g" &&
+				//m[ DIR[cid].uRight ].b["biome"] == "w"
+				!(
+					m[ DIR[cid].left ].b["biome"] == "w" && 
+					m[ DIR[cid].uLeft ].b["biome"] == "w" && 
+					m[ DIR[cid].up ].b["biome"] == "w" &&
+					m[ DIR[cid].uRight ].b["biome"] == "w" &&
+					m[ DIR[cid].right ].b["biome"] == "w"
+				) &&
+				!(
+					m[ DIR[cid].up ].b["biome"] == "w" &&
+					m[ DIR[cid].uRight ].b["biome"] == "w" &&
+					m[ DIR[cid].right ].b["biome"] == "w" &&
+					m[ DIR[cid].dRight ].b["biome"] == "w" && 
+					m[ DIR[cid].down ].b["biome"] == "w"
+				) &&
+				!(
+					m[ DIR[cid].up ].b["biome"] == "w" &&
+					m[ DIR[cid].uRight ].b["biome"] !== "w" &&
+					m[ DIR[cid].right ].b["biome"] == "w"
+				)
+				// TODO ******* seehere
+				
+			) {
+				m[cid].s = "g7";
+			} else if (
+				m[ DIR[cid].up ].b["biome"] == "w" && 
+				m[ DIR[cid].left ].b["biome"] == "w" && 
+				m[ DIR[cid].right ].b["biome"] == "g" &&
+				//m[ DIR[cid].down ].b["biome"] == "g" &&
+				m[ DIR[cid].uLeft ].b["biome"] == "w" &&
+				!(
+					m[ DIR[cid].up ].b["biome"] == "w" &&
+					m[ DIR[cid].uLeft ].b["biome"] == "w" && 
+					m[ DIR[cid].left ].b["biome"] == "w" && 
+					m[ DIR[cid].dLeft ].b["biome"] == "w" &&
+					m[ DIR[cid].down ].b["biome"] == "w"
+				)
+			) {
+				m[cid].s = "gr";
+			} else {
+				m[cid].s = "g";
+			}
+			
+			
+		} else if (biome == "w") {
+			if (
+				m[ DIR[cid].up ].b["biome"] !== "w" && 
+				m[ DIR[cid].left ].b["biome"] !== "w" && 
+				m[ DIR[cid].right ].b["biome"] == "w" &&
+				m[ DIR[cid].down ].b["biome"] == "w"
+			) {
+				if (
+					m[ DIR[cid].up ].b["biome"] == "d" && m[ DIR[cid].left ].b["biome"] == "d"
+				) {
+					m[cid].s = "wdr";
+				} else {
+					m[cid].s = "wr";
+				}
+				
+			} else if (
+				m[ DIR[cid].up ].b["biome"] !== "w" && 
+				m[ DIR[cid].left ].b["biome"] == "w" && 
+				m[ DIR[cid].right ].b["biome"] !== "w" &&
+				m[ DIR[cid].down ].b["biome"] == "w"
+			) {
+				if (
+					m[ DIR[cid].up ].b["biome"] == "d" && m[ DIR[cid].right ].b["biome"] == "d"
+				) {
+					m[cid].s = "wd7";
+				} else {
+					m[cid].s = "w7";
+				}
+			} else if (
+				m[ DIR[cid].up ].b["biome"] == "w" && 
+				m[ DIR[cid].left ].b["biome"] !== "w" && 
+				m[ DIR[cid].right ].b["biome"] == "w" &&
+				m[ DIR[cid].down ].b["biome"] !== "w"
+			) {
+				if (
+					m[ DIR[cid].down ].b["biome"] == "d" && m[ DIR[cid].left ].b["biome"] == "d"
+				) {
+					m[cid].s = "wdL";
+				} else {
+					m[cid].s = "wL";
+				}
+			} else if (
+				m[ DIR[cid].up ].b["biome"] == "w" && 
+				m[ DIR[cid].left ].b["biome"] == "w" && 
+				m[ DIR[cid].right ].b["biome"] !== "w" &&
+				m[ DIR[cid].down ].b["biome"] !== "w"
+			) {
+				if (
+					m[ DIR[cid].down ].b["biome"] == "d" && m[ DIR[cid].right ].b["biome"] == "d"
+				) {
+					m[cid].s = "wdJ";
+				} else {
+					m[cid].s = "wJ";
+				}
+			} else if (
+				m[ DIR[cid].up ].b["biome"] !== "w" && 
+				m[ DIR[cid].left ].b["biome"] == "w" && 
+				m[ DIR[cid].right ].b["biome"] == "w" &&
+				m[ DIR[cid].down ].b["biome"] !== "w" && // if only one of the below is a grass
+				(
+					(m[ DIR[cid].dLeft ].b["biome"] == "w" ? 1 : 0) +
+					(m[ DIR[cid].dRight ].b["biome"] == "w" ? 1 : 0) +
+					(m[ DIR[cid].uLeft ].b["biome"] == "w" ? 1 : 0) +
+					(m[ DIR[cid].uRight ].b["biome"] == "w" ? 1 : 0) >= 3
+				)
+			) {
+				m[cid].s = "wlbns"; // water land bridge north-south (could have a left-biased NS bridge)
+			} else if (
+				m[ DIR[cid].up ].b["biome"] == "w" && 
+				m[ DIR[cid].left ].b["biome"] !== "w" && 
+				m[ DIR[cid].right ].b["biome"] !== "w" &&
+				m[ DIR[cid].down ].b["biome"] == "w" &&
+				(
+					(m[ DIR[cid].dLeft ].b["biome"] == "w" ? 1 : 0) +
+					(m[ DIR[cid].dRight ].b["biome"] == "w" ? 1 : 0) +
+					(m[ DIR[cid].uLeft ].b["biome"] == "w" ? 1 : 0) +
+					(m[ DIR[cid].uRight ].b["biome"] == "w" ? 1 : 0) >= 3
+				)
+				
+			) {
+				m[cid].s = "wlbwe"; // water land bridge west-east (could have a top-biased WE bridge)
+				
+			} else if (
+				m[ DIR[cid].up ].b["biome"] !== "w" && 
+				m[ DIR[cid].left ].b["biome"] !== "w" && 
+				m[ DIR[cid].right ].b["biome"] !== "w" &&
+				m[ DIR[cid].down ].b["biome"] === "w" 
+				//m[ DIR[cid].dLeft ].b["biome"] !== "w" &&
+				//m[ DIR[cid].dRight ].b["biome"] !== "w"
+			) {
+				m[cid].s = "wn";
+			} else if (
+				m[ DIR[cid].up ].b["biome"] !== "w" && 
+				m[ DIR[cid].left ].b["biome"] !== "w" && 
+				m[ DIR[cid].right ].b["biome"] == "w" &&
+				m[ DIR[cid].down ].b["biome"] !== "w"
+				
+			) {
+				//console.log("wc being created");
+				m[cid].s = "wc";
+			} else if (
+				m[ DIR[cid].up ].b["biome"] !== "w" && 
+				m[ DIR[cid].left ].b["biome"] == "w" && 
+				m[ DIR[cid].right ].b["biome"] !== "w" &&
+				m[ DIR[cid].down ].b["biome"] !== "w"
+			) {
+				
+				m[cid].s = "w3";
+			} else if (
+				m[ DIR[cid].up ].b["biome"] == "w" && 
+				m[ DIR[cid].left ].b["biome"] !== "w" && 
+				m[ DIR[cid].right ].b["biome"] !== "w" &&
+				m[ DIR[cid].down ].b["biome"] !== "w"
+			) {
+				m[cid].s = "wu";
+			} else if (
+				m[ DIR[cid].up ].b["biome"] !== "w" && 
+				m[ DIR[cid].left ].b["biome"] == "w" && 
+				m[ DIR[cid].right ].b["biome"] == "w" &&
+				m[ DIR[cid].down ].b["biome"] == "w" &&
+				m[ DIR[cid].uLeft ].b["biome"] == "w" &&
+				m[ DIR[cid].uRight ].b["biome"] == "w"
+			) {
+				m[cid].s = "wlhst"; // water lighthouse south tip
+			} else if (
+				m[ DIR[cid].up ].b["biome"] == "w" && 
+				m[ DIR[cid].left ].b["biome"] == "g" && 
+				//m[ DIR[cid].right ].b["biome"] == "w" &&
+				m[ DIR[cid].down ].b["biome"] == "w" &&
+				m[ DIR[cid].uLeft ].b["biome"] == "w" &&
+				m[ DIR[cid].dLeft ].b["biome"] == "w"
+			) {
+				m[cid].s = "wlhet"; // water lighthouse east tip
+			} else if (
+				m[ DIR[cid].up ].b["biome"] == "w" && 
+				m[ DIR[cid].left ].b["biome"] == "w" && 
+				m[ DIR[cid].right ].b["biome"] == "g" &&
+				m[ DIR[cid].down ].b["biome"] == "w" &&
+				m[ DIR[cid].uRight ].b["biome"] == "w" &&
+				m[ DIR[cid].dRight ].b["biome"] == "w"
+			) {
+				m[cid].s = "wlhwt"; // water lighthouse west tip
+			} else if (
+				m[ DIR[cid].up ].b["biome"] == "w" && 
+				m[ DIR[cid].left ].b["biome"] == "w" && 
+				m[ DIR[cid].right ].b["biome"] == "w" &&
+				m[ DIR[cid].down ].b["biome"] == "g" &&
+				m[ DIR[cid].dLeft ].b["biome"] == "w" &&
+				m[ DIR[cid].dRight ].b["biome"] == "w"
+			) {
+				m[cid].s = "wlhnt"; // water lighthouse north tip
+			} else if (
+				m[ DIR[cid].up ].b["biome"] == "g" && 
+				m[ DIR[cid].left ].b["biome"] == "g" && 
+				m[ DIR[cid].right ].b["biome"] == "g" &&
+				m[ DIR[cid].down ].b["biome"] == "g" 
+			) {
+				m[cid].s = "wo"; // small water lake
+			} else if (
+				m[ DIR[cid].up ].b["biome"] == "w" && 
+				m[ DIR[cid].left ].b["biome"] == "w" && 
+				m[ DIR[cid].right ].b["biome"] == "w" &&
+				m[ DIR[cid].dLeft ].b["biome"] == "g" &&
+				m[ DIR[cid].down ].b["biome"] == "g" &&
+				m[ DIR[cid].dRight ].b["biome"] == "g" 
+			) {
+				m[cid].s = "weT"; // water edge top
+			} else if (
+				m[ DIR[cid].up ].b["biome"] == "w" && 
+				m[ DIR[cid].left ].b["biome"] == "w" && 
+				m[ DIR[cid].uRight ].b["biome"] == "g" &&
+				m[ DIR[cid].right ].b["biome"] == "g" &&
+				m[ DIR[cid].dRight ].b["biome"] == "g" &&
+				m[ DIR[cid].down ].b["biome"] == "w" 
+			) {
+				m[cid].s = "weE"; // water edge left
+			} else if (
+				m[ DIR[cid].up ].b["biome"] == "w" && 
+				m[ DIR[cid].uLeft ].b["biome"] == "g" && 
+				m[ DIR[cid].left ].b["biome"] == "g" && 
+				m[ DIR[cid].dLeft ].b["biome"] == "g" && 
+				m[ DIR[cid].right ].b["biome"] == "w" &&
+				m[ DIR[cid].down ].b["biome"] == "w" 
+			) {
+				m[cid].s = "we3"; // water edge right
+			} else if (
+				m[ DIR[cid].uLeft ].b["biome"] == "g" && 
+				m[ DIR[cid].up ].b["biome"] == "g" && 
+				m[ DIR[cid].uRight ].b["biome"] == "g" && 
+				m[ DIR[cid].left ].b["biome"] == "w" && 
+				m[ DIR[cid].right ].b["biome"] == "w" &&
+				m[ DIR[cid].down ].b["biome"] == "w" 
+			) {
+				m[cid].s = "weU"; // water edge bottom
+			} else {
+				m[cid].s = "w";
 			}
 		}
 		
-		if (1) {
-			// if biome2 is surrounded by mountains, then this biome should be M
-			if (biome2.charAt(0) === "m") {
-				
+		if (biome2 === "m") {
+			//console.log("change m shape");
+			if (
+				m[ DIR[cid].up ].b["biome2"] == "m" && 
+				m[ DIR[cid].left ].b["biome2"] == "m" && 
+				m[ DIR[cid].right ].b["biome2"] == "m" &&
+				m[ DIR[cid].down ].b["biome2"] == "m"
+			) {
+				m[cid].s = "M";
+			} else if (
+				m[ DIR[cid].up ].b["biome2"] == "m" && 
+				m[ DIR[cid].left ].b["biome2"] == "m" && 
+				m[ DIR[cid].right ].b["biome2"] !== "m" &&
+				m[ DIR[cid].down ].b["biome2"] !== "m"
+			) {
+				m[cid].s = "mJ";
+			} else if (
+				m[ DIR[cid].up ].b["biome2"] == "m" && 
+				m[ DIR[cid].left ].b["biome2"] !== "m" && 
+				m[ DIR[cid].right ].b["biome2"] == "m" &&
+				m[ DIR[cid].down ].b["biome2"] !== "m"
+			) {
+				m[cid].s = "mL";
+			} else if (
+				m[ DIR[cid].up ].b["biome2"] !== "m" && 
+				m[ DIR[cid].left ].b["biome2"] == "m" && 
+				m[ DIR[cid].right ].b["biome2"] !== "m" &&
+				m[ DIR[cid].down ].b["biome2"] == "m"
+			) {
+				m[cid].s = "m7";
+			} else if (
+				m[ DIR[cid].up ].b["biome2"] !== "m" && 
+				m[ DIR[cid].left ].b["biome2"] !== "m" && 
+				m[ DIR[cid].right ].b["biome2"] == "m" &&
+				m[ DIR[cid].down ].b["biome2"] == "m"
+			) {
+				m[cid].s = "mr";
+			} else if (
+				m[ DIR[cid].up ].b["biome2"] == "m" && 
+				m[ DIR[cid].left ].b["biome2"] !== "m" && 
+				m[ DIR[cid].right ].b["biome2"] !== "m" &&
+				m[ DIR[cid].down ].b["biome2"] !== "m"
+			) {
+				m[cid].s = "mu";
+			} else if (
+				m[ DIR[cid].up ].b["biome2"] !== "m" && 
+				m[ DIR[cid].left ].b["biome2"] == "m" && 
+				m[ DIR[cid].right ].b["biome2"] !== "m" &&
+				m[ DIR[cid].down ].b["biome2"] !== "m"
+			) {
+				m[cid].s = "m3";
+			} else if (
+				m[ DIR[cid].up ].b["biome2"] !== "m" && 
+				m[ DIR[cid].left ].b["biome2"] !== "m" && 
+				m[ DIR[cid].right ].b["biome2"] == "m" &&
+				m[ DIR[cid].down ].b["biome2"] !== "m"
+			) {
+				m[cid].s = "mc";
+			} else if (
+				m[ DIR[cid].up ].b["biome2"] !== "m" && 
+				m[ DIR[cid].left ].b["biome2"] !== "m" && 
+				m[ DIR[cid].right ].b["biome2"] !== "m" &&
+				m[ DIR[cid].down ].b["biome2"] == "m"
+			) {
+				m[cid].s = "mn";
+			} else if (
+				m[ DIR[cid].up ].b["biome2"] == "m" && 
+				m[ DIR[cid].left ].b["biome2"] == "m" && 
+				m[ DIR[cid].right ].b["biome2"] == "m" &&
+				m[ DIR[cid].down ].b["biome2"] !== "m"
+			) {
+				m[cid].s = "meb";//bottom edge
+			} else if (
+				m[ DIR[cid].up ].b["biome2"] == "m" && 
+				m[ DIR[cid].left ].b["biome2"] == "m" && 
+				m[ DIR[cid].right ].b["biome2"] !== "m" &&
+				m[ DIR[cid].down ].b["biome2"] == "m"
+			) {
+				m[cid].s = "mer";//right edge
+			} else if (
+				m[ DIR[cid].up ].b["biome2"] == "m" && 
+				m[ DIR[cid].left ].b["biome2"] !== "m" && 
+				m[ DIR[cid].right ].b["biome2"] == "m" &&
+				m[ DIR[cid].down ].b["biome2"] == "m"
+			) {
+				m[cid].s = "mel";//left edge
+			} else if (
+				m[ DIR[cid].up ].b["biome2"] !== "m" && 
+				m[ DIR[cid].left ].b["biome2"] == "m" && 
+				m[ DIR[cid].right ].b["biome2"] == "m" &&
+				m[ DIR[cid].down ].b["biome2"] == "m"
+			) {
+				m[cid].s = "met";//top edge
+			} else {
+				m[cid].s = "m"; // small m by itself could just be a bit of rocky terrain
 			}
-		} //
+			
+		}
 		
-		switch (biome) {
-			case "f":
+		if (biome2 === "d") {
+			//console.log("change m shape");
+			if (
+				m[ DIR[cid].up ].b["biome2"] == "d" && 
+				m[ DIR[cid].left ].b["biome2"] == "d" && 
+				m[ DIR[cid].right ].b["biome2"] == "d" &&
+				m[ DIR[cid].down ].b["biome2"] == "d"
+			) {
+				m[cid].s = "d";
+			} else if (
+				m[ DIR[cid].up ].b["biome2"] == "d" && 
+				m[ DIR[cid].left ].b["biome2"] == "d" && 
+				m[ DIR[cid].right ].b["biome2"] !== "d" &&
+				m[ DIR[cid].down ].b["biome2"] !== "d"
+			) {
 				if (
-					m[ DIR[cid].up ].b["biome"] == "f" && 
-					m[ DIR[cid].left ].b["biome"] == "f" && 
-					m[ DIR[cid].right ].b["biome"] !== "f" &&
-					m[ DIR[cid].down ].b["biome"] !== "f"
+					(m[ DIR[cid].down ].b["biome"] == "w" && m[ DIR[cid].right ].b["biome"] !== "w") ||
+					(m[ DIR[cid].down ].b["biome"] !== "w" && m[ DIR[cid].right ].b["biome"] == "w") ||
+					(m[ DIR[cid].down ].b["biome"] !== "w" && m[ DIR[cid].right ].b["biome"] !== "w") ||
+					(m[ DIR[cid].dRight ].b["biome"] !== "w")
 				) {
-					m[cid].s = "fJ";
-				} else if (
-					m[ DIR[cid].up ].b["biome"] == "f" && 
-					m[ DIR[cid].left ].b["biome"] !== "f" && 
-					m[ DIR[cid].right ].b["biome"] == "f" &&
-					m[ DIR[cid].down ].b["biome"] !== "f"
-				) {
-					m[cid].s = "fL";
-				} else if (
-					m[ DIR[cid].up ].b["biome"] !== "f" && 
-					m[ DIR[cid].left ].b["biome"] == "f" && 
-					m[ DIR[cid].right ].b["biome"] !== "f" &&
-					m[ DIR[cid].down ].b["biome"] == "f"
-				) {
-					m[cid].s = "f7";
-				} else if (
-					m[ DIR[cid].up ].b["biome"] !== "f" && 
-					m[ DIR[cid].left ].b["biome"] !== "f" && 
-					m[ DIR[cid].right ].b["biome"] == "f" &&
-					m[ DIR[cid].down ].b["biome"] == "f"
-				) {
-					m[cid].s = "fr";
-				} else if (
-					m[ DIR[cid].up ].b["biome"] == "f" && 
-					m[ DIR[cid].left ].b["biome"] !== "f" && 
-					m[ DIR[cid].right ].b["biome"] !== "f" &&
-					m[ DIR[cid].down ].b["biome"] !== "f"
-				) {
-					m[cid].s = "fu";
-				} else if (
-					m[ DIR[cid].up ].b["biome"] !== "f" && 
-					m[ DIR[cid].left ].b["biome"] == "f" && 
-					m[ DIR[cid].right ].b["biome"] !== "f" &&
-					m[ DIR[cid].down ].b["biome"] !== "f"
-				) {
-					m[cid].s = "f3";
-				} else if (
-					m[ DIR[cid].up ].b["biome"] !== "f" && 
-					m[ DIR[cid].left ].b["biome"] !== "f" && 
-					m[ DIR[cid].right ].b["biome"] == "f" &&
-					m[ DIR[cid].down ].b["biome"] !== "f"
-				) {
-					m[cid].s = "fc";
-				} else if (
-					m[ DIR[cid].up ].b["biome"] !== "f" && 
-					m[ DIR[cid].left ].b["biome"] !== "f" && 
-					m[ DIR[cid].right ].b["biome"] !== "f" &&
-					m[ DIR[cid].down ].b["biome"] == "f"
-				) {
-					m[cid].s = "fn";
+					m[cid].s = "dgJ";
 				} else {
-					m[cid].s = "f";
+					m[cid].s = "dJ";
 				}
-				break;
-			case "m":
+			} else if (
+				m[ DIR[cid].up ].b["biome2"] == "d" && 
+				m[ DIR[cid].left ].b["biome2"] !== "d" && 
+				m[ DIR[cid].right ].b["biome2"] == "d" &&
+				m[ DIR[cid].down ].b["biome2"] !== "d"
+			) {
+				if (
+					(m[ DIR[cid].down ].b["biome"] == "w" && m[ DIR[cid].left ].b["biome"] !== "w") ||
+					(m[ DIR[cid].down ].b["biome"] !== "w" && m[ DIR[cid].left ].b["biome"] == "w") ||
+					(m[ DIR[cid].down ].b["biome"] !== "w" && m[ DIR[cid].left ].b["biome"] !== "w") ||
+					(m[ DIR[cid].dLeft ].b["biome"] !== "w")
+				) {
+					m[cid].s = "dgL";
+				} else {
+					m[cid].s = "dL";
+				}
+				
+			} else if (
+				m[ DIR[cid].up ].b["biome2"] !== "d" && 
+				m[ DIR[cid].left ].b["biome2"] == "d" && 
+				m[ DIR[cid].right ].b["biome2"] !== "d" &&
+				m[ DIR[cid].down ].b["biome2"] == "d"
+			) {
+				if (
+					(m[ DIR[cid].up ].b["biome"] == "w" && m[ DIR[cid].right ].b["biome"] !== "w") ||
+					(m[ DIR[cid].up ].b["biome"] !== "w" && m[ DIR[cid].right ].b["biome"] == "w") ||
+					(m[ DIR[cid].up ].b["biome"] !== "w" && m[ DIR[cid].right ].b["biome"] !== "w") ||
+					(m[ DIR[cid].uRight ].b["biome"] !== "w")
+				) {
+					m[cid].s = "dg7";
+				} else {
+					m[cid].s = "d7";
+				}
+				
+			} else if (
+				m[ DIR[cid].up ].b["biome2"] !== "d" && 
+				m[ DIR[cid].left ].b["biome2"] !== "d" && 
+				m[ DIR[cid].right ].b["biome2"] == "d" &&
+				m[ DIR[cid].down ].b["biome2"] == "d"
+			) {
+				if (
+					(m[ DIR[cid].up ].b["biome"] == "w" && m[ DIR[cid].left ].b["biome"] !== "w") ||
+					(m[ DIR[cid].up ].b["biome"] !== "w" && m[ DIR[cid].left ].b["biome"] == "w") ||
+					(m[ DIR[cid].up ].b["biome"] !== "w" && m[ DIR[cid].left ].b["biome"] !== "w") ||
+					(m[ DIR[cid].uLeft ].b["biome"] !== "w")
+				) {
+					m[cid].s = "dgr";
+				} else {
+					m[cid].s = "dr";
+				}
+			} else if (
+				m[ DIR[cid].up ].b["biome2"] == "d" && 
+				m[ DIR[cid].left ].b["biome2"] !== "d" && 
+				m[ DIR[cid].right ].b["biome2"] !== "d" &&
+				m[ DIR[cid].down ].b["biome2"] !== "d"
+			) {
+				m[cid].s = "du";
+			} else if (
+				m[ DIR[cid].up ].b["biome2"] !== "d" && 
+				m[ DIR[cid].left ].b["biome2"] == "d" && 
+				m[ DIR[cid].right ].b["biome2"] !== "d" &&
+				m[ DIR[cid].down ].b["biome2"] !== "d"
+			) {
+				m[cid].s = "d3";
+			} else if (
+				m[ DIR[cid].up ].b["biome2"] !== "d" && 
+				m[ DIR[cid].left ].b["biome2"] !== "d" && 
+				m[ DIR[cid].right ].b["biome2"] == "d" &&
+				m[ DIR[cid].down ].b["biome2"] !== "d"
+			) {
+				m[cid].s = "dc";
+			} else if (
+				m[ DIR[cid].up ].b["biome2"] !== "d" && 
+				m[ DIR[cid].left ].b["biome2"] !== "d" && 
+				m[ DIR[cid].right ].b["biome2"] !== "d" &&
+				m[ DIR[cid].down ].b["biome2"] == "d"
+			) {
+				m[cid].s = "dn";
+			} else if (
+				m[ DIR[cid].up ].b["biome2"] == "d" && 
+				m[ DIR[cid].left ].b["biome2"] == "d" && 
+				m[ DIR[cid].right ].b["biome2"] == "d" &&
+				m[ DIR[cid].down ].b["biome2"] !== "d"
+			) {
+				m[cid].s = "d";//"deU";//bottom edge
+			} else if (
+				m[ DIR[cid].up ].b["biome2"] == "d" && 
+				m[ DIR[cid].left ].b["biome2"] == "d" && 
+				m[ DIR[cid].right ].b["biome2"] !== "d" &&
+				m[ DIR[cid].down ].b["biome2"] == "d"
+			) {
+				m[cid].s = "d";//"de3";//right edge
+			} else if (
+				m[ DIR[cid].up ].b["biome2"] == "d" && 
+				m[ DIR[cid].left ].b["biome2"] !== "d" && 
+				m[ DIR[cid].right ].b["biome2"] == "d" &&
+				m[ DIR[cid].down ].b["biome2"] == "d"
+			) {
+				m[cid].s = "d";//"deE";//left edge
+			} else if (
+				m[ DIR[cid].up ].b["biome2"] !== "d" && 
+				m[ DIR[cid].left ].b["biome2"] == "d" && 
+				m[ DIR[cid].right ].b["biome2"] == "d" &&
+				m[ DIR[cid].down ].b["biome2"] == "d"
+			) {
+				m[cid].s = "d";//"deT";//top edge
+			} else {
+				m[cid].s = "d"; // small m by itself could just be a bit of rocky terrain
+			}
+			
+		}
+		
+			
+			//case "m":
+				//console.log("get chunk shape m");
+				
+				
+				/*
+				
+				
 				if (
 					m[ DIR[cid].up ].b["biome"] == "m" && 
 					m[ DIR[cid].left ].b["biome"] == "m" && 
@@ -3235,7 +2341,7 @@ export function get_chunk_shapes(m) { // m stands for 'map' I guess
 					m[ DIR[cid].down ].b["biome"] == "m"
 				) {
 					m[cid].s = "M";
-				}
+				}/**/
 				/*
 				if (
 					m[ DIR[cid].up ].b["biome"] == "m" && 
@@ -3297,2507 +2403,12 @@ export function get_chunk_shapes(m) { // m stands for 'map' I guess
 					m[cid].s = "m";
 				}
 				/**/
-				break;
-			case "d":
-				if (
-					m[ DIR[cid].up ].b["biome"] == "d" && 
-					m[ DIR[cid].left ].b["biome"] == "d" && 
-					m[ DIR[cid].right ].b["biome"] !== "d" &&
-					m[ DIR[cid].down ].b["biome"] !== "d"
-				) {
-					m[cid].s = "dJ";
-				} else if (
-					m[ DIR[cid].up ].b["biome"] == "d" && 
-					m[ DIR[cid].left ].b["biome"] !== "d" && 
-					m[ DIR[cid].right ].b["biome"] == "d" &&
-					m[ DIR[cid].down ].b["biome"] !== "d"
-				) {
-					m[cid].s = "dL";
-				} else if (
-					m[ DIR[cid].up ].b["biome"] !== "d" && 
-					m[ DIR[cid].left ].b["biome"] == "d" && 
-					m[ DIR[cid].right ].b["biome"] !== "d" &&
-					m[ DIR[cid].down ].b["biome"] == "d"
-				) {
-					m[cid].s = "d7";
-				} else if (
-					m[ DIR[cid].up ].b["biome"] !== "d" && 
-					m[ DIR[cid].left ].b["biome"] !== "d" && 
-					m[ DIR[cid].right ].b["biome"] == "d" &&
-					m[ DIR[cid].down ].b["biome"] == "d"
-				) {
-					m[cid].s = "dr";
-				} else if (
-					m[ DIR[cid].up ].b["biome"] == "d" && 
-					m[ DIR[cid].left ].b["biome"] !== "d" && 
-					m[ DIR[cid].right ].b["biome"] !== "d" &&
-					m[ DIR[cid].down ].b["biome"] !== "d"
-				) {
-					m[cid].s = "du";
-				} else if (
-					m[ DIR[cid].up ].b["biome"] !== "d" && 
-					m[ DIR[cid].left ].b["biome"] == "d" && 
-					m[ DIR[cid].right ].b["biome"] !== "d" &&
-					m[ DIR[cid].down ].b["biome"] !== "d"
-				) {
-					m[cid].s = "d3";
-				} else if (
-					m[ DIR[cid].up ].b["biome"] !== "d" && 
-					m[ DIR[cid].left ].b["biome"] !== "d" && 
-					m[ DIR[cid].right ].b["biome"] == "d" &&
-					m[ DIR[cid].down ].b["biome"] !== "d"
-				) {
-					m[cid].s = "dc";
-				} else if (
-					m[ DIR[cid].up ].b["biome"] !== "d" && 
-					m[ DIR[cid].left ].b["biome"] !== "d" && 
-					m[ DIR[cid].right ].b["biome"] !== "d" &&
-					m[ DIR[cid].down ].b["biome"] == "d"
-				) {
-					m[cid].s = "dn";
-				} else {
-					m[cid].s = "d";
-				}
-				break;
 				
-			case "F":
-				if (
-					m[ DIR[cid].up ].b["biome"] == "F" && 
-					m[ DIR[cid].left ].b["biome"] == "F" && 
-					m[ DIR[cid].right ].b["biome"] !== "F" &&
-					m[ DIR[cid].down ].b["biome"] !== "F"
-				) {
-					m[cid].s = "FJ";
-				} else if (
-					m[ DIR[cid].up ].b["biome"] == "d" && 
-					m[ DIR[cid].left ].b["biome"] !== "d" && 
-					m[ DIR[cid].right ].b["biome"] == "d" &&
-					m[ DIR[cid].down ].b["biome"] !== "d"
-				) {
-					m[cid].s = "FL";
-				} else if (
-					m[ DIR[cid].up ].b["biome"] !== "F" && 
-					m[ DIR[cid].left ].b["biome"] == "F" && 
-					m[ DIR[cid].right ].b["biome"] !== "F" &&
-					m[ DIR[cid].down ].b["biome"] == "F"
-				) {
-					m[cid].s = "F7";
-				} else if (
-					m[ DIR[cid].up ].b["biome"] !== "F" && 
-					m[ DIR[cid].left ].b["biome"] !== "F" && 
-					m[ DIR[cid].right ].b["biome"] == "F" &&
-					m[ DIR[cid].down ].b["biome"] == "F"
-				) {
-					m[cid].s = "Fr";
-				} else if (
-					m[ DIR[cid].up ].b["biome"] == "F" && 
-					m[ DIR[cid].left ].b["biome"] !== "F" && 
-					m[ DIR[cid].right ].b["biome"] !== "F" &&
-					m[ DIR[cid].down ].b["biome"] !== "F"
-				) {
-					m[cid].s = "Fu";
-				} else if (
-					m[ DIR[cid].up ].b["biome"] !== "F" && 
-					m[ DIR[cid].left ].b["biome"] == "F" && 
-					m[ DIR[cid].right ].b["biome"] !== "F" &&
-					m[ DIR[cid].down ].b["biome"] !== "F"
-				) {
-					m[cid].s = "F3";
-				} else if (
-					m[ DIR[cid].up ].b["biome"] !== "F" && 
-					m[ DIR[cid].left ].b["biome"] !== "F" && 
-					m[ DIR[cid].right ].b["biome"] == "F" &&
-					m[ DIR[cid].down ].b["biome"] !== "F"
-				) {
-					m[cid].s = "Fc";
-				} else if (
-					m[ DIR[cid].up ].b["biome"] !== "F" && 
-					m[ DIR[cid].left ].b["biome"] !== "F" && 
-					m[ DIR[cid].right ].b["biome"] !== "F" &&
-					m[ DIR[cid].down ].b["biome"] == "F"
-				) {
-					m[cid].s = "Fn";
-				} else {
-					m[cid].s = "F";
-				}
-				break;
-			case "g":
-				// need to account for other tiles instead of just g and w
-				if (
-					m[ DIR[cid].up ].b["biome"] == "g" && 
-					m[ DIR[cid].left ].b["biome"] == "g" && 
-					m[ DIR[cid].right ].b["biome"] == "w" &&
-					m[ DIR[cid].down ].b["biome"] == "w" &&
-					m[ DIR[cid].dRight ].b["biome"] == "w"
-				) {
-					m[cid].s = "gJ";
-				} else if (
-					
-					m[ DIR[cid].left ].b["biome"] == "w" &&
-					m[ DIR[cid].down ].b["biome"] == "w" && 
-					!(m[ DIR[cid].uLeft ].b["biome"] == "w" && m[ DIR[cid].up ].b["biome"] == "w") &&
-					!(
-						m[ DIR[cid].left ].b["biome"] == "w" && 
-						m[ DIR[cid].dLeft ].b["biome"] == "w" && 
-						m[ DIR[cid].down ].b["biome"] == "w" &&
-						m[ DIR[cid].dRight ].b["biome"] == "w" &&
-						m[ DIR[cid].right ].b["biome"] == "w"
-					) &&
-					m[ DIR[cid].dLeft ].b["biome"] == "w"
-					/*m[ DIR[cid].up ].b["biome"] == "w" && 
-					
-					//m[ DIR[cid].right ].b["biome"] !== "w" &&
-					//m[ DIR[cid].dLeft ].b["biome"] == "w" && // ?
-					m[ DIR[cid].dRight ].b["biome"] !== "w" && 
-					(m[ DIR[cid].uLeft ].b["biome"] !== "w" || m[ DIR[cid].right ].b["biome"] !== "w")  // not both water
-					/**/
-					
-				) {
-					m[cid].s = "gL";
-				} else if (
-					m[ DIR[cid].up ].b["biome"] == "w" && 
-					//m[ DIR[cid].left ].b["biome"] == "w" && 
-					m[ DIR[cid].right ].b["biome"] == "w" &&
-					//m[ DIR[cid].down ].b["biome"] == "g" &&
-					//m[ DIR[cid].uRight ].b["biome"] == "w"
-					!(
-						m[ DIR[cid].left ].b["biome"] == "w" && 
-						m[ DIR[cid].uLeft ].b["biome"] == "w" && 
-						m[ DIR[cid].up ].b["biome"] == "w" &&
-						m[ DIR[cid].uRight ].b["biome"] == "w" &&
-						m[ DIR[cid].right ].b["biome"] == "w"
-					) &&
-					!(
-						m[ DIR[cid].up ].b["biome"] == "w" &&
-						m[ DIR[cid].uRight ].b["biome"] == "w" &&
-						m[ DIR[cid].right ].b["biome"] == "w" &&
-						m[ DIR[cid].dRight ].b["biome"] == "w" && 
-						m[ DIR[cid].down ].b["biome"] == "w"
-					) &&
-					!(
-						m[ DIR[cid].up ].b["biome"] == "w" &&
-						m[ DIR[cid].uRight ].b["biome"] !== "w" &&
-						m[ DIR[cid].right ].b["biome"] == "w"
-					)
-					// TODO ******* seehere
-					
-				) {
-					m[cid].s = "g7";
-				} else if (
-					m[ DIR[cid].up ].b["biome"] == "w" && 
-					m[ DIR[cid].left ].b["biome"] == "w" && 
-					m[ DIR[cid].right ].b["biome"] == "g" &&
-					//m[ DIR[cid].down ].b["biome"] == "g" &&
-					m[ DIR[cid].uLeft ].b["biome"] == "w" &&
-					!(
-						m[ DIR[cid].up ].b["biome"] == "w" &&
-						m[ DIR[cid].uLeft ].b["biome"] == "w" && 
-						m[ DIR[cid].left ].b["biome"] == "w" && 
-						m[ DIR[cid].dLeft ].b["biome"] == "w" &&
-						m[ DIR[cid].down ].b["biome"] == "w"
-					)
-				) {
-					m[cid].s = "gr";
-				} else {
-					m[cid].s = "g";
-				}
-				break;
-			case "w":
-				if (
-					m[ DIR[cid].up ].b["biome"] !== "w" && 
-					m[ DIR[cid].left ].b["biome"] !== "w" && 
-					m[ DIR[cid].right ].b["biome"] == "w" &&
-					m[ DIR[cid].down ].b["biome"] == "w"
-				) {
-					m[cid].s = "wr";
-				} else if (
-					m[ DIR[cid].up ].b["biome"] !== "w" && 
-					m[ DIR[cid].left ].b["biome"] == "w" && 
-					m[ DIR[cid].right ].b["biome"] !== "w" &&
-					m[ DIR[cid].down ].b["biome"] == "w"
-				) {
-					m[cid].s = "w7";
-				} else if (
-					m[ DIR[cid].up ].b["biome"] == "w" && 
-					m[ DIR[cid].left ].b["biome"] !== "w" && 
-					m[ DIR[cid].right ].b["biome"] == "w" &&
-					m[ DIR[cid].down ].b["biome"] !== "w"
-				) {
-					m[cid].s = "wL";
-				} else if (
-					m[ DIR[cid].up ].b["biome"] == "w" && 
-					m[ DIR[cid].left ].b["biome"] == "w" && 
-					m[ DIR[cid].right ].b["biome"] !== "w" &&
-					m[ DIR[cid].down ].b["biome"] !== "w"
-				) {
-					m[cid].s = "wJ";
-				} else if (
-					m[ DIR[cid].up ].b["biome"] !== "w" && 
-					m[ DIR[cid].left ].b["biome"] == "w" && 
-					m[ DIR[cid].right ].b["biome"] == "w" &&
-					m[ DIR[cid].down ].b["biome"] !== "w" && // if only one of the below is a grass
-					(
-						(m[ DIR[cid].dLeft ].b["biome"] == "w" ? 1 : 0) +
-						(m[ DIR[cid].dRight ].b["biome"] == "w" ? 1 : 0) +
-						(m[ DIR[cid].uLeft ].b["biome"] == "w" ? 1 : 0) +
-						(m[ DIR[cid].uRight ].b["biome"] == "w" ? 1 : 0) >= 3
-					)
-				) {
-					m[cid].s = "wlbns"; // water land bridge north-south (could have a left-biased NS bridge)
-				} else if (
-					m[ DIR[cid].up ].b["biome"] == "w" && 
-					m[ DIR[cid].left ].b["biome"] !== "w" && 
-					m[ DIR[cid].right ].b["biome"] !== "w" &&
-					m[ DIR[cid].down ].b["biome"] == "w" &&
-					(
-						(m[ DIR[cid].dLeft ].b["biome"] == "w" ? 1 : 0) +
-						(m[ DIR[cid].dRight ].b["biome"] == "w" ? 1 : 0) +
-						(m[ DIR[cid].uLeft ].b["biome"] == "w" ? 1 : 0) +
-						(m[ DIR[cid].uRight ].b["biome"] == "w" ? 1 : 0) >= 3
-					)
-					
-				) {
-					m[cid].s = "wlbwe"; // water land bridge west-east (could have a top-biased WE bridge)
-					
-				} else if (
-					m[ DIR[cid].up ].b["biome"] !== "w" && 
-					m[ DIR[cid].left ].b["biome"] !== "w" && 
-					m[ DIR[cid].right ].b["biome"] !== "w" &&
-					m[ DIR[cid].down ].b["biome"] === "w" 
-					//m[ DIR[cid].dLeft ].b["biome"] !== "w" &&
-					//m[ DIR[cid].dRight ].b["biome"] !== "w"
-				) {
-					m[cid].s = "wn";
-				} else if (
-					m[ DIR[cid].up ].b["biome"] !== "w" && 
-					m[ DIR[cid].left ].b["biome"] !== "w" && 
-					m[ DIR[cid].right ].b["biome"] == "w" &&
-					m[ DIR[cid].down ].b["biome"] !== "w"
-					
-				) {
-					m[cid].s = "wc";
-				} else if (
-					m[ DIR[cid].up ].b["biome"] !== "w" && 
-					m[ DIR[cid].left ].b["biome"] == "w" && 
-					m[ DIR[cid].right ].b["biome"] !== "w" &&
-					m[ DIR[cid].down ].b["biome"] !== "w"
-				) {
-					m[cid].s = "w3";
-				} else if (
-					m[ DIR[cid].up ].b["biome"] == "w" && 
-					m[ DIR[cid].left ].b["biome"] !== "w" && 
-					m[ DIR[cid].right ].b["biome"] !== "w" &&
-					m[ DIR[cid].down ].b["biome"] !== "w"
-				) {
-					m[cid].s = "wu";
-				} else if (
-					m[ DIR[cid].up ].b["biome"] !== "w" && 
-					m[ DIR[cid].left ].b["biome"] == "w" && 
-					m[ DIR[cid].right ].b["biome"] == "w" &&
-					m[ DIR[cid].down ].b["biome"] == "w" &&
-					m[ DIR[cid].uLeft ].b["biome"] == "w" &&
-					m[ DIR[cid].uRight ].b["biome"] == "w"
-				) {
-					m[cid].s = "wlhst"; // water lighthouse south tip
-				} else if (
-					m[ DIR[cid].up ].b["biome"] == "w" && 
-					m[ DIR[cid].left ].b["biome"] == "g" && 
-					//m[ DIR[cid].right ].b["biome"] == "w" &&
-					m[ DIR[cid].down ].b["biome"] == "w" &&
-					m[ DIR[cid].uLeft ].b["biome"] == "w" &&
-					m[ DIR[cid].dLeft ].b["biome"] == "w"
-				) {
-					m[cid].s = "wlhet"; // water lighthouse east tip
-				} else if (
-					m[ DIR[cid].up ].b["biome"] == "w" && 
-					m[ DIR[cid].left ].b["biome"] == "w" && 
-					m[ DIR[cid].right ].b["biome"] == "g" &&
-					m[ DIR[cid].down ].b["biome"] == "w" &&
-					m[ DIR[cid].uRight ].b["biome"] == "w" &&
-					m[ DIR[cid].dRight ].b["biome"] == "w"
-				) {
-					m[cid].s = "wlhwt"; // water lighthouse west tip
-				} else if (
-					m[ DIR[cid].up ].b["biome"] == "w" && 
-					m[ DIR[cid].left ].b["biome"] == "w" && 
-					m[ DIR[cid].right ].b["biome"] == "w" &&
-					m[ DIR[cid].down ].b["biome"] == "g" &&
-					m[ DIR[cid].dLeft ].b["biome"] == "w" &&
-					m[ DIR[cid].dRight ].b["biome"] == "w"
-				) {
-					m[cid].s = "wlhnt"; // water lighthouse north tip
-				} else if (
-					m[ DIR[cid].up ].b["biome"] == "g" && 
-					m[ DIR[cid].left ].b["biome"] == "g" && 
-					m[ DIR[cid].right ].b["biome"] == "g" &&
-					m[ DIR[cid].down ].b["biome"] == "g" 
-				) {
-					m[cid].s = "wo"; // small water lake
-				} else if (
-					m[ DIR[cid].up ].b["biome"] == "w" && 
-					m[ DIR[cid].left ].b["biome"] == "w" && 
-					m[ DIR[cid].right ].b["biome"] == "w" &&
-					m[ DIR[cid].dLeft ].b["biome"] == "g" &&
-					m[ DIR[cid].down ].b["biome"] == "g" &&
-					m[ DIR[cid].dRight ].b["biome"] == "g" 
-				) {
-					m[cid].s = "weT"; // water edge top
-				} else if (
-					m[ DIR[cid].up ].b["biome"] == "w" && 
-					m[ DIR[cid].left ].b["biome"] == "w" && 
-					m[ DIR[cid].uRight ].b["biome"] == "g" &&
-					m[ DIR[cid].right ].b["biome"] == "g" &&
-					m[ DIR[cid].dRight ].b["biome"] == "g" &&
-					m[ DIR[cid].down ].b["biome"] == "w" 
-				) {
-					m[cid].s = "weE"; // water edge left
-				} else if (
-					m[ DIR[cid].up ].b["biome"] == "w" && 
-					m[ DIR[cid].uLeft ].b["biome"] == "g" && 
-					m[ DIR[cid].left ].b["biome"] == "g" && 
-					m[ DIR[cid].dLeft ].b["biome"] == "g" && 
-					m[ DIR[cid].right ].b["biome"] == "w" &&
-					m[ DIR[cid].down ].b["biome"] == "w" 
-				) {
-					m[cid].s = "we3"; // water edge right
-				} else if (
-					m[ DIR[cid].uLeft ].b["biome"] == "g" && 
-					m[ DIR[cid].up ].b["biome"] == "g" && 
-					m[ DIR[cid].uRight ].b["biome"] == "g" && 
-					m[ DIR[cid].left ].b["biome"] == "w" && 
-					m[ DIR[cid].right ].b["biome"] == "w" &&
-					m[ DIR[cid].down ].b["biome"] == "w" 
-				) {
-					m[cid].s = "weU"; // water edge bottom
-				} else {
-					m[cid].s = "w";
-				}
 			
-				break;
-			default:
-				m[cid].s = "x";
-		
-		} // end switch
+			
+		//} // end switch
 	} // end for
 	
 	
 }
 
-export function get_chunk_shapes_(m) {
-	
-	//m["O"].s = get_chunk_shape(m["O"].b["biome"])
-	
-	
-	// middle chunk
-	if (m["O"].b["biome"] == "g") {
-		if (
-			m["T"].b["biome"] == "g" && 
-			m["E"].b["biome"] == "g" && 
-			m["3"].b["biome"] == "w" &&
-			m["U"].b["biome"] == "w"
-		) {
-			m["O"].s = "gJ";
-		} else if (
-			m["T"].b["biome"] == "g" && 
-			m["E"].b["biome"] == "w" && 
-			m["3"].b["biome"] == "g" &&
-			m["U"].b["biome"] == "w"
-		) {
-			m["O"].s = "gL";
-		} else if (
-			m["T"].b["biome"] == "w" && 
-			m["E"].b["biome"] == "g" && 
-			m["3"].b["biome"] == "w" &&
-			m["U"].b["biome"] == "g"
-		) {
-			m["O"].s = "g7";
-		} else if (
-			m["T"].b["biome"] == "w" && 
-			m["E"].b["biome"] == "w" && 
-			m["3"].b["biome"] == "g" &&
-			m["U"].b["biome"] == "g"
-		) {
-			m["O"].s = "gr";
-		} else {
-			m["O"].s = "g";
-		}
-	} else if (m["O"].b["biome"] == "w") {
-		if (
-			m["T"].b["biome"] == "g" && 
-			m["E"].b["biome"] == "g" && 
-			m["3"].b["biome"] == "w" &&
-			m["U"].b["biome"] == "w"
-		) {
-			m["O"].s = "wr";
-		} else if (
-			m["T"].b["biome"] == "g" && 
-			m["E"].b["biome"] == "w" && 
-			m["3"].b["biome"] == "g" &&
-			m["U"].b["biome"] == "w"
-		) {
-			m["O"].s = "w7";
-		} else if (
-			m["T"].b["biome"] == "w" && 
-			m["E"].b["biome"] == "g" && 
-			m["3"].b["biome"] == "w" &&
-			m["U"].b["biome"] == "g"
-		) {
-			m["O"].s = "wL";
-		} else if (
-			m["T"].b["biome"] == "w" && 
-			m["E"].b["biome"] == "w" && 
-			m["3"].b["biome"] == "g" &&
-			m["U"].b["biome"] == "g"
-		) {
-			m["O"].s = "wJ";
-		} else if (
-			m["T"].b["biome"] == "g" && 
-			m["E"].b["biome"] == "w" && 
-			m["3"].b["biome"] == "w" &&
-			m["U"].b["biome"] == "g"
-		) {
-			m["O"].s = "wlbns"; // water land bridge north-south
-		} else if (
-			m["T"].b["biome"] == "w" && 
-			m["E"].b["biome"] == "g" && 
-			m["3"].b["biome"] == "g" &&
-			m["U"].b["biome"] == "w"
-		) {
-			m["O"].s = "wlbwe"; // water land bridge west-east
-		} else if (
-			m["T"].b["biome"] == "g" && 
-			m["E"].b["biome"] == "g" && 
-			m["3"].b["biome"] == "g" &&
-			m["U"].b["biome"] == "w"
-		) {
-			m["O"].s = "wn";
-		} else if (
-			m["T"].b["biome"] == "g" && 
-			m["E"].b["biome"] == "g" && 
-			m["3"].b["biome"] == "w" &&
-			m["U"].b["biome"] == "g"
-		) {
-			m["O"].s = "wc";
-		} else if (
-			m["T"].b["biome"] == "g" && 
-			m["E"].b["biome"] == "w" && 
-			m["3"].b["biome"] == "g" &&
-			m["U"].b["biome"] == "g"
-		) {
-			m["O"].s = "w3";
-		} else if (
-			m["T"].b["biome"] == "w" && 
-			m["E"].b["biome"] == "g" && 
-			m["3"].b["biome"] == "g" &&
-			m["U"].b["biome"] == "g"
-		) {
-			m["O"].s = "wu";
-		} else if (
-			m["T"].b["biome"] == "g" && 
-			m["E"].b["biome"] == "w" && 
-			m["3"].b["biome"] == "w" &&
-			m["U"].b["biome"] == "w"
-		) {
-			m["O"].s = "wlhst"; // water lighthouse south tip
-		} else if (
-			m["T"].b["biome"] == "w" && 
-			m["E"].b["biome"] == "g" && 
-			m["3"].b["biome"] == "w" &&
-			m["U"].b["biome"] == "w"
-		) {
-			m["O"].s = "wlhet"; // water lighthouse east tip
-		} else if (
-			m["T"].b["biome"] == "w" && 
-			m["E"].b["biome"] == "w" && 
-			m["3"].b["biome"] == "g" &&
-			m["U"].b["biome"] == "w"
-		) {
-			m["O"].s = "wlhwt"; // water lighthouse west tip
-		} else if (
-			m["T"].b["biome"] == "w" && 
-			m["E"].b["biome"] == "w" && 
-			m["3"].b["biome"] == "w" &&
-			m["U"].b["biome"] == "g" &&
-			m["L"].b["biome"] == "w" &&
-			m["J"].b["biome"] == "w" 
-		) {
-			m["O"].s = "wlhnt"; // water lighthouse north tip
-		} else {
-			m["O"].s = "w";
-		}
-	} else {
-		m["O"].s = "x";
-	}
-	
-	/*
-	    rr rT TT 
-      Er  r  T 
-      EE  E  O 
-	*/
-	// top left chunk
-	if (m["r"].b["biome"] == "g") {
-		if (
-			m["rT"].b["biome"] == "g" && 
-			m["Er"].b["biome"] == "g" && 
-			m["T"].b["biome"] == "w" &&
-			m["E"].b["biome"] == "w"
-		) {
-			m["r"].s = "gJ";
-		} else if (
-			m["rT"].b["biome"] == "g" && 
-			m["Er"].b["biome"] == "w" && 
-			m["T"].b["biome"] == "g" &&
-			m["E"].b["biome"] == "w"
-		) {
-			m["r"].s = "gL";
-		} else if (
-			m["rT"].b["biome"] == "w" && 
-			m["Er"].b["biome"] == "g" && 
-			m["T"].b["biome"] == "w" &&
-			m["E"].b["biome"] == "g"
-		) {
-			m["r"].s = "g7";
-		} else if (
-			m["rT"].b["biome"] == "w" && 
-			m["Er"].b["biome"] == "w" && 
-			m["T"].b["biome"] == "g" &&
-			m["E"].b["biome"] == "g"
-		) {
-			m["r"].s = "gr";
-		} else {
-			m["r"].s = "g";
-		}
-	} else if (m["r"].b["biome"] == "w") {
-		if (
-			m["rT"].b["biome"] == "g" && 
-			m["Er"].b["biome"] == "g" && 
-			m["T"].b["biome"] == "w" &&
-			m["E"].b["biome"] == "w"
-		) {
-			m["r"].s = "wr";
-		} else if (
-			m["rT"].b["biome"] == "g" && 
-			m["Er"].b["biome"] == "w" && 
-			m["T"].b["biome"] == "g" &&
-			m["E"].b["biome"] == "w"
-		) {
-			m["r"].s = "w7";
-		} else if (
-			m["rT"].b["biome"] == "w" && 
-			m["Er"].b["biome"] == "g" && 
-			m["T"].b["biome"] == "w" &&
-			m["E"].b["biome"] == "g"
-		) {
-			m["r"].s = "wL";
-		} else if (
-			m["rT"].b["biome"] == "w" && 
-			m["Er"].b["biome"] == "w" && 
-			m["T"].b["biome"] == "g" &&
-			m["E"].b["biome"] == "g"
-		) {
-			m["r"].s = "wJ";
-		} else if (
-			m["rT"].b["biome"] == "g" && 
-			m["Er"].b["biome"] == "w" && 
-			m["T"].b["biome"] == "w" &&
-			m["E"].b["biome"] == "g"
-		) {
-			m["r"].s = "wlbns"; // water land bridge north-south
-		} else if (
-			m["rT"].b["biome"] == "w" && 
-			m["Er"].b["biome"] == "g" && 
-			m["T"].b["biome"] == "g" &&
-			m["E"].b["biome"] == "w"
-		) {
-			m["r"].s = "wlbwe"; // water land bridge west-east
-		} else if (
-			m["rT"].b["biome"] == "g" && 
-			m["Er"].b["biome"] == "g" && 
-			m["T"].b["biome"] == "g" &&
-			m["E"].b["biome"] == "w"
-		) {
-			m["r"].s = "wn";
-		} else if (
-			m["rT"].b["biome"] == "g" && 
-			m["Er"].b["biome"] == "g" && 
-			m["T"].b["biome"] == "w" &&
-			m["E"].b["biome"] == "g"
-		) {
-			m["r"].s = "wc";
-		} else if (
-			m["rT"].b["biome"] == "g" && 
-			m["Er"].b["biome"] == "w" && 
-			m["T"].b["biome"] == "g" &&
-			m["E"].b["biome"] == "g"
-		) {
-			m["r"].s = "w3";
-		} else if (
-			m["rT"].b["biome"] == "w" && 
-			m["Er"].b["biome"] == "g" && 
-			m["T"].b["biome"] == "g" &&
-			m["E"].b["biome"] == "g"
-		) {
-			m["r"].s = "wu";
-		} else if (
-			m["rT"].b["biome"] == "g" && 
-			m["Er"].b["biome"] == "w" && 
-			m["T"].b["biome"] == "w" &&
-			m["E"].b["biome"] == "w"
-		) {
-			m["r"].s = "wlhst"; // water lighthouse south tip
-		} else if (
-			m["rT"].b["biome"] == "w" && 
-			m["Er"].b["biome"] == "g" && 
-			m["T"].b["biome"] == "w" &&
-			m["E"].b["biome"] == "w"
-		) {
-			m["r"].s = "wlhet"; // water lighthouse east tip
-		} else if (
-			m["rT"].b["biome"] == "w" && 
-			m["Er"].b["biome"] == "w" && 
-			m["T"].b["biome"] == "g" &&
-			m["E"].b["biome"] == "w"
-		) {
-			m["r"].s = "wlhwt"; // water lighthouse west tip
-		} else if (
-			m["rT"].b["biome"] == "w" && 
-			m["Er"].b["biome"] == "w" && 
-			m["T"].b["biome"] == "w" &&
-			m["E"].b["biome"] == "g"
-			//m["L"].b["biome"] == "w" &&
-			//m["J"].b["biome"] == "w" 
-		) {
-			m["r"].s = "wlhnt"; // water lighthouse north tip
-		} else {
-			m["r"].s = "w";
-		}
-	} else {
-		m["r"].s = "x";
-	}
-	
-	/*
-	   rT TT T7
-      r  T  7
-      E  O  3
-	*/
-	// top chunk
-	if (m["T"].b["biome"] == "g") {
-		if (
-			m["TT"].b["biome"] == "g" && 
-			m["r"].b["biome"] == "g" && 
-			m["7"].b["biome"] == "w" &&
-			m["O"].b["biome"] == "w"
-		) {
-			m["T"].s = "gJ";
-		} else if (
-			m["TT"].b["biome"] == "g" && 
-			m["r"].b["biome"] == "w" && 
-			m["7"].b["biome"] == "g" &&
-			m["O"].b["biome"] == "w"
-		) {
-			m["T"].s = "gL";
-		} else if (
-			m["TT"].b["biome"] == "w" && 
-			m["r"].b["biome"] == "g" && 
-			m["7"].b["biome"] == "w" &&
-			m["O"].b["biome"] == "g"
-		) {
-			m["T"].s = "g7";
-		} else if (
-			m["TT"].b["biome"] == "w" && 
-			m["r"].b["biome"] == "w" && 
-			m["7"].b["biome"] == "g" &&
-			m["O"].b["biome"] == "g"
-		) {
-			m["T"].s = "gr";
-		} else {
-			m["T"].s = "g";
-		}
-	} else if (m["T"].b["biome"] == "w") {
-		if (
-			m["TT"].b["biome"] == "g" && 
-			m["r"].b["biome"] == "g" && 
-			m["7"].b["biome"] == "w" &&
-			m["O"].b["biome"] == "w"
-		) {
-			m["T"].s = "wr";
-		} else if (
-			m["TT"].b["biome"] == "g" && 
-			m["r"].b["biome"] == "w" && 
-			m["7"].b["biome"] == "g" &&
-			m["O"].b["biome"] == "w"
-		) {
-			m["T"].s = "w7";
-		} else if (
-			m["TT"].b["biome"] == "w" && 
-			m["r"].b["biome"] == "g" && 
-			m["7"].b["biome"] == "w" &&
-			m["O"].b["biome"] == "g"
-		) {
-			m["T"].s = "wL";
-		} else if (
-			m["TT"].b["biome"] == "w" && 
-			m["r"].b["biome"] == "w" && 
-			m["7"].b["biome"] == "g" &&
-			m["O"].b["biome"] == "g"
-		) {
-			m["T"].s = "wJ";
-		} else if (
-			m["TT"].b["biome"] == "g" && 
-			m["r"].b["biome"] == "w" && 
-			m["7"].b["biome"] == "w" &&
-			m["O"].b["biome"] == "g"
-		) {
-			m["T"].s = "wlbns"; // water land bridge north-south
-		} else if (
-			m["TT"].b["biome"] == "w" && 
-			m["r"].b["biome"] == "g" && 
-			m["7"].b["biome"] == "g" &&
-			m["O"].b["biome"] == "w"
-		) {
-			m["T"].s = "wlbwe"; // water land bridge west-east
-		} else if (
-			m["TT"].b["biome"] == "g" && 
-			m["r"].b["biome"] == "g" && 
-			m["7"].b["biome"] == "g" &&
-			m["O"].b["biome"] == "w"
-		) {
-			m["T"].s = "wn";
-		} else if (
-			m["TT"].b["biome"] == "g" && 
-			m["r"].b["biome"] == "g" && 
-			m["7"].b["biome"] == "w" &&
-			m["O"].b["biome"] == "g"
-		) {
-			m["T"].s = "wc";
-		} else if (
-			m["TT"].b["biome"] == "g" && 
-			m["r"].b["biome"] == "w" && 
-			m["7"].b["biome"] == "g" &&
-			m["O"].b["biome"] == "g"
-		) {
-			m["T"].s = "w3";
-		} else if (
-			m["TT"].b["biome"] == "w" && 
-			m["r"].b["biome"] == "g" && 
-			m["7"].b["biome"] == "g" &&
-			m["O"].b["biome"] == "g"
-		) {
-			m["T"].s = "wu";
-		} else if (
-			m["TT"].b["biome"] == "g" && 
-			m["r"].b["biome"] == "w" && 
-			m["7"].b["biome"] == "w" &&
-			m["O"].b["biome"] == "w"
-		) {
-			m["T"].s = "wlhst"; // water lighthouse south tip
-		} else if (
-			m["TT"].b["biome"] == "w" && 
-			m["r"].b["biome"] == "g" && 
-			m["7"].b["biome"] == "w" &&
-			m["O"].b["biome"] == "w"
-		) {
-			m["T"].s = "wlhet"; // water lighthouse east tip
-		} else if (
-			m["TT"].b["biome"] == "w" && 
-			m["r"].b["biome"] == "w" && 
-			m["7"].b["biome"] == "g" &&
-			m["O"].b["biome"] == "w"
-		) {
-			m["T"].s = "wlhwt"; // water lighthouse west tip
-		} else if (
-			m["TT"].b["biome"] == "w" && 
-			m["r"].b["biome"] == "w" && 
-			m["7"].b["biome"] == "w" &&
-			m["O"].b["biome"] == "g"
-		) {
-			m["T"].s = "wlhnt"; // water lighthouse north tip
-		} else {
-			m["T"].s = "w";
-		}
-	} else {
-		m["T"].s = "x";
-	}
-	
-	/*
-      TT T7 77
-       T  7 73
-       O  3 33
-	*/
-	// top right chunk
-	if (m["7"].b["biome"] == "g") {
-		if (
-			m["T7"].b["biome"] == "g" && 
-			m["T"].b["biome"] == "g" && 
-			m["73"].b["biome"] == "w" &&
-			m["3"].b["biome"] == "w"
-		) {
-			m["7"].s = "gJ";
-		} else if (
-			m["T7"].b["biome"] == "g" && 
-			m["T"].b["biome"] == "w" && 
-			m["73"].b["biome"] == "g" &&
-			m["3"].b["biome"] == "w"
-		) {
-			m["7"].s = "gL";
-		} else if (
-			m["T7"].b["biome"] == "w" && 
-			m["T"].b["biome"] == "g" && 
-			m["73"].b["biome"] == "w" &&
-			m["3"].b["biome"] == "g"
-		) {
-			m["7"].s = "g7";
-		} else if (
-			m["T7"].b["biome"] == "w" && 
-			m["T"].b["biome"] == "w" && 
-			m["73"].b["biome"] == "g" &&
-			m["3"].b["biome"] == "g"
-		) {
-			m["7"].s = "gr";
-		} else {
-			m["7"].s = "g";
-		}
-	} else if (m["7"].b["biome"] == "w") {
-		if (
-			m["T7"].b["biome"] == "g" && 
-			m["T"].b["biome"] == "g" && 
-			m["73"].b["biome"] == "w" &&
-			m["3"].b["biome"] == "w"
-		) {
-			m["7"].s = "wr";
-		} else if (
-			m["T7"].b["biome"] == "g" && 
-			m["T"].b["biome"] == "w" && 
-			m["73"].b["biome"] == "g" &&
-			m["3"].b["biome"] == "w"
-		) {
-			m["7"].s = "w7";
-		} else if (
-			m["T7"].b["biome"] == "w" && 
-			m["T"].b["biome"] == "g" && 
-			m["73"].b["biome"] == "w" &&
-			m["3"].b["biome"] == "g"
-		) {
-			m["7"].s = "wL";
-		} else if (
-			m["T7"].b["biome"] == "w" && 
-			m["T"].b["biome"] == "w" && 
-			m["73"].b["biome"] == "g" &&
-			m["3"].b["biome"] == "g"
-		) {
-			m["7"].s = "wJ";
-		} else if (
-			m["T7"].b["biome"] == "g" && 
-			m["T"].b["biome"] == "w" && 
-			m["73"].b["biome"] == "w" &&
-			m["3"].b["biome"] == "g"
-		) {
-			m["7"].s = "wlbns"; // water land bridge north-south
-		} else if (
-			m["T7"].b["biome"] == "w" && 
-			m["T"].b["biome"] == "g" && 
-			m["73"].b["biome"] == "g" &&
-			m["3"].b["biome"] == "w"
-		) {
-			m["7"].s = "wlbwe"; // water land bridge west-east
-		} else if (
-			m["T7"].b["biome"] == "g" && 
-			m["T"].b["biome"] == "g" && 
-			m["73"].b["biome"] == "g" &&
-			m["3"].b["biome"] == "w"
-		) {
-			m["7"].s = "wn";
-		} else if (
-			m["T7"].b["biome"] == "g" && 
-			m["T"].b["biome"] == "g" && 
-			m["73"].b["biome"] == "w" &&
-			m["3"].b["biome"] == "g"
-		) {
-			m["7"].s = "wc";
-		} else if (
-			m["T7"].b["biome"] == "g" && 
-			m["T"].b["biome"] == "w" && 
-			m["73"].b["biome"] == "g" &&
-			m["3"].b["biome"] == "g"
-		) {
-			m["7"].s = "w3";
-		} else if (
-			m["T7"].b["biome"] == "w" && 
-			m["T"].b["biome"] == "g" && 
-			m["73"].b["biome"] == "g" &&
-			m["3"].b["biome"] == "g"
-		) {
-			m["7"].s = "wu";
-		} else if (
-			m["T7"].b["biome"] == "g" && 
-			m["T"].b["biome"] == "w" && 
-			m["73"].b["biome"] == "w" &&
-			m["3"].b["biome"] == "w"
-		) {
-			m["7"].s = "wlhst"; // water lighthouse south tip
-		} else if (
-			m["T7"].b["biome"] == "w" && 
-			m["T"].b["biome"] == "g" && 
-			m["73"].b["biome"] == "w" &&
-			m["3"].b["biome"] == "w"
-		) {
-			m["7"].s = "wlhet"; // water lighthouse east tip
-		} else if (
-			m["T7"].b["biome"] == "w" && 
-			m["T"].b["biome"] == "w" && 
-			m["73"].b["biome"] == "g" &&
-			m["3"].b["biome"] == "w"
-		) {
-			m["7"].s = "wlhwt"; // water lighthouse west tip
-		} else if (
-			m["T7"].b["biome"] == "w" && 
-			m["T"].b["biome"] == "w" && 
-			m["73"].b["biome"] == "w" &&
-			m["3"].b["biome"] == "g"
-		) {
-			m["7"].s = "wlhnt"; // water lighthouse north tip
-		} else {
-			m["7"].s = "w";
-		}
-	} else {
-		m["7"].s = "x";
-	}
-	
-	/*
-     Er  r  T 
-     EE  E  O
-     EL  L  U 
-  */
-	// left chunk
-	if (m["E"].b["biome"] == "g") {
-		if (
-			m["r"].b["biome"] == "g" && 
-			m["EE"].b["biome"] == "g" && 
-			m["O"].b["biome"] == "w" &&
-			m["L"].b["biome"] == "w"
-		) {
-			m["E"].s = "gJ";
-		} else if (
-			m["r"].b["biome"] == "g" && 
-			m["EE"].b["biome"] == "w" && 
-			m["O"].b["biome"] == "g" &&
-			m["L"].b["biome"] == "w"
-		) {
-			m["E"].s = "gL";
-		} else if (
-			m["r"].b["biome"] == "w" && 
-			m["EE"].b["biome"] == "g" && 
-			m["O"].b["biome"] == "w" &&
-			m["L"].b["biome"] == "g"
-		) {
-			m["E"].s = "g7";
-		} else if (
-			m["r"].b["biome"] == "w" && 
-			m["EE"].b["biome"] == "w" && 
-			m["O"].b["biome"] == "g" &&
-			m["L"].b["biome"] == "g"
-		) {
-			m["E"].s = "gr";
-		} else {
-			m["E"].s = "g";
-		}
-	} else if (m["E"].b["biome"] == "w") {
-		if (
-			m["r"].b["biome"] == "g" && 
-			m["EE"].b["biome"] == "g" && 
-			m["O"].b["biome"] == "w" &&
-			m["L"].b["biome"] == "w"
-		) {
-			m["E"].s = "wr";
-		} else if (
-			m["r"].b["biome"] == "g" && 
-			m["EE"].b["biome"] == "w" && 
-			m["O"].b["biome"] == "g" &&
-			m["L"].b["biome"] == "w"
-		) {
-			m["E"].s = "w7";
-		} else if (
-			m["r"].b["biome"] == "w" && 
-			m["EE"].b["biome"] == "g" && 
-			m["O"].b["biome"] == "w" &&
-			m["L"].b["biome"] == "g"
-		) {
-			m["E"].s = "wL";
-		} else if (
-			m["r"].b["biome"] == "w" && 
-			m["EE"].b["biome"] == "w" && 
-			m["O"].b["biome"] == "g" &&
-			m["L"].b["biome"] == "g"
-		) {
-			m["E"].s = "wJ";
-		} else if (
-			m["r"].b["biome"] == "g" && 
-			m["EE"].b["biome"] == "w" && 
-			m["O"].b["biome"] == "w" &&
-			m["L"].b["biome"] == "g"
-		) {
-			m["E"].s = "wlbns"; // water land bridge north-south
-		} else if (
-			m["r"].b["biome"] == "w" && 
-			m["EE"].b["biome"] == "g" && 
-			m["O"].b["biome"] == "g" &&
-			m["L"].b["biome"] == "w"
-		) {
-			m["E"].s = "wlbwe"; // water land bridge west-east
-		} else if (
-			m["r"].b["biome"] == "g" && 
-			m["EE"].b["biome"] == "g" && 
-			m["O"].b["biome"] == "g" &&
-			m["L"].b["biome"] == "w"
-		) {
-			m["E"].s = "wn";
-		} else if (
-			m["r"].b["biome"] == "g" && 
-			m["EE"].b["biome"] == "g" && 
-			m["O"].b["biome"] == "w" &&
-			m["L"].b["biome"] == "g"
-		) {
-			m["O"].s = "wc";
-		} else if (
-			m["r"].b["biome"] == "g" && 
-			m["EE"].b["biome"] == "w" && 
-			m["O"].b["biome"] == "g" &&
-			m["L"].b["biome"] == "g"
-		) {
-			m["E"].s = "w3";
-		} else if (
-			m["r"].b["biome"] == "w" && 
-			m["EE"].b["biome"] == "g" && 
-			m["O"].b["biome"] == "g" &&
-			m["L"].b["biome"] == "g"
-		) {
-			m["E"].s = "wu";
-		} else if (
-			m["r"].b["biome"] == "g" && 
-			m["EE"].b["biome"] == "w" && 
-			m["O"].b["biome"] == "w" &&
-			m["L"].b["biome"] == "w"
-		) {
-			m["E"].s = "wlhst"; // water lighthouse south tip
-		} else if (
-			m["r"].b["biome"] == "w" && 
-			m["EE"].b["biome"] == "g" && 
-			m["O"].b["biome"] == "w" &&
-			m["L"].b["biome"] == "w"
-		) {
-			m["E"].s = "wlhet"; // water lighthouse east tip
-		} else if (
-			m["r"].b["biome"] == "w" && 
-			m["EE"].b["biome"] == "w" && 
-			m["O"].b["biome"] == "g" &&
-			m["L"].b["biome"] == "w"
-		) {
-			m["E"].s = "wlhwt"; // water lighthouse west tip
-		} else if (
-			m["r"].b["biome"] == "w" && 
-			m["EE"].b["biome"] == "w" && 
-			m["O"].b["biome"] == "w" &&
-			m["L"].b["biome"] == "g"
-		) {
-			m["E"].s = "wlhnt"; // water lighthouse north tip
-		} else {
-			m["E"].s = "w";
-		}
-	} else {
-		m["E"].s = "x";
-	}
-	
-	/* 
-       T  7 73
-       O  3 33
-       U  J J3
-	*/
-	// right chunk
-	if (m["3"].b["biome"] == "g") {
-		if (
-			m["7"].b["biome"] == "g" && 
-			m["O"].b["biome"] == "g" && 
-			m["33"].b["biome"] == "w" &&
-			m["J"].b["biome"] == "w"
-		) {
-			m["3"].s = "gJ";
-		} else if (
-			m["7"].b["biome"] == "g" && 
-			m["O"].b["biome"] == "w" && 
-			m["33"].b["biome"] == "g" &&
-			m["J"].b["biome"] == "w"
-		) {
-			m["3"].s = "gL";
-		} else if (
-			m["7"].b["biome"] == "w" && 
-			m["O"].b["biome"] == "g" && 
-			m["33"].b["biome"] == "w" &&
-			m["J"].b["biome"] == "g"
-		) {
-			m["3"].s = "g7";
-		} else if (
-			m["7"].b["biome"] == "w" && 
-			m["O"].b["biome"] == "w" && 
-			m["33"].b["biome"] == "g" &&
-			m["J"].b["biome"] == "g"
-		) {
-			m["3"].s = "gr";
-		} else {
-			m["3"].s = "g";
-		}
-	} else if (m["3"].b["biome"] == "w") {
-		if (
-			m["7"].b["biome"] == "g" && 
-			m["O"].b["biome"] == "g" && 
-			m["33"].b["biome"] == "w" &&
-			m["J"].b["biome"] == "w"
-		) {
-			m["3"].s = "wr";
-		} else if (
-			m["7"].b["biome"] == "g" && 
-			m["O"].b["biome"] == "w" && 
-			m["33"].b["biome"] == "g" &&
-			m["J"].b["biome"] == "w"
-		) {
-			m["3"].s = "w7";
-		} else if (
-			m["7"].b["biome"] == "w" && 
-			m["O"].b["biome"] == "g" && 
-			m["33"].b["biome"] == "w" &&
-			m["J"].b["biome"] == "g"
-		) {
-			m["3"].s = "wL";
-		} else if (
-			m["7"].b["biome"] == "w" && 
-			m["O"].b["biome"] == "w" && 
-			m["33"].b["biome"] == "g" &&
-			m["J"].b["biome"] == "g"
-		) {
-			m["3"].s = "wJ";
-		} else if (
-			m["7"].b["biome"] == "g" && 
-			m["O"].b["biome"] == "w" && 
-			m["33"].b["biome"] == "w" &&
-			m["J"].b["biome"] == "g"
-		) {
-			m["3"].s = "wlbns"; // water land bridge north-south
-		} else if (
-			m["7"].b["biome"] == "w" && 
-			m["O"].b["biome"] == "g" && 
-			m["33"].b["biome"] == "g" &&
-			m["J"].b["biome"] == "w"
-		) {
-			m["3"].s = "wlbwe"; // water land bridge west-east
-		} else if (
-			m["7"].b["biome"] == "g" && 
-			m["O"].b["biome"] == "g" && 
-			m["33"].b["biome"] == "g" &&
-			m["J"].b["biome"] == "w"
-		) {
-			m["3"].s = "wn";
-		} else if (
-			m["7"].b["biome"] == "g" && 
-			m["O"].b["biome"] == "g" && 
-			m["33"].b["biome"] == "w" &&
-			m["J"].b["biome"] == "g"
-		) {
-			m["3"].s = "wc";
-		} else if (
-			m["7"].b["biome"] == "g" && 
-			m["O"].b["biome"] == "w" && 
-			m["33"].b["biome"] == "g" &&
-			m["J"].b["biome"] == "g"
-		) {
-			m["3"].s = "w3";
-		} else if (
-			m["7"].b["biome"] == "w" && 
-			m["O"].b["biome"] == "g" && 
-			m["33"].b["biome"] == "g" &&
-			m["J"].b["biome"] == "g"
-		) {
-			m["3"].s = "wu";
-		} else if (
-			m["7"].b["biome"] == "g" && 
-			m["O"].b["biome"] == "w" && 
-			m["33"].b["biome"] == "w" &&
-			m["J"].b["biome"] == "w"
-		) {
-			m["3"].s = "wlhst"; // water lighthouse south tip
-		} else if (
-			m["7"].b["biome"] == "w" && 
-			m["O"].b["biome"] == "g" && 
-			m["33"].b["biome"] == "w" &&
-			m["J"].b["biome"] == "w"
-		) {
-			m["3"].s = "wlhet"; // water lighthouse east tip
-		} else if (
-			m["7"].b["biome"] == "w" && 
-			m["O"].b["biome"] == "w" && 
-			m["33"].b["biome"] == "g" &&
-			m["J"].b["biome"] == "w"
-		) {
-			m["3"].s = "wlhwt"; // water lighthouse west tip
-		} else if (
-			m["7"].b["biome"] == "w" && 
-			m["O"].b["biome"] == "w" && 
-			m["33"].b["biome"] == "w" &&
-			m["J"].b["biome"] == "g"
-		) {
-			m["3"].s = "wlhnt"; // water lighthouse north tip
-		} else {
-			m["3"].s = "w";
-		}
-	} else {
-		m["3"].s = "x";
-	}
-	/*
-     EE  E  O
-     EL  L  U 
-     LL LU UU
-	*/
-	// bottom left chunk
-	if (m["L"].b["biome"] == "g") {
-		if (
-			m["E"].b["biome"] == "g" && 
-			m["EL"].b["biome"] == "g" && 
-			m["U"].b["biome"] == "w" &&
-			m["LU"].b["biome"] == "w"
-		) {
-			m["L"].s = "gJ";
-		} else if (
-			m["E"].b["biome"] == "g" && 
-			m["EL"].b["biome"] == "w" && 
-			m["U"].b["biome"] == "g" &&
-			m["LU"].b["biome"] == "w"
-		) {
-			m["L"].s = "gL";
-		} else if (
-			m["E"].b["biome"] == "w" && 
-			m["EL"].b["biome"] == "g" && 
-			m["U"].b["biome"] == "w" &&
-			m["LU"].b["biome"] == "g"
-		) {
-			m["L"].s = "g7";
-		} else if (
-			m["E"].b["biome"] == "w" && 
-			m["EL"].b["biome"] == "w" && 
-			m["U"].b["biome"] == "g" &&
-			m["LU"].b["biome"] == "g"
-		) {
-			m["L"].s = "gr";
-		} else {
-			m["L"].s = "g";
-		}
-	} else if (m["L"].b["biome"] == "w") {
-		if (
-			m["E"].b["biome"] == "g" && 
-			m["EL"].b["biome"] == "g" && 
-			m["U"].b["biome"] == "w" &&
-			m["LU"].b["biome"] == "w"
-		) {
-			m["L"].s = "wr";
-		} else if (
-			m["E"].b["biome"] == "g" && 
-			m["EL"].b["biome"] == "w" && 
-			m["U"].b["biome"] == "g" &&
-			m["LU"].b["biome"] == "w"
-		) {
-			m["L"].s = "w7";
-		} else if (
-			m["E"].b["biome"] == "w" && 
-			m["EL"].b["biome"] == "g" && 
-			m["U"].b["biome"] == "w" &&
-			m["LU"].b["biome"] == "g"
-		) {
-			m["L"].s = "wL";
-		} else if (
-			m["E"].b["biome"] == "w" && 
-			m["EL"].b["biome"] == "w" && 
-			m["U"].b["biome"] == "g" &&
-			m["LU"].b["biome"] == "g"
-		) {
-			m["L"].s = "wJ";
-		} else if (
-			m["E"].b["biome"] == "g" && 
-			m["EL"].b["biome"] == "w" && 
-			m["U"].b["biome"] == "w" &&
-			m["LU"].b["biome"] == "g"
-		) {
-			m["L"].s = "wlbns"; // water land bridge north-south
-		} else if (
-			m["E"].b["biome"] == "w" && 
-			m["EL"].b["biome"] == "g" && 
-			m["U"].b["biome"] == "g" &&
-			m["LU"].b["biome"] == "w"
-		) {
-			m["L"].s = "wlbwe"; // water land bridge west-east
-		} else if (
-			m["E"].b["biome"] == "g" && 
-			m["EL"].b["biome"] == "g" && 
-			m["U"].b["biome"] == "g" &&
-			m["LU"].b["biome"] == "w"
-		) {
-			m["O"].s = "wn";
-		} else if (
-			m["E"].b["biome"] == "g" && 
-			m["EL"].b["biome"] == "g" && 
-			m["U"].b["biome"] == "w" &&
-			m["LU"].b["biome"] == "g"
-		) {
-			m["L"].s = "wc";
-		} else if (
-			m["E"].b["biome"] == "g" && 
-			m["EL"].b["biome"] == "w" && 
-			m["U"].b["biome"] == "g" &&
-			m["LU"].b["biome"] == "g"
-		) {
-			m["L"].s = "w3";
-		} else if (
-			m["E"].b["biome"] == "w" && 
-			m["EL"].b["biome"] == "g" && 
-			m["U"].b["biome"] == "g" &&
-			m["LU"].b["biome"] == "g"
-		) {
-			m["L"].s = "wu";
-		} else if (
-			m["E"].b["biome"] == "g" && 
-			m["EL"].b["biome"] == "w" && 
-			m["U"].b["biome"] == "w" &&
-			m["LU"].b["biome"] == "w"
-		) {
-			m["L"].s = "wlhst"; // water lighthouse south tip
-		} else if (
-			m["E"].b["biome"] == "w" && 
-			m["EL"].b["biome"] == "g" && 
-			m["U"].b["biome"] == "w" &&
-			m["LU"].b["biome"] == "w"
-		) {
-			m["L"].s = "wlhet"; // water lighthouse east tip
-		} else if (
-			m["E"].b["biome"] == "w" && 
-			m["EL"].b["biome"] == "w" && 
-			m["U"].b["biome"] == "g" &&
-			m["LU"].b["biome"] == "w"
-		) {
-			m["L"].s = "wlhwt"; // water lighthouse west tip
-		} else if (
-			m["E"].b["biome"] == "w" && 
-			m["EL"].b["biome"] == "w" && 
-			m["U"].b["biome"] == "w" &&
-			m["LU"].b["biome"] == "g"
-		) {
-			m["L"].s = "wlhnt"; // water lighthouse north tip
-		} else {
-			m["L"].s = "w";
-		}
-	} else {
-		m["L"].s = "x";
-	}
-	
-	/*
-     E  O  3
-     L  U  J
-     LU UU UJ
-	*/
-	// bottom chunk
-	if (m["U"].b["biome"] == "g") {
-		if (
-			m["O"].b["biome"] == "g" && 
-			m["L"].b["biome"] == "g" && 
-			m["J"].b["biome"] == "w" &&
-			m["UU"].b["biome"] == "w"
-		) {
-			m["U"].s = "gJ";
-		} else if (
-			m["O"].b["biome"] == "g" && 
-			m["L"].b["biome"] == "w" && 
-			m["J"].b["biome"] == "g" &&
-			m["UU"].b["biome"] == "w"
-		) {
-			m["U"].s = "gL";
-		} else if (
-			m["O"].b["biome"] == "w" && 
-			m["L"].b["biome"] == "g" && 
-			m["J"].b["biome"] == "w" &&
-			m["UU"].b["biome"] == "g"
-		) {
-			m["U"].s = "g7";
-		} else if (
-			m["O"].b["biome"] == "w" && 
-			m["L"].b["biome"] == "w" && 
-			m["J"].b["biome"] == "g" &&
-			m["UU"].b["biome"] == "g"
-		) {
-			m["U"].s = "gr";
-		} else {
-			m["U"].s = "g";
-		}
-	} else if (m["U"].b["biome"] == "w") {
-		if (
-			m["O"].b["biome"] == "g" && 
-			m["L"].b["biome"] == "g" && 
-			m["J"].b["biome"] == "w" &&
-			m["UU"].b["biome"] == "w"
-		) {
-			m["U"].s = "wr";
-		} else if (
-			m["O"].b["biome"] == "g" && 
-			m["L"].b["biome"] == "w" && 
-			m["J"].b["biome"] == "g" &&
-			m["UU"].b["biome"] == "w"
-		) {
-			m["U"].s = "w7";
-		} else if (
-			m["O"].b["biome"] == "w" && 
-			m["L"].b["biome"] == "g" && 
-			m["J"].b["biome"] == "w" &&
-			m["UU"].b["biome"] == "g"
-		) {
-			m["U"].s = "wL";
-		} else if (
-			m["O"].b["biome"] == "w" && 
-			m["L"].b["biome"] == "w" && 
-			m["J"].b["biome"] == "g" &&
-			m["UU"].b["biome"] == "g"
-		) {
-			m["U"].s = "wJ";
-		} else if (
-			m["O"].b["biome"] == "g" && 
-			m["L"].b["biome"] == "w" && 
-			m["J"].b["biome"] == "w" &&
-			m["UU"].b["biome"] == "g"
-		) {
-			m["U"].s = "wlbns"; // water land bridge north-south
-		} else if (
-			m["O"].b["biome"] == "w" && 
-			m["L"].b["biome"] == "g" && 
-			m["J"].b["biome"] == "g" &&
-			m["UU"].b["biome"] == "w"
-		) {
-			m["U"].s = "wlbwe"; // water land bridge west-east
-		} else if (
-			m["O"].b["biome"] == "g" && 
-			m["L"].b["biome"] == "g" && 
-			m["J"].b["biome"] == "g" &&
-			m["UU"].b["biome"] == "w"
-		) {
-			m["U"].s = "wn";
-		} else if (
-			m["O"].b["biome"] == "g" && 
-			m["L"].b["biome"] == "g" && 
-			m["J"].b["biome"] == "w" &&
-			m["UU"].b["biome"] == "g"
-		) {
-			m["U"].s = "wc";
-		} else if (
-			m["O"].b["biome"] == "g" && 
-			m["L"].b["biome"] == "w" && 
-			m["J"].b["biome"] == "g" &&
-			m["UU"].b["biome"] == "g"
-		) {
-			m["U"].s = "w3";
-		} else if (
-			m["O"].b["biome"] == "w" && 
-			m["L"].b["biome"] == "g" && 
-			m["J"].b["biome"] == "g" &&
-			m["UU"].b["biome"] == "g"
-		) {
-			m["U"].s = "wu";
-		} else if (
-			m["O"].b["biome"] == "g" && 
-			m["L"].b["biome"] == "w" && 
-			m["J"].b["biome"] == "w" &&
-			m["UU"].b["biome"] == "w"
-		) {
-			m["U"].s = "wlhst"; // water lighthouse south tip
-		} else if (
-			m["O"].b["biome"] == "w" && 
-			m["L"].b["biome"] == "g" && 
-			m["J"].b["biome"] == "w" &&
-			m["UU"].b["biome"] == "w"
-		) {
-			m["U"].s = "wlhet"; // water lighthouse east tip
-		} else if (
-			m["O"].b["biome"] == "w" && 
-			m["L"].b["biome"] == "w" && 
-			m["J"].b["biome"] == "g" &&
-			m["UU"].b["biome"] == "w"
-		) {
-			m["U"].s = "wlhwt"; // water lighthouse west tip
-		} else if (
-			m["O"].b["biome"] == "w" && 
-			m["L"].b["biome"] == "w" && 
-			m["J"].b["biome"] == "w" &&
-			m["UU"].b["biome"] == "g"
-		) {
-			m["U"].s = "wlhnt"; // water lighthouse north tip
-		} else {
-			m["U"].s = "w";
-		}
-	} else {
-		m["U"].s = "x";
-	}
-	
-	/*
-     O  3 33
-     U  J J3
-    UU UJ JJ 
-	*/
-	// bottom right chunk
-	if (m["J"].b["biome"] == "g") {
-		if (
-			m["3"].b["biome"] == "g" && 
-			m["U"].b["biome"] == "g" && 
-			m["J3"].b["biome"] == "w" &&
-			m["UJ"].b["biome"] == "w"
-		) {
-			m["J"].s = "gJ";
-		} else if (
-			m["3"].b["biome"] == "g" && 
-			m["U"].b["biome"] == "w" && 
-			m["J3"].b["biome"] == "g" &&
-			m["UJ"].b["biome"] == "w"
-		) {
-			m["J"].s = "gL";
-		} else if (
-			m["3"].b["biome"] == "w" && 
-			m["U"].b["biome"] == "g" && 
-			m["J3"].b["biome"] == "w" &&
-			m["UJ"].b["biome"] == "g"
-		) {
-			m["J"].s = "g7";
-		} else if (
-			m["3"].b["biome"] == "w" && 
-			m["U"].b["biome"] == "w" && 
-			m["J3"].b["biome"] == "g" &&
-			m["UJ"].b["biome"] == "g"
-		) {
-			m["J"].s = "gr";
-		} else {
-			m["J"].s = "g";
-		}
-	} else if (m["J"].b["biome"] == "w") {
-		if (
-			m["3"].b["biome"] == "g" && 
-			m["U"].b["biome"] == "g" && 
-			m["J3"].b["biome"] == "w" &&
-			m["UJ"].b["biome"] == "w"
-		) {
-			m["J"].s = "wr";
-		} else if (
-			m["3"].b["biome"] == "g" && 
-			m["U"].b["biome"] == "w" && 
-			m["J3"].b["biome"] == "g" &&
-			m["UJ"].b["biome"] == "w"
-		) {
-			m["J"].s = "w7";
-		} else if (
-			m["3"].b["biome"] == "w" && 
-			m["U"].b["biome"] == "g" && 
-			m["J3"].b["biome"] == "w" &&
-			m["UJ"].b["biome"] == "g"
-		) {
-			m["J"].s = "wL";
-		} else if (
-			m["3"].b["biome"] == "w" && 
-			m["U"].b["biome"] == "w" && 
-			m["J3"].b["biome"] == "g" &&
-			m["UJ"].b["biome"] == "g"
-		) {
-			m["J"].s = "wJ";
-		} else if (
-			m["3"].b["biome"] == "g" && 
-			m["U"].b["biome"] == "w" && 
-			m["J3"].b["biome"] == "w" &&
-			m["UJ"].b["biome"] == "g"
-		) {
-			m["J"].s = "wlbns"; // water land bridge north-south
-		} else if (
-			m["3"].b["biome"] == "w" && 
-			m["U"].b["biome"] == "g" && 
-			m["J3"].b["biome"] == "g" &&
-			m["UJ"].b["biome"] == "w"
-		) {
-			m["J"].s = "wlbwe"; // water land bridge west-east
-		} else if (
-			m["3"].b["biome"] == "g" && 
-			m["U"].b["biome"] == "g" && 
-			m["J3"].b["biome"] == "g" &&
-			m["UJ"].b["biome"] == "w"
-		) {
-			m["J"].s = "wn";
-		} else if (
-			m["3"].b["biome"] == "g" && 
-			m["U"].b["biome"] == "g" && 
-			m["J3"].b["biome"] == "w" &&
-			m["UJ"].b["biome"] == "g"
-		) {
-			m["J"].s = "wc";
-		} else if (
-			m["3"].b["biome"] == "g" && 
-			m["U"].b["biome"] == "w" && 
-			m["J3"].b["biome"] == "g" &&
-			m["UJ"].b["biome"] == "g"
-		) {
-			m["J"].s = "w3";
-		} else if (
-			m["3"].b["biome"] == "w" && 
-			m["U"].b["biome"] == "g" && 
-			m["J3"].b["biome"] == "g" &&
-			m["UJ"].b["biome"] == "g"
-		) {
-			m["J"].s = "wu";
-		} else if (
-			m["3"].b["biome"] == "g" && 
-			m["U"].b["biome"] == "w" && 
-			m["J3"].b["biome"] == "w" &&
-			m["UJ"].b["biome"] == "w"
-		) {
-			m["J"].s = "wlhst"; // water lighthouse south tip
-		} else if (
-			m["3"].b["biome"] == "w" && 
-			m["U"].b["biome"] == "g" && 
-			m["J3"].b["biome"] == "w" &&
-			m["UJ"].b["biome"] == "w"
-		) {
-			m["J"].s = "wlhet"; // water lighthouse east tip
-		} else if (
-			m["3"].b["biome"] == "w" && 
-			m["U"].b["biome"] == "w" && 
-			m["J3"].b["biome"] == "g" &&
-			m["UJ"].b["biome"] == "w"
-		) {
-			m["J"].s = "wlhwt"; // water lighthouse west tip
-		} else if (
-			m["3"].b["biome"] == "w" && 
-			m["U"].b["biome"] == "w" && 
-			m["J3"].b["biome"] == "w" &&
-			m["UJ"].b["biome"] == "g"
-		) {
-			m["J"].s = "wlhnt"; // water lighthouse north tip
-		} else {
-			m["J"].s = "w";
-		}
-	} else {
-		m["J"].s = "x";
-	}
-	
-}
-
-/*
-
-shape based on land:
-gr       g7
-    __    __
-	 /  |  |  \
-  |___|  |___|
-   ___    ___
-	|   |  |   |
-   \__|  |__/
-
-gL       gJ
-
-shape also based on land:
-wJ       wL
-    _    _
-	 / |  | \
-  /__|  |__\
-  ___    ___
-	\  |  |  /
-   \_|  |_/
-
-w7       wr
-
-
-*/
-
-
-
-
-
-
-
-
-
-
-
-
-// ------- for testing DONT NEED -------- 
-/*
-testPlacePlatforms(area_index) {
-	
-	
-	
-	let area = this.areas[area_index];
-	
-	
-	
-	
-	//let testA = [...Array(5)].map(_ => Array(2).fill(0));
-	//console.log(testA);
-	//console.log("myStruct.length: "+myStruct_img.length+" myStruct[0].length: "+myStruct_img[0].length);
-	
-	let myStruct_img = [...Array(area["height"])].map(_ => Array(area["width"]+2).fill(0));
-	let myStruct_grid = [...Array(area["height"])].map(_ => Array(area["width"]+2).fill(0));
-	
-	// connect a chain of pnodes together
-	let ground_tile = new pnode(240);
-	let prev_ground_tile = ground_tile;
-	for (let i=0; i<7*area["width"]; i++) {
-	  let new_ground_tile = new pnode(39);//+(i%2));
-		let next_x = rnd(1,4);
-		let next_y = rnd(-2, 3);
-	  prev_ground_tile.setNext(new_ground_tile, next_x, next_y);
-	  prev_ground_tile = new_ground_tile;
-	}
-	
-	// 
-	let temp = ground_tile;
-	let x_ = 0;
-	let y_ = area["height"]-7;
-	
-	while (temp.hasNext()) {
-		let rw = rnd(1, 10); // each platform is a random width
-		let rh = rnd(1, 3); // each platform is a random height
-		
-		// could have other 'artifacts' on top of the platform too
-		for (let j=0; j<rh; j++) {
-			for (let i=0; i<rw; i++) {
-				
-				if (x_+i < area["width"] && y_+j < area["height"]) {
-					if (x_+i == 0) {
-						console.log("got edge");
-					}
-					this.dot_(myStruct_img, x_+i, y_+j);
-				} else {
-				}
-			}
-		}
-		
-	  x_ += temp.next_gap;
-	  y_ += temp.next_height;
-	  temp = temp.next_pnode;
-
-	}
-	this.placeStructure(myStruct_img, area, -1);
-	//console.log("x: "+x_+" width:"+area["width"]);
-	//console.log("grid value: "+area["grid"][y_+j][x_+i]+"   "+x_+" "+y_+" "+i+" "+j+" "+(x_+i)+" "+(y_+j)+" "+area["width"]+" "+area["height"]);
-	/*if (area["grid"][y_+j][x_+i] === 0) { // don't paste over edge
-	//if (myStruct_grid[y_][x_] <= 9){ // don't paste over edge
-		//area["grid"][y_+j][x_+i] = 1;
-		//myStruct_grid[y_][x_] = 1;
-		//console.log((x_+i)+" "+(y_+j));
-		
-	}
-	
-	
-	//area["image"].set(x_, y_, temp.ptype); // ***** USE DOT *****
-	
-	
-	
-	
-	
-	
-	
-}
-
-
-// ***********
-// TODO: add methods for levelGraph object to place stuff in areas.
-// ***********
-
-/* ==================== TEST MAP ======================
-  This is a test map.
-  Will create a more organized one later on.
-*/
-
-/*
-function test_make_level() {
-	//console.log("A ");
-	level_grid_[bm-1][0] = 10;
-	level_grid_[bm-1][rt] = 11;
-	level_image_.set(0, bm-1, 229);
-	level_image_.set(rt, bm-1, 229);
-	
-	// floor
-  for (let i=0; i<32; i++) {
-    level_image_.set(i, bm, 225);
-    level_grid_[bm][i] = 1;
-  }
-  //console.log("B ");
-  
-  // singular blocks
-	/*
-  level_image_.set(0, bm-1, 224);
-  level_grid_[bm-1][0] = 1;
-  
-  level_image_.set(12, bm-1, 224);
-  level_grid_[bm-1][12] = 1;
-	*/
-	// ladders/climbing
-	//level_image_.set(2, bm-1, 228);
-  //level_image_.set(2, bm-2, 228);
-	//level_image_.set(2, bm-3, 228);
-	
-  //level_grid_[bm-1][2] = 2; // 2 is climb, 3 could be water?
-	//level_grid_[bm-2][2] = 2;
-	//level_grid_[bm-3][2] = 2;
-	//console.log("C ");
-	// doors
-	//create_door(0, 7, bm-1, 0, 1, 7, bm-1); //
-	//create_door(0, 14, bm-1, 1, 1, 14, bm-1); //
-	//create_door(0, 19, bm-1, 2, 1, 16, bm-1); //
-	//create_door(0, 27, bm-1, 2, 1, 19, bm-1); //
-	//level_grid_[bm-1][7] = 4; // only need one trigger sprite per door, not 2
-	//level_grid_[bm-1][14] = 4; 
-	//level_grid_[bm-1][19] = 4; 
-	//level_grid_[bm-1][27] = 4; 
-	
-	//console.log("D ");
-	// 10, 11 are left and right screen triggers, to get to next areas
-
-
-  // randomly scattered, randomly coloured blocks
-	/*
-  for (let i=0; i<10; i++) {
-    let x = rnd(0, width);
-    let y = rnd(height-8, height);
-    let block_choice = rnd(0, 4);
-    
-    level_image_.set(x, y, 224+block_choice);
-    level_grid_[y][x] = 1;
-  }
-  /**/
-  // random moving platforms
-	/*
-  for (let i=0; i<5; i++) {
-    
-    let rx = rnd(0, width);
-    let ry = rnd(height-10, height);
-		let rm = rnd(0, platforms.length);
-    
-    create_platform(rx*8, ry*8, rm);
-    
-  }
-	//console.log("E ");
-	/**/
-  
-  //let mult = 10;
-  // scatter jumping enemies
-	/*
-  for (let spray_everywhere=0; spray_everywhere<mult; spray_everywhere++) {
-    for (let i=0; i<4; i++) {
-    
-      let rx = rnd(0, width);
-      let ry = rnd(height-20, height);
-      
-      create_small_enemy(rx*8, ry*8, "steadyjump", 0+i*16);
-    
-    }
-  }
-	*/
-  
-  // scatter walking enemies
-	/*
-  for (let spray_everywhere=0; spray_everywhere<mult; spray_everywhere++) {
-    for (let i=0; i<4; i++) {
-      
-      let rx = rnd(0, width);
-      let ry = rnd(height-20, height);
-      
-      create_small_enemy(rx*8, ry*8, "walkbump", 0+i*16);
-    }
-  }
-  */
-	/*
-  create_small_enemy(30*8, 30*8, "walkbump", 0+0*16);
-  create_small_enemy(11*8, 30*8, "steadyjump", 0+1*16);
-	//console.log("F ");
-	
-	
-	
-	
-	// ------ pnode attempt ------------
-	var ground = new pnode(224);
-	var prev_ground = ground;
-
-	for (let i=0; i<5; i++) {
-	  let new_ground = new pnode(224);
-		let xx = rnd(1,6);
-		let yy = rnd(-2,3);
-		//console.log(yy);
-		//let xx = rnd(0,4)-4;
-	  prev_ground.setNext(new_ground, xx, yy);
-	  prev_ground = new_ground;
-	}
-  //console.log("G ");
-	var temp = ground;
-	var x_init = 1;
-	var y_init = bm-8;
-	
-	var x = x_init;
-	var y = y_init;
-	//var x_g = 1;
-	//var y_g = bm-8;
-  //console.log("H ");
-
-	let ii = 0;
-	while (temp.hasNext()) {
-		console.log(ii+" x"+x+" y"+y+"  ptype"+temp.ptype);
-	  //console.log(ii+"   curr: ("+x+", "+y+")    next: ("+temp.next_gap+", "+temp.next_height+")");
-		
-		level_image_.set(x, y, temp.ptype);
-	  level_grid_[y][x] = 1;
-		//console.log("J ");
-		x += temp.next_gap;
-		y += temp.next_height;
-
-    //console.log("K ");
-	  temp = temp.next_pnode;
-		ii++;
-		//console.log("L ");
-	}
-	
-	//console.log(ground.info());
-}	/**/
-  
-
-
-
-
-
-/*
-function test_make_level() {
-	let test_ground = new pnode(225);
-	level_image_.set(0, 0, test_ground.ptype);
-  level_grid_[15][0] = 0;
-	
-}
-
-*/
-//test_make_level();
-
-// level_graph.build(0);
-// 
-
-
-
-
-
-
-
-if (0) { // set TileMap from _NEW_ chunk created from seed, and then store in cache
-	let chunk_events = [...Array(world_chunk_size)].map(_ => Array(world_chunk_size).fill(0));
-	let chunk_image = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
-	let chunk_image_mid = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
-	let chunk_seed = PRNG(cidO, 256);
-	let csi = 0;
-	
-	/*
-	for (let chy=0; chy<world_chunk_size; chy++) {
-		for (let chx=0; chx<world_chunk_size; chx++) {
-			
-			// TESTING PURPOSES (value)
-			
-		  let value = 0 + Math.floor(chunk_seed[csi]*(noiseMax)); // 0, 1
-		  csi++;
-		  if (csi >= chunk_seed.length) {
-		    csi=0;
-		  }
-			value = value > noiseThres ? 15 : 0;//0+2*(chunk_count%2); 
-			
-			//let value = testing_chunk[chy][chx];
-			// -------------------------------- 
-			
-			chunk_events[chy][chx] = value > 0 ? 1 : 0;
-			
-		}
-	}
-	
-	
-	for (let chy=0; chy<world_chunk_size; chy++) {
-		for (let chx=0; chx<world_chunk_size; chx++) {
-			
-			// TESTING PURPOSES (value) ----------- WATER
-			if (!chunk_events[chy][chx]) {
-			  let value = 0 + Math.floor(chunk_seed[csi]*(noiseMax)); // 0, 1
-			  csi++;
-			  if (csi >= chunk_seed.length) {
-			    csi=0;
-			  }
-				value = value > noiseThres-4 ? 15 : 0;//0+2*(chunk_count%2); 
-			
-				//let value = testing_chunk[chy][chx];
-				// -------------------------------- 
-			
-				chunk_events[chy][chx] = value > 0 ? 3 : 0;
-			}
-		  
-			
-		}
-	}
-	
-	
-	// create_terrain_low(chunk_events)
-	
-	// create_terrain_high(chunk_events)
-	
-	
-	chunk_set[cidO] = { "event": chunk_events, "image_low": chunk_image, "image_mid": chunk_image_mid };
-	chunk_count++;
-	/**/
-}
-
-
-
-
-if (0) { // set TileMap from _NEW_ chunk created from seed, and then store in cache
-	//console.log("setting "+cidr);
-	let chunk_events = [...Array(world_chunk_size)].map(_ => Array(world_chunk_size).fill(0));
-	let chunk_image = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
-	let chunk_image_mid = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
-	let chunk_seed = PRNG(cidr, 256);
-	let csi = 0;
-	
-	/*
-	for (let chy=0; chy<world_chunk_size; chy++) {
-		for (let chx=0; chx<world_chunk_size; chx++) {
-			
-			// TESTING PURPOSES (value) 
-		  let value = 0 + Math.floor(chunk_seed[csi]*(noiseMax)); // 0, 1
-		  csi++;
-		  if (csi >= chunk_seed.length) {
-		    csi=0;
-		  }
-			value = value > noiseThres ? 15 : 0;//0+2*(chunk_count%2); 
-			// -------------------------------- 
-			
-			
-			
-			chunk_events[chy][chx] = value > 0 ? 1 : 0;
-			
-		}
-	}
-	
-	for (let chy=0; chy<world_chunk_size; chy++) {
-		for (let chx=0; chx<world_chunk_size; chx++) {
-			
-			// TESTING PURPOSES (value) ----------- WATER
-			if (!chunk_events[chy][chx]) {
-			  let value = 0 + Math.floor(chunk_seed[csi]*(noiseMax)); // 0, 1
-			  csi++;
-			  if (csi >= chunk_seed.length) {
-			    csi=0;
-			  }
-				value = value > noiseThres-4 ? 15 : 0;//0+2*(chunk_count%2); 
-			
-				//let value = testing_chunk[chy][chx];
-				// -------------------------------- 
-			
-				chunk_events[chy][chx] = value > 0 ? 3 : 0;
-			}
-		  
-			
-		}
-	}
-	
-	chunk_set[cidr] = { "event": chunk_events, "image_low": chunk_image, "image_mid": chunk_image_mid };
-	chunk_count++;
-	/**/
-}
-
-
-if (0) { // set TileMap from _NEW_ chunk created from seed, and then store in cache
-	//console.log("setting "+cidT);
-	let chunk_events = [...Array(world_chunk_size)].map(_ => Array(world_chunk_size).fill(0));
-	let chunk_image = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
-	let chunk_image_mid = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
-	let chunk_seed = PRNG(cidT, 256);
-	let csi = 0;
-	
-	/*
-	for (let chy=0; chy<world_chunk_size; chy++) {
-		for (let chx=0; chx<world_chunk_size; chx++) {
-			
-			// TESTING PURPOSES (value) 
-		  let value = 0 + Math.floor(chunk_seed[csi]*(noiseMax)); // 0, 1
-		  csi++;
-		  if (csi >= chunk_seed.length) {
-		    csi=0;
-		  }
-			value = value > noiseThres ? 15 : 0;//0+2*(chunk_count%2); 
-			// -------------------------------- 
-			
-			chunk_events[chy][chx] = value > 0 ? 1 : 0;
-		}
-	}
-	
-	for (let chy=0; chy<world_chunk_size; chy++) {
-		for (let chx=0; chx<world_chunk_size; chx++) {
-			
-			// TESTING PURPOSES (value) ----------- WATER
-			if (!chunk_events[chy][chx]) {
-			  let value = 0 + Math.floor(chunk_seed[csi]*(noiseMax)); // 0, 1
-			  csi++;
-			  if (csi >= chunk_seed.length) {
-			    csi=0;
-			  }
-				value = value > noiseThres-4 ? 15 : 0;//0+2*(chunk_count%2); 
-			
-				//let value = testing_chunk[chy][chx];
-				// -------------------------------- 
-			
-				chunk_events[chy][chx] = value > 0 ? 3 : 0;
-			}
-		  
-			
-		}
-	}
-	
-	chunk_set[cidT] = { "event": chunk_events, "image_low": chunk_image, "image_mid": chunk_image_mid };
-	chunk_count++;
-	/**/
-}
-
-
-if (0) { // set TileMap from _NEW_ chunk created from seed, and then store in cache
-	//console.log("setting "+cid7);
-	let chunk_events = [...Array(world_chunk_size)].map(_ => Array(world_chunk_size).fill(0));
-	let chunk_image = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
-	let chunk_image_mid = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
-	let chunk_seed = PRNG(cid7, 256);
-	let csi = 0;
-	
-	/*
-	for (let chy=0; chy<world_chunk_size; chy++) {
-		for (let chx=0; chx<world_chunk_size; chx++) {
-			
-			// TESTING PURPOSES (value) 
-		  let value = 0 + Math.floor(chunk_seed[csi]*(noiseMax)); // 0, 1
-		  csi++;
-		  if (csi >= chunk_seed.length) {
-		    csi=0;
-		  }
-			value = value > noiseThres ? 15 : 0;//0+2*(chunk_count%2); 
-			// -------------------------------- 
-			
-			chunk_events[chy][chx] = value > 0 ? 1 : 0;
-		}
-	}
-	
-	for (let chy=0; chy<world_chunk_size; chy++) {
-		for (let chx=0; chx<world_chunk_size; chx++) {
-			
-			// TESTING PURPOSES (value) ----------- WATER
-			if (!chunk_events[chy][chx]) {
-			  let value = 0 + Math.floor(chunk_seed[csi]*(noiseMax)); // 0, 1
-			  csi++;
-			  if (csi >= chunk_seed.length) {
-			    csi=0;
-			  }
-				value = value > noiseThres-4 ? 15 : 0;//0+2*(chunk_count%2); 
-			
-				//let value = testing_chunk[chy][chx];
-				// -------------------------------- 
-			
-				chunk_events[chy][chx] = value > 0 ? 3 : 0;
-			}
-		  
-			
-		}
-	}
-	
-	chunk_set[cid7] = { "event": chunk_events, "image_low": chunk_image, "image_mid": chunk_image_mid };
-	chunk_count++;
-	
-	/**/
-}
-
-
-if (0) { // set TileMap from _NEW_ chunk created from seed, and then store in cache
-	//console.log("setting "+cidE);
-	let chunk_events = [...Array(world_chunk_size)].map(_ => Array(world_chunk_size).fill(0));
-	let chunk_image = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
-	let chunk_image_mid = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
-	let chunk_seed = PRNG(cidE, 256);
-	let csi = 0;
-	/*
-	for (let chy=0; chy<world_chunk_size; chy++) {
-		for (let chx=0; chx<world_chunk_size; chx++) {
-			
-			// TESTING PURPOSES (value) 
-		  let value = 0 + Math.floor(chunk_seed[csi]*(noiseMax)); // 0, 1
-		  csi++;
-		  if (csi >= chunk_seed.length) {
-		    csi=0;
-		  }
-			value = value > noiseThres ? 15 : 0;//0+2*(chunk_count%2); 
-			// -------------------------------- 
-			
-			chunk_events[chy][chx] = value > 0 ? 1 : 0;
-		}
-	}
-	
-	for (let chy=0; chy<world_chunk_size; chy++) {
-		for (let chx=0; chx<world_chunk_size; chx++) {
-			
-			// TESTING PURPOSES (value) ----------- WATER
-			if (!chunk_events[chy][chx]) {
-			  let value = 0 + Math.floor(chunk_seed[csi]*(noiseMax)); // 0, 1
-			  csi++;
-			  if (csi >= chunk_seed.length) {
-			    csi=0;
-			  }
-				value = value > noiseThres-4 ? 15 : 0;//0+2*(chunk_count%2); 
-			
-				//let value = testing_chunk[chy][chx];
-				// -------------------------------- 
-			
-				chunk_events[chy][chx] = value > 0 ? 3 : 0;
-			}
-		  
-			
-		}
-	}
-	
-	chunk_set[cidE] = { "event": chunk_events, "image_low": chunk_image, "image_mid": chunk_image_mid };
-	chunk_count++;
-	/**/
-}
-
-
-if (0) { // set TileMap from _NEW_ chunk created from seed, and then store in cache
-	//console.log("setting "+cid3);
-	let chunk_events = [...Array(world_chunk_size)].map(_ => Array(world_chunk_size).fill(0));
-	let chunk_image = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
-	let chunk_image_mid = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
-	let chunk_seed = PRNG(cid3, 256);
-	let csi = 0;
-	
-	/*
-	for (let chy=0; chy<world_chunk_size; chy++) {
-		for (let chx=0; chx<world_chunk_size; chx++) {
-			
-			// TESTING PURPOSES (value) 
-		  let value = 0 + Math.floor(chunk_seed[csi]*(noiseMax)); // 0, 1
-		  csi++;
-		  if (csi >= chunk_seed.length) {
-		    csi=0;
-		  }
-			value = value > noiseThres ? 15 : 0;//0+2*(chunk_count%2); 
-			// -------------------------------- 
-			
-			chunk_events[chy][chx] = value > 0 ? 1 : 0;
-		}
-	}
-	
-	for (let chy=0; chy<world_chunk_size; chy++) {
-		for (let chx=0; chx<world_chunk_size; chx++) {
-			
-			// TESTING PURPOSES (value) ----------- WATER
-			if (!chunk_events[chy][chx]) {
-			  let value = 0 + Math.floor(chunk_seed[csi]*(noiseMax)); // 0, 1
-			  csi++;
-			  if (csi >= chunk_seed.length) {
-			    csi=0;
-			  }
-				value = value > noiseThres-4 ? 15 : 0;//0+2*(chunk_count%2); 
-			
-				//let value = testing_chunk[chy][chx];
-				// -------------------------------- 
-			
-				chunk_events[chy][chx] = value > 0 ? 3 : 0;
-			}
-		  
-			
-		}
-	}
-	
-	chunk_set[cid3] = { "event": chunk_events, "image_low": chunk_image, "image_mid": chunk_image_mid };
-	chunk_count++;
-	/**/
-}
-
-
-if (0) { // set TileMap from _NEW_ chunk created from seed, and then store in cache
-	//console.log("setting "+cidL);
-	let chunk_events = [...Array(world_chunk_size)].map(_ => Array(world_chunk_size).fill(0));
-	let chunk_image = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
-	let chunk_image_mid = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
-	let chunk_seed = PRNG(cidL, 256);
-	let csi = 0;
-	
-	/*
-	for (let chy=0; chy<world_chunk_size; chy++) {
-		for (let chx=0; chx<world_chunk_size; chx++) {
-			
-			// TESTING PURPOSES (value) 
-		  let value = 0 + Math.floor(chunk_seed[csi]*(noiseMax)); // 0, 1
-		  csi++;
-		  if (csi >= chunk_seed.length) {
-		    csi=0;
-		  }
-			value = value > noiseThres ? 15 : 0;//0+2*(chunk_count%2); 
-			// -------------------------------- 
-			
-			chunk_events[chy][chx] = value > 0 ? 1 : 0;
-		}
-	}
-	
-	for (let chy=0; chy<world_chunk_size; chy++) {
-		for (let chx=0; chx<world_chunk_size; chx++) {
-			
-			// TESTING PURPOSES (value) ----------- WATER
-			if (!chunk_events[chy][chx]) {
-			  let value = 0 + Math.floor(chunk_seed[csi]*(noiseMax)); // 0, 1
-			  csi++;
-			  if (csi >= chunk_seed.length) {
-			    csi=0;
-			  }
-				value = value > noiseThres-4 ? 15 : 0;//0+2*(chunk_count%2); 
-			
-				//let value = testing_chunk[chy][chx];
-				// -------------------------------- 
-			
-				chunk_events[chy][chx] = value > 0 ? 3 : 0;
-			}
-		  
-			
-		}
-	}
-	
-	chunk_set[cidL] = { "event": chunk_events, "image_low": chunk_image, "image_mid": chunk_image_mid };
-	chunk_count++;
-	
-	/**/
-}
-
-
-if (0) { // set TileMap from _NEW_ chunk created from seed, and then store in cache
-	//console.log("setting "+cidU);
-	let chunk_events = [...Array(world_chunk_size)].map(_ => Array(world_chunk_size).fill(0));
-	let chunk_image = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
-	let chunk_image_mid = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
-	let chunk_seed = PRNG(cidU, 256);
-	let csi = 0;
-	
-	/*
-	for (let chy=0; chy<world_chunk_size; chy++) {
-		for (let chx=0; chx<world_chunk_size; chx++) {
-			
-			// TESTING PURPOSES (value) 
-		  let value = 0 + Math.floor(chunk_seed[csi]*(noiseMax)); // 0, 1
-		  csi++;
-		  if (csi >= chunk_seed.length) {
-		    csi=0;
-		  }
-			value = value > noiseThres ? 15 : 0;//0+2*(chunk_count%2); 
-			// -------------------------------- 
-			
-			chunk_events[chy][chx] = value > 0 ? 1 : 0;
-		}
-	}
-	
-	for (let chy=0; chy<world_chunk_size; chy++) {
-		for (let chx=0; chx<world_chunk_size; chx++) {
-			
-			// TESTING PURPOSES (value) ----------- WATER
-			if (!chunk_events[chy][chx]) {
-			  let value = 0 + Math.floor(chunk_seed[csi]*(noiseMax)); // 0, 1
-			  csi++;
-			  if (csi >= chunk_seed.length) {
-			    csi=0;
-			  }
-				value = value > noiseThres-4 ? 15 : 0;//0+2*(chunk_count%2); 
-			
-				//let value = testing_chunk[chy][chx];
-				// -------------------------------- 
-			
-				chunk_events[chy][chx] = value > 0 ? 3 : 0;
-			}
-		  
-			
-		}
-	}
-	
-	chunk_set[cidU] = { "event": chunk_events, "image_low": chunk_image, "image_mid": chunk_image_mid };
-	chunk_count++;
-	
-	/**/
-}
-
-
-
-
-if (0) { // set TileMap from _NEW_ chunk created from seed, and then store in cache
-	//console.log("setting "+cidJ);
-	let chunk_events = [...Array(world_chunk_size)].map(_ => Array(world_chunk_size).fill(0));
-	let chunk_image = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
-	let chunk_image_mid = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
-	let chunk_seed = PRNG(cidJ, 256);
-	let csi = 0;
-	
-	/*
-	for (let chy=0; chy<world_chunk_size; chy++) {
-		for (let chx=0; chx<world_chunk_size; chx++) {
-			
-			// TESTING PURPOSES (value) 
-		  let value = 0 + Math.floor(chunk_seed[csi]*(noiseMax)); // 0, 1
-		  csi++;
-		  if (csi >= chunk_seed.length) {
-		    csi=0;
-		  }
-			value = value > noiseThres ? 15 : 0;//0+2*(chunk_count%2); 
-			// -------------------------------- 
-			
-			
-			chunk_events[chy][chx] = value > 0 ? 1 : 0;
-			
-		}
-	}
-	
-	for (let chy=0; chy<world_chunk_size; chy++) {
-		for (let chx=0; chx<world_chunk_size; chx++) {
-			
-			// TESTING PURPOSES (value) ----------- WATER
-			if (!chunk_events[chy][chx]) {
-			  let value = 0 + Math.floor(chunk_seed[csi]*(noiseMax)); // 0, 1
-			  csi++;
-			  if (csi >= chunk_seed.length) {
-			    csi=0;
-			  }
-				value = value > noiseThres-4 ? 15 : 0;//0+2*(chunk_count%2); 
-			
-				//let value = testing_chunk[chy][chx];
-				// -------------------------------- 
-			
-				chunk_events[chy][chx] = value > 0 ? 3 : 0;
-			}
-		}
-	}
-	
-	chunk_set[cidJ] = { "event": chunk_events, "image_low": chunk_image, "image_mid": chunk_image_mid };
-	chunk_count++;
-	
-	/**/
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/**/
