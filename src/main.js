@@ -6,7 +6,7 @@ import { TERRAIN, ZEN, dot_order, pnode, PLAT_STYLE, BRANCH, T } from "./objects
 import { CHUNKS } from "./chunks.js";
 import { 
 	dot_, dot_image, dot_w, get_biome_info, get_chunk_shapes, init_curr_chunk_ids, biome_variance_index,
-	herringbone_tile, m_chunk, w_chunk, d_chunk,
+	herringbone_tile, m_chunk, w_chunk, d_chunk, s_chunk, p_chunk,
 	rocky,
  } from "./game_functions.js";
 
@@ -20,8 +20,8 @@ import {
 var WHATAMI = 0;
 
 // temporary for chunks
-const INIT_X = 0; // -11 //-69, -44
-const INIT_Y = 0; // 3 for mountains
+const INIT_X = 85; // -11 //-69, -44
+const INIT_Y = -160; // 3 for mountains
 
 /*
 
@@ -299,7 +299,7 @@ function player1_world_movement() {
 	if (btn.R || GP.R) {
 		w_walking = 1;
 		going_left = false;
-		if (!([1,2,20,33,41,61,63,60,610,620,63620,64620,630,640,63610,64610,62610,64630].includes(check_world_grid(pw.x+2, pw.y)))) { //&& check_world_grid(pw.x+2, pw.y+4) !== 1) {
+		if (!([1,2,20,33,41,61,63,60,610,620,63620,64620,630,640,63610,64610,62610,64630, 71,72,73,74,75,76].includes(check_world_grid(pw.x+2, pw.y)))) { //&& check_world_grid(pw.x+2, pw.y+4) !== 1) {
 			//console.log();
 			if (1) {
 				let xspeed = pw.x%3 ? 2 : 1;
@@ -309,7 +309,7 @@ function player1_world_movement() {
 	} else if (btn.L || GP.L) {
 		w_walking = 1;
 		going_left = true;
-		if (!([1,2,20,33,41,61,63,60,610,620,63620,64620,630,640,63610,64610,62610,64630].includes(check_world_grid(pw.x-2, pw.y)))) { //&& check_world_grid(pw.x-2, pw.y+4) !== 1) {
+		if (!([1,2,20,33,41,61,63,60,610,620,63620,64620,630,640,63610,64610,62610,64630, 71,72,73,74,75,76].includes(check_world_grid(pw.x-2, pw.y)))) { //&& check_world_grid(pw.x-2, pw.y+4) !== 1) {
 			if (1) {
 				let xspeed = pw.x%3 ? 2 : 1;
 				pw.x-= xspeed; 
@@ -319,7 +319,7 @@ function player1_world_movement() {
 	
 	if (btn.A || GP.U) {
 		w_walking = 1;
-		if (!([1,2,20,33,41,61,63,60,610,620,63620,64620,630,640,63610,64610,62610,64630].includes(check_world_grid(pw.x, pw.y-2)))) { // && check_world_grid(pw.x+2, pw.y-4) !== 1) {
+		if (!([1,2,20,33,41,61,63,60,610,620,63620,64620,630,640,63610,64610,62610,64630, 71,72,73,74,75,76].includes(check_world_grid(pw.x, pw.y-2)))) { // && check_world_grid(pw.x+2, pw.y-4) !== 1) {
 			if (1) {
 				let yspeed = pw.y%3 ? 2 : 1;
 				pw.y-= yspeed; 
@@ -328,7 +328,7 @@ function player1_world_movement() {
 	} else if (btn.D || GP.D) {
 		w_walking = 1;
 		// (check_grid(p.x, pB(p.y)) == 0) && (check_grid(p.x+7, pB(p.y)) == 0)
-		if (!([1,2,20,33,41,61,63,60,610,620,63620,64620,630,640,63610,64610,62610,64630].includes(check_world_grid(pw.x, pw.y+2)))) { //&& check_world_grid(pw.x+2, pw.y+4) !== 1) {
+		if (!([1,2,20,33,41,61,63,60,610,620,63620,64620,630,640,63610,64610,62610,64630, 71,72,73,74,75,76].includes(check_world_grid(pw.x, pw.y+2)))) { //&& check_world_grid(pw.x+2, pw.y+4) !== 1) {
 			if (1) {
 				let yspeed = pw.y%3 ? 2 : 1;
 				pw.y+= yspeed; 
@@ -8167,7 +8167,8 @@ function build_chunk_shape(chunk_info) { //chs, cid, sp="", b2="", bvi={}) {
 	if (["mr", "m7", "mL", "mJ", "mc", "mn", "m3", "mu", "met", "mer", "mel", "mbv", "mbh"].includes(chs)) {
 		events = m_chunk(chunk_seed, b2, bvi, chs);
 		
-	} else if (["M", "g"].includes(chs)) {
+	} else if (["M", "g", "p"].includes(chs)) {
+		
 		if (bvi[8] === 0) {
 			events = herringbone_tile(chunk_seed, b2, bvi, "left"); // should produce the same hb tile as the right one below
 		} else if (bvi[8] === 3) {
@@ -8191,8 +8192,17 @@ function build_chunk_shape(chunk_info) { //chs, cid, sp="", b2="", bvi={}) {
 		"wr", "w7", "wL", "wJ", "wn", "wc", "w3", "wu", "wo", 
 		"weT", "weE", "we3", "weU", 
 		"wlbns", "wlbwe", "wlhst", "wlhnt", "wlhwt", "wlhet", 
-		"wdr", "wd7", "wdL", "wdJ"].includes(chs)) {
+		"wdr", "wd7", "wdL", "wdJ"
+	].includes(chs)) {
 		events = w_chunk(chunk_seed, b2, bvi, chs);
+	} else if ([
+		"xr", "xT", "x7", "sr", "s7", "sS", "sE", "s3", "sL", "sU", "sJ"
+	].includes(chs)) {
+		events = s_chunk(chunk_seed, b2, bvi, chs);
+	} else if ([
+		"pr", "peT", "p7", "peE", "pe3", "pL", "peU", "pJ", "ptu", "ptc", "pt3", "ptn"
+	].includes(chs)) {
+		events = p_chunk(chunk_seed, b2, bvi, chs);
 	}
 	
 	
@@ -8898,6 +8908,35 @@ function update_world_chunks() {
 				} else if (tile_ === 65) { // stairs
 					render_map.set(chx+0, chy+0, 64*9 + 11);
 					
+				
+				} else if (tile_ === 70) { // slope
+					render_map.set(chx+0, chy+0, 64*10 + 0);
+					
+				} else if (tile_ === 71) { // slope
+					render_map.set(chx+0, chy+0, 64*10 + 3);
+					
+				} else if (tile_ === 72) { // slope
+					render_map.set(chx+0, chy+0, 64*10 + 4);
+					
+				} else if (tile_ === 73) { // slope
+					render_map.set(chx+0, chy+0, 64*10 + 1);
+					
+				} else if (tile_ === 74) { // slope
+					render_map.set(chx+0, chy+0, 64*10 + 2);
+					
+				} else if (tile_ === 75) { // slope
+					render_map.set(chx+0, chy+0, 64*10 + 4);
+					
+				} else if (tile_ === 76) { // slope
+					render_map.set(chx+0, chy+0, 64*10 + 3);
+					
+				
+				
+				} else if (tile_ === 9) { // snow
+					render_map.set(chx+0, chy+0, 64*7 + 36);
+					
+				
+				
 				} else if (tile_ === 100) { // forest
 					render_map.set(chx+0, chy+0, 141);
 					//console.log("lll");
@@ -9074,6 +9113,8 @@ function mini_map(sp_id) {
 				sprite_id = 963;
 			} else if (sp_id.biome2 === "f") {
 				sprite_id = 964;
+			} else if (sp_id.biome2 === "q") {
+			  sprite_id = 966;
 			} else {
 				sprite_id = 961;
 			}
@@ -9089,6 +9130,12 @@ function mini_map(sp_id) {
 			break;
 		case "f":
 			sprite_id = 964;
+			break;
+		case "p":
+			sprite_id = 965;
+			break;
+		case "q":
+			sprite_id = 966;
 			break;
 	}
 	return sprite_id;

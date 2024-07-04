@@ -2,10 +2,13 @@ import { dot_order } from "./objects.js";
 import { GRASS_HBTILES } from "./grass_herringbone.js";
 import { MOUNT_HBTILES } from "./mount_herringbone.js";
 import { FOREST_HBTILES } from "./forest_herringbone.js";
+import { PEAK_HBTILES } from "./peak_herringbone.js";
 
 import { MOUNTAINS } from "./mountain_chunks.js";
 import { COAST } from "./coast_chunks.js";
-import { DESERT } from "./desert_chunks.js"
+import { DESERT } from "./desert_chunks.js";
+import { SLOPES } from "./slope_chunks.js";
+import { PEAK } from "./peak_chunks.js";
 
 /* =============== random number generator ================ */
 /* random number generator for seed. n is how many you need (source?)*/
@@ -99,6 +102,7 @@ export function herringbone_tile(seed, b2, bvi, hbtype="") {
 	
 	let num_tiles = 0;
 	let tile_index = 0;
+	//console.log(b2);
 	
 	if (["left", "right"].includes(hbtype)) {
 		if (b2 === "g") {
@@ -122,6 +126,13 @@ export function herringbone_tile(seed, b2, bvi, hbtype="") {
 				iR = iR >= seed.length-1 ? 0 : iR+1;
 				chunk = MOUNT_HBTILES["horizontal"][tile_index][hbtype];
 			} catch {}
+		} else if (b2 === "p") {
+			try {
+				num_tiles = PEAK_HBTILES["horizontal"].length;
+				tile_index = Math.floor(seed[iR]*(num_tiles));
+				iR = iR >= seed.length-1 ? 0 : iR+1;
+				chunk = PEAK_HBTILES["horizontal"][tile_index][hbtype];
+			} catch {}
 		}
 	} else if (["top", "bottom"].includes(hbtype)) {
 		if (b2 === "g") {
@@ -144,6 +155,13 @@ export function herringbone_tile(seed, b2, bvi, hbtype="") {
 				tile_index = Math.floor(seed[iR]*(num_tiles));
 				iR = iR >= seed.length-1 ? 0 : iR+1;
 				chunk = MOUNT_HBTILES["vertical"][tile_index][hbtype];
+			} catch {}
+		} else if (b2 === "p") {
+			try {
+				num_tiles = PEAK_HBTILES["vertical"].length;
+				tile_index = Math.floor(seed[iR]*(num_tiles));
+				iR = iR >= seed.length-1 ? 0 : iR+1;
+				chunk = PEAK_HBTILES["vertical"][tile_index][hbtype];
 			} catch {}
 		}
 		
@@ -203,6 +221,42 @@ export function d_chunk(seed, b2, bvi, chs) {
 		tile_index = Math.floor(seed[iR]*(num_tiles));
 		iR = iR >= seed.length-1 ? 0 : iR+1;
 		chunk = DESERT[chs][tile_index];
+	} catch {}
+  return chunk;
+	
+}
+
+export function s_chunk(seed, b2, bvi, chs) {
+	let iR = 0;
+	var chunk = [...Array(16)].map(_ => Array(16).fill(0));
+	var chunk_canopy = [...Array(16)].map(_ => Array(16).fill(0));
+	
+	let num_tiles = 0;
+	let tile_index = 0;
+	//console.log(chs);
+	try {
+		num_tiles = SLOPES[chs].length;
+		tile_index = Math.floor(seed[iR]*(num_tiles));
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+		chunk = SLOPES[chs][tile_index];
+	} catch {}
+  return chunk;
+	
+}
+
+export function p_chunk(seed, b2, bvi, chs) {
+	let iR = 0;
+	var chunk = [...Array(16)].map(_ => Array(16).fill(0));
+	var chunk_canopy = [...Array(16)].map(_ => Array(16).fill(0));
+	
+	let num_tiles = 0;
+	let tile_index = 0;
+	//console.log(chs);
+	try {
+		num_tiles = PEAK[chs].length;
+		tile_index = Math.floor(seed[iR]*(num_tiles));
+		iR = iR >= seed.length-1 ? 0 : iR+1;
+		chunk = PEAK[chs][tile_index];
 	} catch {}
   return chunk;
 	
@@ -1567,7 +1621,10 @@ export function get_biome_info(x, y) {
 		biome2 = "f";
 	} else if (biome === "F") {
 		biome = "g";
-		biome2 = "Q";
+		biome2 = "q";
+	} else if (biome === "p") {
+		biome = "p";
+		biome2 = "p";
 	}
 	
 	
@@ -1804,6 +1861,7 @@ export function get_chunk_shapes(m) { // m stands for 'map' I guess
 		let biome2 = m[cid].b["biome2"];
 		//console.log(biome+" "+biome2);
 		// temporary
+		
 		
 		
 		
@@ -2088,6 +2146,112 @@ export function get_chunk_shapes(m) { // m stands for 'map' I guess
 			} else {
 				m[cid].s = "w";
 			}
+		} else if (biome === "p") {
+			// p, q
+			//console.log("change m shape");
+			if (
+				m[ DIR[cid].up ].b["biome"] == "p" && 
+				m[ DIR[cid].left ].b["biome"] == "p" && 
+				m[ DIR[cid].right ].b["biome"] == "p" &&
+				m[ DIR[cid].down ].b["biome"] == "p"
+			) {
+				m[cid].s = "p"; // <-- use herringbone tile
+			} else if (
+				m[ DIR[cid].up ].b["biome"] == "p" && 
+				m[ DIR[cid].left ].b["biome"] == "p" && 
+				m[ DIR[cid].right ].b["biome"] !== "p" &&
+				m[ DIR[cid].down ].b["biome"] !== "p"
+			) {
+				m[cid].s = "pJ";
+			} else if (
+				m[ DIR[cid].up ].b["biome"] == "p" && 
+				m[ DIR[cid].left ].b["biome"] !== "p" && 
+				m[ DIR[cid].right ].b["biome"] == "p" &&
+				m[ DIR[cid].down ].b["biome"] !== "p"
+			) {
+				m[cid].s = "pL";
+			} else if (
+				m[ DIR[cid].up ].b["biome"] !== "p" && 
+				m[ DIR[cid].left ].b["biome"] == "p" && 
+				m[ DIR[cid].right ].b["biome"] !== "p" &&
+				m[ DIR[cid].down ].b["biome"] == "p"
+			) {
+				m[cid].s = "p7";
+			} else if (
+				m[ DIR[cid].up ].b["biome"] !== "p" && 
+				m[ DIR[cid].left ].b["biome"] !== "p" && 
+				m[ DIR[cid].right ].b["biome"] == "p" &&
+				m[ DIR[cid].down ].b["biome"] == "p"
+			) {
+				m[cid].s = "pr";
+			} else if (
+				m[ DIR[cid].up ].b["biome"] == "p" && 
+				m[ DIR[cid].left ].b["biome"] !== "p" && 
+				m[ DIR[cid].right ].b["biome"] !== "p" &&
+				m[ DIR[cid].down ].b["biome"] !== "p"
+			) {
+				m[cid].s = "ptu";
+			} else if (
+				m[ DIR[cid].up ].b["biome"] !== "p" && 
+				m[ DIR[cid].left ].b["biome"] == "p" && 
+				m[ DIR[cid].right ].b["biome"] !== "p" &&
+				m[ DIR[cid].down ].b["biome"] !== "p"
+			) {
+				m[cid].s = "pt3";
+			} else if (
+				m[ DIR[cid].up ].b["biome"] !== "p" && 
+				m[ DIR[cid].left ].b["biome"] !== "p" && 
+				m[ DIR[cid].right ].b["biome"] == "p" &&
+				m[ DIR[cid].down ].b["biome"] !== "p"
+			) {
+				m[cid].s = "ptc";
+			} else if (
+				m[ DIR[cid].up ].b["biome"] !== "p" && 
+				m[ DIR[cid].left ].b["biome"] !== "p" && 
+				m[ DIR[cid].right ].b["biome"] !== "p" &&
+				m[ DIR[cid].down ].b["biome"] == "p"
+			) {
+				m[cid].s = "ptn";
+			} else if (
+				m[ DIR[cid].up ].b["biome"] == "p" && 
+				m[ DIR[cid].left ].b["biome"] == "p" && 
+				m[ DIR[cid].right ].b["biome"] == "p" &&
+				m[ DIR[cid].down ].b["biome"] !== "p"
+			) {
+				m[cid].s = "peU";//bottom edge
+			} else if (
+				m[ DIR[cid].up ].b["biome"] == "p" && 
+				m[ DIR[cid].left ].b["biome"] == "p" && 
+				m[ DIR[cid].right ].b["biome"] !== "p" &&
+				m[ DIR[cid].down ].b["biome"] == "p"
+			) {
+				m[cid].s = "pe3";//right edge
+			} else if (
+				m[ DIR[cid].up ].b["biome"] == "p" && 
+				m[ DIR[cid].left ].b["biome"] !== "p" && 
+				m[ DIR[cid].right ].b["biome"] == "p" &&
+				m[ DIR[cid].down ].b["biome"] == "p"
+			) {
+				m[cid].s = "peE";//left edge
+			} else if (
+				m[ DIR[cid].up ].b["biome"] !== "p" && 
+				m[ DIR[cid].left ].b["biome"] == "p" && 
+				m[ DIR[cid].right ].b["biome"] == "p" &&
+				m[ DIR[cid].down ].b["biome"] == "p"
+			) {
+				m[cid].s = "peT";//top edge
+			} else if (
+				m[ DIR[cid].up ].b["biome"] !== "p" && 
+				m[ DIR[cid].left ].b["biome"] == "p" && 
+				m[ DIR[cid].right ].b["biome"] == "p" &&
+				m[ DIR[cid].down ].b["biome"] == "p"
+			) {
+				m[cid].s = "pT";//top edge
+			} else {
+				
+				m[cid].s = "p"; // 
+			}
+			
 		}
 		
 		if (biome2 === "m") {
@@ -2326,87 +2490,126 @@ export function get_chunk_shapes(m) { // m stands for 'map' I guess
 			
 		}
 		
+		
+		
+		// mountain peak view blocks: xr, xT, x7
+		// mountain slope blocks: sr, s7, sE, s3 
+		/*
+		
+		biome2 shapes, with surrounding mountain chunks
+		. . . . . . . . . . . . . . . .
+		. . . . . . xrxTx7. . . . . . . . //sX   
+		. xrxTx7. . srpns7xTxTx7. . . . . //msr, ms7
+		. srpos7. xrsEpEpTpTp7s7x7. . . . // 
+		. sL? ? x7srprP P P P p7s7. . . .
+		xrxTsrpo. sLpLP P P P p3s3x7. . .
+		srpos7. . xrsEpEP P pUpUp7s7. . .
+		sLsUsJ. . scpcP pUpJsUsUpusJ. . .
+		. . . . . . sLpusUsJ. . su. . . . // stu
+		. . . . . . . su. . . . . . . . . // stu
+		. . xrxTx7. . . msmsms. . . . .
+		. . srpos7. . mspcphp7ms. . . .
+		. . sLsUsJ. . . msmspvms. . . .
+		xTxTxTx7. . . . . mspums. . . .
+		p7sTpns7. . . . . . ms. . . . .
+		P pTp3. . . . . . . . . . . . .
+		
+		sS = slope south -- could be anything
+		
+		*/
+		if (biome !== "p") {
+			let ouL = 1;
+			let ou_ = 1;
+			let ouR = 1;
+			let o_L = 1;
+			let o_R = 1;
+			let odL = 1;
+			let od_ = 1;
+			let odR = 1;
 			
-			//case "m":
-				//console.log("get chunk shape m");
+			if (m[ DIR[cid].uLeft ].b["biome"] == "p") { ouL = 2; }
+			if (m[ DIR[cid].up ].b["biome"] == "p") { ou_ = 3; }
+			if (m[ DIR[cid].uRight ].b["biome"] == "p") { ouR = 5; }
+			if (m[ DIR[cid].left ].b["biome"] == "p") { o_L = 7; }
+			if (m[ DIR[cid].right ].b["biome"] == "p") { o_R = 11; }
+			if (m[ DIR[cid].dLeft ].b["biome"] == "p") { odL = 13; }
+			if (m[ DIR[cid].down ].b["biome"] == "p") { od_ = 17; }
+			if (m[ DIR[cid].dRight ].b["biome"] == "p") { odR = 19; }
+			
+			let ooo = ouL * ou_ * ouR * o_L * o_R * odL * od_ * odR;
+			
+			if (ooo > 1) {
 				
-				
-				/*
-				
-				
-				if (
-					m[ DIR[cid].up ].b["biome"] == "m" && 
-					m[ DIR[cid].left ].b["biome"] == "m" && 
-					m[ DIR[cid].right ].b["biome"] == "m" &&
-					m[ DIR[cid].down ].b["biome"] == "m"
-				) {
-					m[cid].s = "M";
-				}/**/
-				/*
-				if (
-					m[ DIR[cid].up ].b["biome"] == "m" && 
-					m[ DIR[cid].left ].b["biome"] == "m" && 
-					m[ DIR[cid].right ].b["biome"] !== "m" &&
-					m[ DIR[cid].down ].b["biome"] !== "m"
-				) {
-					m[cid].s = "mJ";
-				} else if (
-					m[ DIR[cid].up ].b["biome"] == "m" && 
-					m[ DIR[cid].left ].b["biome"] !== "m" && 
-					m[ DIR[cid].right ].b["biome"] == "m" &&
-					m[ DIR[cid].down ].b["biome"] !== "m"
-				) {
-					m[cid].s = "mL";
-				} else if (
-					m[ DIR[cid].up ].b["biome"] !== "m" && 
-					m[ DIR[cid].left ].b["biome"] == "m" && 
-					m[ DIR[cid].right ].b["biome"] !== "m" &&
-					m[ DIR[cid].down ].b["biome"] == "m"
-				) {
-					m[cid].s = "m7";
-				} else if (
-					m[ DIR[cid].up ].b["biome"] !== "m" && 
-					m[ DIR[cid].left ].b["biome"] !== "m" && 
-					m[ DIR[cid].right ].b["biome"] == "m" &&
-					m[ DIR[cid].down ].b["biome"] == "m"
-				) {
-					m[cid].s = "mr";
-				} else if (
-					m[ DIR[cid].up ].b["biome"] == "m" && 
-					m[ DIR[cid].left ].b["biome"] !== "m" && 
-					m[ DIR[cid].right ].b["biome"] !== "m" &&
-					m[ DIR[cid].down ].b["biome"] !== "m"
-				) {
-					m[cid].s = "mu";
-				} else if (
-					m[ DIR[cid].up ].b["biome"] !== "m" && 
-					m[ DIR[cid].left ].b["biome"] == "m" && 
-					m[ DIR[cid].right ].b["biome"] !== "m" &&
-					m[ DIR[cid].down ].b["biome"] !== "m"
-				) {
-					m[cid].s = "m3";
-				} else if (
-					m[ DIR[cid].up ].b["biome"] !== "m" && 
-					m[ DIR[cid].left ].b["biome"] !== "m" && 
-					m[ DIR[cid].right ].b["biome"] == "m" &&
-					m[ DIR[cid].down ].b["biome"] !== "m"
-				) {
-					m[cid].s = "mc";
-				} else if (
-					m[ DIR[cid].up ].b["biome"] !== "m" && 
-					m[ DIR[cid].left ].b["biome"] !== "m" && 
-					m[ DIR[cid].right ].b["biome"] !== "m" &&
-					m[ DIR[cid].down ].b["biome"] == "m"
-				) {
-					m[cid].s = "mn";
-				} else {
-					m[cid].s = "m";
+			  let mcids = "sS";
+			
+				switch (ooo) {
+			  
+					case 0:
+					  mcids = ""; break;
+					case 1:
+					  break;
+					case 2:
+						mcids = "sJ"; break;
+					case 3:
+						mcids = "sU"; break;
+					case 5:
+						mcids = "sL"; break;
+					case 7:
+						mcids = "s7"; break;
+					case 11:
+						mcids = "sr"; break;
+					case 13:
+					  mcids = "x7"; break;
+					case 17:
+					  mcids = "xT"; break;
+					case 19:
+					  mcids = "xr"; break;
+					case 14:
+					  mcids = "s3"; break;
+					case 55:
+					  mcids = "sE"; break;
+					case 91:
+						mcids = "s7"; break;
+					case 209:
+						mcids = "sr"; break;
+					case 221:
+					  mcids = "xT"; break;
+					case 182:
+					  mcids = "s3"; break;
+					case 1547:
+					  mcids = "s7"; break;
+					case 4199:
+					  mcids = "xT"; break;
+					case 323:
+					  mcids = "xT"; break;
+					case 187:
+					  mcids = "xT"; break;
+					case 3553:
+					  mcids = "xT"; break;
+					case 17765:
+					  mcids = "sE"; break;
+					case 3094:
+					  mcids = "s3"; break;
+					case 46189:
+					  mcids = "xT"; break;
+					case 1045:
+						mcids = "sE"; break;
+					
+					default:
+						break;
 				}
-				/**/
 				
+				
+				m[cid].s = mcids;
 			
+			}
+			/*
+			               2  3  5
+			               7     11
+			               13 17 19
+			*/
 			
-		//} // end switch
+		}
 	} // end for
 	
 	
