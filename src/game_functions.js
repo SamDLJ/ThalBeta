@@ -10,6 +10,9 @@ import { DESERT } from "./desert_chunks.js";
 import { SLOPES } from "./slope_chunks.js";
 import { PEAK } from "./peak_chunks.js";
 
+//NEW
+import { CSHAPES, CLIFFS } from "./cshapes.js";
+
 /* =============== random number generator ================ */
 /* random number generator for seed. n is how many you need (source?)*/
 function PRNG(input_string, n){
@@ -40,6 +43,41 @@ function PRNG(input_string, n){
 
   return rands;
 }
+
+//const cseed = PRNG("chunk_seed", 10000); // "Hello World" -> 0.6276661821175367, ...
+
+/*
+var iR = 0; //increment every time a new number is used
+function rnd(min_, max_) {
+  let value = min_ + Math.floor(seed[iR]*(max_-min_));
+  iR++;
+  if (iR >= seed.length) {
+    iR=0;
+  }
+  return value;
+}/**/
+
+
+const simplex_world_1 = new SimplexNoise("world1xx");
+const simplex_world_2 = new SimplexNoise("world2yyy");
+const simplex_continent_1 = new SimplexNoise("continent1");
+const simplex_continent_2 = new SimplexNoise("continent2");
+const simplex_country_1 = new SimplexNoise("country1");
+const simplex_country_2 = new SimplexNoise("country2");
+const simplex_village_1 = new SimplexNoise("village1");
+const simplex_village_2 = new SimplexNoise("village2");
+const simplex_yard_1 = new SimplexNoise("yard1");
+const simplex_yard_2 = new SimplexNoise("yard2");
+
+const simplex_river1_0 = new SimplexNoise("0river0");
+const simplex_river1_1 = new SimplexNoise("1river1");
+const simplex_river1_2 = new SimplexNoise("2river2");
+const simplex_river2_0 = new SimplexNoise("0riVer0");
+const simplex_river2_1 = new SimplexNoise("1riVer1");
+const simplex_river2_2 = new SimplexNoise("2riVer2");
+
+
+const simplex_chunk = new SimplexNoise("chunk");
 
 
 
@@ -102,7 +140,10 @@ export function herringbone_tile(seed, b2, bvi, hbtype="") {
 	
 	let num_tiles = 0;
 	let tile_index = 0;
-	//console.log(b2);
+	if (b2 === "f") {
+		//console.log(seed);
+	}
+	
 	
 	if (["left", "right"].includes(hbtype)) {
 		if (b2 === "g") {
@@ -166,6 +207,19 @@ export function herringbone_tile(seed, b2, bvi, hbtype="") {
 		}
 		
 	} 
+	/*
+	    ====== use seed to randomize certain sprites (e.g. flowers)
+	*/
+	let r_tree = 0;
+	for (let y=0; y<chunk.length; y++) {
+		for (let x=0; x<chunk[0].length; x++) {
+			if (chunk[y][x] === 40) {
+				r_tree = Math.floor(seed[iR]*4);
+				iR = iR >= seed.length-1 ? 0 : iR+1;
+				chunk[y][x] = 41+r_tree;
+			}
+		}
+	}
 	
   return chunk;
 	
@@ -1464,7 +1518,7 @@ function get_biome_value(x_,y_,res) {
 }
 
 
-export function get_biome_info(x, y) {
+export function get_biome_info_(x, y) {
 	
 	let thickness = 1;
 	let radius = Math.floor(thickness*Math.sqrt((x)**2 + (y)**2));
@@ -1582,37 +1636,19 @@ export function get_biome_info(x, y) {
 		biome = "i";
 	}
 	
-	/*
-	if (z2 === 5) {
-		color = "rgb(255,255,255)";
-		biome = "p";
-	} else if (z2 === 3) {
-		color = "rgb(100,100,100)";
-		biome = "m";
-	} else if ( z2 >= 1 || z3 === 1) {
-		color = "rgb(30,130,0)";
-		biome = "g";
-		if (z2 === 2) {
-			color = "rgb(20,80,0)";
-			biome = "f";
-		} else if (z1 === 2) {
-			color = "rgb(10,40,0)";
-			biome = "d";
-		} else if (z1 === 1) {
-			color = "rgb(20,80,0)";
-			biome = "f";
-		}
-	}/**/
 	
 	
 	// ********* testing DELETE after
 	let biome2 = "g";
+	let slope = 0;
+	let gap = 0;
 	
 	if (biome === "w") {
-		
+		//slope = 15;
 	} else if (biome === "m") {
 		biome = "g";
 		biome2 = "m";
+		
 	} else if (biome === "d") {
 		biome = "d";
 		biome2 = "d";
@@ -1625,16 +1661,19 @@ export function get_biome_info(x, y) {
 	} else if (biome === "p") {
 		biome = "p";
 		biome2 = "p";
+		//slope = ;
 	}
 	
 	
+	
 	return {
-		"biome": biome, 
-		"biome2": biome2,
+		"biome_layout": biome, 
 		"difficulty": difficulty,
 		"color": color,
 		"special": xyo,
-		"bvi": bvi
+		"bvi": bvi,
+		"slope": slope,
+		"gap": gap,
 	};
 	
 	
@@ -1846,772 +1885,1857 @@ const DIR = {
 };
 const CHUNK_ITER = ["r", "T", "7", "E", "O", "3", "L", "U", "J"];
 
-export function get_chunk_shapes(m) { // m stands for 'map' I guess
+
+
+function check_if_river_1(x,y) {
 	
-	/*
-		g and w are the main shapes
+	let ra0 = 450; 
+	let ra1 = 70; 
+	let ra2 = 10;
 	
-	  f and m are 'second-tier' biomes since they depend on the shape of g and w
+  let r0 = simplex_river1_0.noise2D(x/200, y/200);
+	let r0n = 0 + (r0 + 1) * ra0;
+  let r1 = simplex_river1_1.noise2D(x/20, y/20);
+	let r1n = 0 + (r1 + 1) * ra1;
+	let r2 = simplex_river1_2.noise2D(x/10, y/10);
+	let r2n = 0 + (r2 + 1) * ra2;
+	let r_max = (ra0*2) + (ra1*2) + (ra2*2);
 	
-	/**/
+	let rall = r0n + r1n + r2n;
 	
-	for (let i=0; i<CHUNK_ITER.length; i++) {
-		let cid = CHUNK_ITER[i];
-		let biome = m[cid].b["biome"];
-		let biome2 = m[cid].b["biome2"];
-		//console.log(biome+" "+biome2);
-		// temporary
+	let r = Math.floor(rall);
+	let rp = (r/r_max) * 100;
+	
+	let int_rperc = Math.floor(rp);
+	//if (rtally.hasOwnProperty(int_rperc)) {
+  //  rtally[int_rperc]++;
+	//}
+	
+	let phase = 40;
+	let thickness = 2;
+	let is_river_ = false;
+	if (phase <= rp && rp < phase+thickness){
+		is_river_ = true;
+	}
+	return is_river_;
+}
+
+function check_if_river_2(x,y) {
+	
+	let ra0 = 450; 
+	let ra1 = 70; 
+	let ra2 = 10;
+	
+  let r0 = simplex_river2_0.noise2D(x/200, y/200);
+	let r0n = 0 + (r0 + 1) * ra0;
+  let r1 = simplex_river2_1.noise2D(x/20, y/20);
+	let r1n = 0 + (r1 + 1) * ra1;
+	let r2 = simplex_river2_2.noise2D(x/10, y/10);
+	let r2n = 0 + (r2 + 1) * ra2;
+	let r_max = (ra0*2) + (ra1*2) + (ra2*2);
+	
+	let rall = r0n + r1n + r2n;
+	
+	let r = Math.floor(rall);
+	let rp = (r/r_max) * 100;
+	
+	let int_rperc = Math.floor(rp);
+	//if (rtally.hasOwnProperty(int_rperc)) {
+	//	rtally[int_rperc]++;
+	//}
+	
+	let phase = 40;
+	let thickness = 4;
+	let is_river_ = false;
+	if (phase <= rp && rp < phase+thickness){
+		is_river_ = true;
+	}
+	return is_river_;
+}
+
+
+
+
+
+
+
+
+function get_gradient_info_math(x,y) {
+	
+	let thickness = 1;
+	let radius = Math.floor(thickness*Math.sqrt((x)**2 + (y)**2));
+	let difficulty = Math.floor(Math.sqrt(radius));
+	
+	let xyo = is_special(x,y); // : null;
+	let bvi = biome_variance_index(x,y); // : null;
+  
+
+	let is_river_1 = check_if_river_1(x,y);
+	let is_river_2 = check_if_river_2(x,y);
+	
+	
+	let o1 = 100; let o2 = 100;
+	let a1 = 40; let a2 = 40; 
+	let b1 = 25; let b2 = 25;
+	let c1 = 5; let c2 = 5;
+	let d1 = 4; let d2 = 4;
+	
+  let hworld1 = simplex_world_1.noise2D(x/400, y/400);
+	let hw1n = 0 + (hworld1 + 1) * o1;
+	let hworld2 = simplex_world_2.noise2D(x/300, y/300);
+	let hw2n = 0 + (hworld2 + 1) * o2;
+	let hw_max = (o1*2) + (o2*2);
+	
+  let hcontinent1 = simplex_continent_1.noise2D(x/200, y/200);
+	let hci1n = 0 + (hcontinent1 + 1) * a1;
+	let hcontinent2 = simplex_continent_2.noise2D(x/100, y/100);
+	let hci2n = 0 + (hcontinent2 + 1) * a2;
+	let hci_max = (a1*2) + (a2*2);
+	
+  let hcountry1 = simplex_country_1.noise2D(x/50, y/50);
+	let hcy1n = 0 + (hcountry1 + 1) * b1;
+	let hcountry2 = simplex_country_2.noise2D(x/25, y/25);
+	let hcy2n = 0 + (hcountry2 + 1) * b2;
+	let hcy_max = (b1*2) + (b2*2);
+	
+  let hvillage1 = simplex_village_1.noise2D(x/10, y/10);
+	let hv1n = 0 + (hvillage1 + 1) * c1;
+	let hvillage2 = simplex_village_2.noise2D(x/7, y/7);
+	let hv2n = 0 + (hvillage2 + 1) * c2;
+	let hv_max = (c1*2) + (c2*2);
+	
+  let hyard1 = simplex_yard_1.noise2D(x/5, y/5);
+	let hy1n = 0 + (hyard1 + 1) * d1;
+	let hyard2 = simplex_yard_2.noise2D(x/4, y/4);
+	let hy2n = 0 + (hvillage2 + 1) * d2;
+	let hy_max = (d1*2) + (d2*2);
+	
+	//let hy_ = Math.floor(hy1n + hy2n);
+	
+	let hw = hw1n + hw2n;
+	let hci = hci1n+hci2n; // 10 + 10 = 0 to 20
+	let hcy = hcy1n+hcy2n; // 20
+	let hv = hv1n+hv2n; // 20
+	let hy = hy1n+hy2n; // 20
+	
+	let h = Math.floor(hw+hci+hcy+hv+hy);
+	let h_max = hw_max + hci_max + hcy_max + hv_max + hy_max;
+	let h_100 = Math.floor((h/h_max)*100);
+	
+	
+  
+	//console.log(bvi);
+	return [h, h_100, is_river_1, is_river_2, difficulty, xyo, bvi];
+}
+
+
+// maps the calculated value (0 to 100) into an index (0 and 1 for water, up to 12+ for peaks 
+function get_main_altitude_type(h_p) {
+	//console.log(h_p);
+	let biome_height = 0; // deep water
+	if (HEIGHTS["water"].h <= h_p && h_p < HEIGHTS["grass"].h) {
+		// water 45 - 49
+		biome_height = 1;
+	
+	} else if (HEIGHTS["grass"].h  <= h_p && h_p < HEIGHTS["upland"].h) {
+		// grass 50 - 53
+		biome_height = 2;
 		
+	} else if (HEIGHTS["upland"].h <= h_p && h_p < HEIGHTS["hills"].h) {
+		// upland 54 - 57
+		biome_height = 3;
 		
+	} else if (HEIGHTS["hills"].h <= h_p && h_p < HEIGHTS["uphills"].h) {
+		// hills 58 - 61
+		biome_height = 4;
+	  if (60 <= h_p) { biome_height = 5; }
 		
+	} else if (HEIGHTS["uphills"].h <= h_p && h_p < HEIGHTS["mountains"].h) {
+		// uphills 62 - 65
+		biome_height = 6;
+	  if (64 <= h_p) { biome_height = 7; } 
 		
+	} else if (HEIGHTS["mountains"].h <= h_p && h_p < HEIGHTS["peaks"].h) {
+		// mountains 66 - 69
+		biome_height = 8 + (h_p-66);
 		
-		if (biome == "g") {
-			//console.log("get chunk shape for g");
-			// need to account for other tiles instead of just g and w
-			if (
-				m[ DIR[cid].up ].b["biome"] == "g" && 
-				m[ DIR[cid].left ].b["biome"] == "g" && 
-				m[ DIR[cid].right ].b["biome"] == "w" &&
-				m[ DIR[cid].down ].b["biome"] == "w" &&
-				m[ DIR[cid].dRight ].b["biome"] == "w"
-			) {
-				m[cid].s = "gJ";
-			} else if (
-				
-				m[ DIR[cid].left ].b["biome"] == "w" &&
-				m[ DIR[cid].down ].b["biome"] == "w" && 
-				!(m[ DIR[cid].uLeft ].b["biome"] == "w" && m[ DIR[cid].up ].b["biome"] == "w") &&
-				!(
-					m[ DIR[cid].left ].b["biome"] == "w" && 
-					m[ DIR[cid].dLeft ].b["biome"] == "w" && 
-					m[ DIR[cid].down ].b["biome"] == "w" &&
-					m[ DIR[cid].dRight ].b["biome"] == "w" &&
-					m[ DIR[cid].right ].b["biome"] == "w"
-				) &&
-				m[ DIR[cid].dLeft ].b["biome"] == "w"
-				/*m[ DIR[cid].up ].b["biome"] == "w" && 
-				
-				//m[ DIR[cid].right ].b["biome"] !== "w" &&
-				//m[ DIR[cid].dLeft ].b["biome"] == "w" && // ?
-				m[ DIR[cid].dRight ].b["biome"] !== "w" && 
-				(m[ DIR[cid].uLeft ].b["biome"] !== "w" || m[ DIR[cid].right ].b["biome"] !== "w")  // not both water
-				/**/
-				
-			) {
-				m[cid].s = "gL";
-			} else if (
-				m[ DIR[cid].up ].b["biome"] == "w" && 
-				//m[ DIR[cid].left ].b["biome"] == "w" && 
-				m[ DIR[cid].right ].b["biome"] == "w" &&
-				//m[ DIR[cid].down ].b["biome"] == "g" &&
-				//m[ DIR[cid].uRight ].b["biome"] == "w"
-				!(
-					m[ DIR[cid].left ].b["biome"] == "w" && 
-					m[ DIR[cid].uLeft ].b["biome"] == "w" && 
-					m[ DIR[cid].up ].b["biome"] == "w" &&
-					m[ DIR[cid].uRight ].b["biome"] == "w" &&
-					m[ DIR[cid].right ].b["biome"] == "w"
-				) &&
-				!(
-					m[ DIR[cid].up ].b["biome"] == "w" &&
-					m[ DIR[cid].uRight ].b["biome"] == "w" &&
-					m[ DIR[cid].right ].b["biome"] == "w" &&
-					m[ DIR[cid].dRight ].b["biome"] == "w" && 
-					m[ DIR[cid].down ].b["biome"] == "w"
-				) &&
-				!(
-					m[ DIR[cid].up ].b["biome"] == "w" &&
-					m[ DIR[cid].uRight ].b["biome"] !== "w" &&
-					m[ DIR[cid].right ].b["biome"] == "w"
-				)
-				// TODO ******* seehere
-				
-			) {
-				m[cid].s = "g7";
-			} else if (
-				m[ DIR[cid].up ].b["biome"] == "w" && 
-				m[ DIR[cid].left ].b["biome"] == "w" && 
-				m[ DIR[cid].right ].b["biome"] == "g" &&
-				//m[ DIR[cid].down ].b["biome"] == "g" &&
-				m[ DIR[cid].uLeft ].b["biome"] == "w" &&
-				!(
-					m[ DIR[cid].up ].b["biome"] == "w" &&
-					m[ DIR[cid].uLeft ].b["biome"] == "w" && 
-					m[ DIR[cid].left ].b["biome"] == "w" && 
-					m[ DIR[cid].dLeft ].b["biome"] == "w" &&
-					m[ DIR[cid].down ].b["biome"] == "w"
-				)
-			) {
-				m[cid].s = "gr";
-			} else {
-				m[cid].s = "g";
+	} else if (HEIGHTS["peaks"].h <= h_p) {
+		// peaks  (cant make it too high)
+	  biome_height = 12 + (h_p-70);
+	}
+	
+	//return Math.floor(h_p);
+	return biome_height;
+
+}
+/**/
+
+
+
+// TODO:  *****  USE THIS instead for the mini map
+function get_main_altitude_color(biome_height, r1, r2) {
+	let color = "#000";
+	switch (biome_height) {
+	  case 0:
+			color = "#007"; // deep water
+			break;
+	  case 1:
+			color = "#00a"; // water
+			break;
+	  case 2:
+			color = "#491"; // grass
+			break;
+	  case 3:
+			color = "#5a1"; // upland
+			break;
+	  case 4:
+			color = "#780"; // hills
+			break;
+	  case 5:
+			color = "#890"; // hills 2
+			break;
+	  case 6:
+			color = "#870"; // uphills
+			break;
+	  case 7:
+			color = "#983"; // uphills 2
+			break;
+	  case 8:
+			color = "#655"; // mountains
+			break;
+	  case 9:
+			color = "#766"; // mountains 2
+			break;
+	  case 10:
+			color = "#877"; // mountains 3
+			break;
+	  case 11:
+			color = "#988"; // mountains 4
+			break;
+	  case 12:
+			color = "#99a"; // peak
+			break;
+	  case 13:
+			color = "#aaa"; // peak
+			break;
+	  case 14:
+			color = "#aab"; // peak
+			break;
+	  case 15:
+			color = "#bbb"; // peak
+			break;
+	  case 16:
+			color = "#bbc"; // peak
+			break;
+	  case 17:
+			color = "#ccc"; // peak
+			break;
+	  case 18:
+			color = "#ccd"; // peak
+			break;
+	  case 19:
+			color = "#ddd"; // peak
+			break;
+	  case 20:
+			color = "#dde"; // peak
+			break;
+	  case 21:
+			color = "#eee"; // peak
+			break;
+	  case 22:
+			color = "#eef"; // peak
+			break;
+	  case 23:
+			color = "#fff"; // peak
+			break;
+	}
+	if (biome_height > 23) {
+		color = "#fff";
+	}
+	
+	if (2 <= biome_height && biome_height < 4) {
+		if (r1) {
+			if (r2) { // both
+				color = "#0aa";//"#0ff";
+			} else { // only r1
+				color = "#0aa";//"#f0f";
 			}
+		} else if (r2) { // only r2
+			color = "#0aa";//"#0f0";	
+		}
+	}
+	
+	
+	
+	return color;
+}
+
+
+
+const HEIGHTS = {
+	"deep_water": {index: 0, h: 45, color: "#007"},
+	"water": {index: 0, h: 45, color: "#00a"}, //30
+	"grass": {index: 1, h: 50, color: "#590"/*"#050"*/}, //45
+	"upland": {index: 2, h: 54, color: "#6a0"/*"#161"*/}, //58
+	"hills": {index: 3, h: 58, color: "#7b0"/*"#696"*/}, //62
+	"uphills": {index: 4, h: 62, color: "#8c0"/*"#960"*/}, //64
+	"mountains": {index: 5, h: 66, color: "#888"/*"#888"*/}, //69
+	"peaks": {index: 6, h: 70, color: "#fff"}, //74
+	"river": {index: 0, h: 45, color: "#00a"}, //30
+};
+
+//const GRAD_DIST = [0, 45, 50,54,58,62,66,70];
+
+
+
+/*
+function get_altitude_color(h_p) {
+	// h_p should be a number from 0 - 100
+	let biome_height = 0;
+	let r_ = 0;
+	let g_ = 0;
+	let b_ = 0;
+	
+	
+	for (let i=0; i<GRAD_DIST.length; i++) {
+		if (GRAD_DIST[i] < h_p) { biome_height++; } 
+		else { break; }
+	}
+	let color = "rgb("+r_+","+g_+","+b_+")";
+	return [biome_height, color];
+}
+
+/**/
+
+
+
+
+
+const SIZES = [
+	{"qsize": 16, "scale": 4},
+	{"qsize": 32, "scale": 2},
+	{"qsize": 64, "scale": 1},
+];
+
+let s_ = 0;
+const QSIZE = SIZES[s_].qsize;
+const SCALE = SIZES[s_].scale;
+
+
+function create_mini_map(local_x, local_y) {
+	let pixelData = [];
+	let spPixelData = [];
+	
+	for (let y=local_y-QSIZE, ly=0; y<=local_y+QSIZE; y++, ly++) {
+		for (let x=local_x-QSIZE, lx=0; x<local_x+QSIZE; x++, lx++) {
 			
+			let biome_type = get_main_biome_type(x, y);
 			
-		} else if (biome == "w") {
-			if (
-				m[ DIR[cid].up ].b["biome"] !== "w" && 
-				m[ DIR[cid].left ].b["biome"] !== "w" && 
-				m[ DIR[cid].right ].b["biome"] == "w" &&
-				m[ DIR[cid].down ].b["biome"] == "w"
-			) {
-				if (
-					m[ DIR[cid].up ].b["biome"] == "d" && m[ DIR[cid].left ].b["biome"] == "d"
-				) {
-					m[cid].s = "wdr";
-				} else {
-					m[cid].s = "wr";
+		  let ggim = get_gradient_info_math(x, y);
+			let alt_type = get_main_altitude_type(ggim[1]);
+			let alt_color = get_main_altitude_color(alt_type, ggim[2], ggim[3]);
+			let xyo = ggim[5];
+			
+			pixelData.push([lx, ly, alt_color, biome_type]);
+			
+			if (xyo !== 0) {
+				for (let xyi=0; xyi<xyo.length; xyi++) {
+					let xx = xyo[xyi][0];
+					let yy = xyo[xyi][1];
+					if (xx === x && yy === y) {
+						pixelData.push([xx-local_x+QSIZE,yy-local_y+QSIZE, "#f00"]);
+					}
 				}
-				
-			} else if (
-				m[ DIR[cid].up ].b["biome"] !== "w" && 
-				m[ DIR[cid].left ].b["biome"] == "w" && 
-				m[ DIR[cid].right ].b["biome"] !== "w" &&
-				m[ DIR[cid].down ].b["biome"] == "w"
-			) {
-				if (
-					m[ DIR[cid].up ].b["biome"] == "d" && m[ DIR[cid].right ].b["biome"] == "d"
-				) {
-					m[cid].s = "wd7";
-				} else {
-					m[cid].s = "w7";
-				}
-			} else if (
-				m[ DIR[cid].up ].b["biome"] == "w" && 
-				m[ DIR[cid].left ].b["biome"] !== "w" && 
-				m[ DIR[cid].right ].b["biome"] == "w" &&
-				m[ DIR[cid].down ].b["biome"] !== "w"
-			) {
-				if (
-					m[ DIR[cid].down ].b["biome"] == "d" && m[ DIR[cid].left ].b["biome"] == "d"
-				) {
-					m[cid].s = "wdL";
-				} else {
-					m[cid].s = "wL";
-				}
-			} else if (
-				m[ DIR[cid].up ].b["biome"] == "w" && 
-				m[ DIR[cid].left ].b["biome"] == "w" && 
-				m[ DIR[cid].right ].b["biome"] !== "w" &&
-				m[ DIR[cid].down ].b["biome"] !== "w"
-			) {
-				if (
-					m[ DIR[cid].down ].b["biome"] == "d" && m[ DIR[cid].right ].b["biome"] == "d"
-				) {
-					m[cid].s = "wdJ";
-				} else {
-					m[cid].s = "wJ";
-				}
-			} else if (
-				m[ DIR[cid].up ].b["biome"] !== "w" && 
-				m[ DIR[cid].left ].b["biome"] == "w" && 
-				m[ DIR[cid].right ].b["biome"] == "w" &&
-				m[ DIR[cid].down ].b["biome"] !== "w" && // if only one of the below is a grass
-				(
-					(m[ DIR[cid].dLeft ].b["biome"] == "w" ? 1 : 0) +
-					(m[ DIR[cid].dRight ].b["biome"] == "w" ? 1 : 0) +
-					(m[ DIR[cid].uLeft ].b["biome"] == "w" ? 1 : 0) +
-					(m[ DIR[cid].uRight ].b["biome"] == "w" ? 1 : 0) >= 3
-				)
-			) {
-				m[cid].s = "wlbns"; // water land bridge north-south (could have a left-biased NS bridge)
-			} else if (
-				m[ DIR[cid].up ].b["biome"] == "w" && 
-				m[ DIR[cid].left ].b["biome"] !== "w" && 
-				m[ DIR[cid].right ].b["biome"] !== "w" &&
-				m[ DIR[cid].down ].b["biome"] == "w" &&
-				(
-					(m[ DIR[cid].dLeft ].b["biome"] == "w" ? 1 : 0) +
-					(m[ DIR[cid].dRight ].b["biome"] == "w" ? 1 : 0) +
-					(m[ DIR[cid].uLeft ].b["biome"] == "w" ? 1 : 0) +
-					(m[ DIR[cid].uRight ].b["biome"] == "w" ? 1 : 0) >= 3
-				)
-				
-			) {
-				m[cid].s = "wlbwe"; // water land bridge west-east (could have a top-biased WE bridge)
-				
-			} else if (
-				m[ DIR[cid].up ].b["biome"] !== "w" && 
-				m[ DIR[cid].left ].b["biome"] !== "w" && 
-				m[ DIR[cid].right ].b["biome"] !== "w" &&
-				m[ DIR[cid].down ].b["biome"] === "w" 
-				//m[ DIR[cid].dLeft ].b["biome"] !== "w" &&
-				//m[ DIR[cid].dRight ].b["biome"] !== "w"
-			) {
-				m[cid].s = "wn";
-			} else if (
-				m[ DIR[cid].up ].b["biome"] !== "w" && 
-				m[ DIR[cid].left ].b["biome"] !== "w" && 
-				m[ DIR[cid].right ].b["biome"] == "w" &&
-				m[ DIR[cid].down ].b["biome"] !== "w"
-				
-			) {
-				//console.log("wc being created");
-				m[cid].s = "wc";
-			} else if (
-				m[ DIR[cid].up ].b["biome"] !== "w" && 
-				m[ DIR[cid].left ].b["biome"] == "w" && 
-				m[ DIR[cid].right ].b["biome"] !== "w" &&
-				m[ DIR[cid].down ].b["biome"] !== "w"
-			) {
-				
-				m[cid].s = "w3";
-			} else if (
-				m[ DIR[cid].up ].b["biome"] == "w" && 
-				m[ DIR[cid].left ].b["biome"] !== "w" && 
-				m[ DIR[cid].right ].b["biome"] !== "w" &&
-				m[ DIR[cid].down ].b["biome"] !== "w"
-			) {
-				m[cid].s = "wu";
-			} else if (
-				m[ DIR[cid].up ].b["biome"] !== "w" && 
-				m[ DIR[cid].left ].b["biome"] == "w" && 
-				m[ DIR[cid].right ].b["biome"] == "w" &&
-				m[ DIR[cid].down ].b["biome"] == "w" &&
-				m[ DIR[cid].uLeft ].b["biome"] == "w" &&
-				m[ DIR[cid].uRight ].b["biome"] == "w"
-			) {
-				m[cid].s = "wlhst"; // water lighthouse south tip
-			} else if (
-				m[ DIR[cid].up ].b["biome"] == "w" && 
-				m[ DIR[cid].left ].b["biome"] == "g" && 
-				//m[ DIR[cid].right ].b["biome"] == "w" &&
-				m[ DIR[cid].down ].b["biome"] == "w" &&
-				m[ DIR[cid].uLeft ].b["biome"] == "w" &&
-				m[ DIR[cid].dLeft ].b["biome"] == "w"
-			) {
-				m[cid].s = "wlhet"; // water lighthouse east tip
-			} else if (
-				m[ DIR[cid].up ].b["biome"] == "w" && 
-				m[ DIR[cid].left ].b["biome"] == "w" && 
-				m[ DIR[cid].right ].b["biome"] == "g" &&
-				m[ DIR[cid].down ].b["biome"] == "w" &&
-				m[ DIR[cid].uRight ].b["biome"] == "w" &&
-				m[ DIR[cid].dRight ].b["biome"] == "w"
-			) {
-				m[cid].s = "wlhwt"; // water lighthouse west tip
-			} else if (
-				m[ DIR[cid].up ].b["biome"] == "w" && 
-				m[ DIR[cid].left ].b["biome"] == "w" && 
-				m[ DIR[cid].right ].b["biome"] == "w" &&
-				m[ DIR[cid].down ].b["biome"] == "g" &&
-				m[ DIR[cid].dLeft ].b["biome"] == "w" &&
-				m[ DIR[cid].dRight ].b["biome"] == "w"
-			) {
-				m[cid].s = "wlhnt"; // water lighthouse north tip
-			} else if (
-				m[ DIR[cid].up ].b["biome"] == "g" && 
-				m[ DIR[cid].left ].b["biome"] == "g" && 
-				m[ DIR[cid].right ].b["biome"] == "g" &&
-				m[ DIR[cid].down ].b["biome"] == "g" 
-			) {
-				m[cid].s = "wo"; // small water lake
-			} else if (
-				m[ DIR[cid].up ].b["biome"] == "w" && 
-				m[ DIR[cid].left ].b["biome"] == "w" && 
-				m[ DIR[cid].right ].b["biome"] == "w" &&
-				m[ DIR[cid].dLeft ].b["biome"] == "g" &&
-				m[ DIR[cid].down ].b["biome"] == "g" &&
-				m[ DIR[cid].dRight ].b["biome"] == "g" 
-			) {
-				m[cid].s = "weT"; // water edge top
-			} else if (
-				m[ DIR[cid].up ].b["biome"] == "w" && 
-				m[ DIR[cid].left ].b["biome"] == "w" && 
-				m[ DIR[cid].uRight ].b["biome"] == "g" &&
-				m[ DIR[cid].right ].b["biome"] == "g" &&
-				m[ DIR[cid].dRight ].b["biome"] == "g" &&
-				m[ DIR[cid].down ].b["biome"] == "w" 
-			) {
-				m[cid].s = "weE"; // water edge left
-			} else if (
-				m[ DIR[cid].up ].b["biome"] == "w" && 
-				m[ DIR[cid].uLeft ].b["biome"] == "g" && 
-				m[ DIR[cid].left ].b["biome"] == "g" && 
-				m[ DIR[cid].dLeft ].b["biome"] == "g" && 
-				m[ DIR[cid].right ].b["biome"] == "w" &&
-				m[ DIR[cid].down ].b["biome"] == "w" 
-			) {
-				m[cid].s = "we3"; // water edge right
-			} else if (
-				m[ DIR[cid].uLeft ].b["biome"] == "g" && 
-				m[ DIR[cid].up ].b["biome"] == "g" && 
-				m[ DIR[cid].uRight ].b["biome"] == "g" && 
-				m[ DIR[cid].left ].b["biome"] == "w" && 
-				m[ DIR[cid].right ].b["biome"] == "w" &&
-				m[ DIR[cid].down ].b["biome"] == "w" 
-			) {
-				m[cid].s = "weU"; // water edge bottom
-			} else {
-				m[cid].s = "w";
-			}
-		} else if (biome === "p") {
-			// p, q
-			//console.log("change m shape");
-			if (
-				m[ DIR[cid].up ].b["biome"] == "p" && 
-				m[ DIR[cid].left ].b["biome"] == "p" && 
-				m[ DIR[cid].right ].b["biome"] == "p" &&
-				m[ DIR[cid].down ].b["biome"] == "p"
-			) {
-				m[cid].s = "p"; // <-- use herringbone tile
-			} else if (
-				m[ DIR[cid].up ].b["biome"] == "p" && 
-				m[ DIR[cid].left ].b["biome"] == "p" && 
-				m[ DIR[cid].right ].b["biome"] !== "p" &&
-				m[ DIR[cid].down ].b["biome"] !== "p"
-			) {
-				m[cid].s = "pJ";
-			} else if (
-				m[ DIR[cid].up ].b["biome"] == "p" && 
-				m[ DIR[cid].left ].b["biome"] !== "p" && 
-				m[ DIR[cid].right ].b["biome"] == "p" &&
-				m[ DIR[cid].down ].b["biome"] !== "p"
-			) {
-				m[cid].s = "pL";
-			} else if (
-				m[ DIR[cid].up ].b["biome"] !== "p" && 
-				m[ DIR[cid].left ].b["biome"] == "p" && 
-				m[ DIR[cid].right ].b["biome"] !== "p" &&
-				m[ DIR[cid].down ].b["biome"] == "p"
-			) {
-				m[cid].s = "p7";
-			} else if (
-				m[ DIR[cid].up ].b["biome"] !== "p" && 
-				m[ DIR[cid].left ].b["biome"] !== "p" && 
-				m[ DIR[cid].right ].b["biome"] == "p" &&
-				m[ DIR[cid].down ].b["biome"] == "p"
-			) {
-				m[cid].s = "pr";
-			} else if (
-				m[ DIR[cid].up ].b["biome"] == "p" && 
-				m[ DIR[cid].left ].b["biome"] !== "p" && 
-				m[ DIR[cid].right ].b["biome"] !== "p" &&
-				m[ DIR[cid].down ].b["biome"] !== "p"
-			) {
-				m[cid].s = "ptu";
-			} else if (
-				m[ DIR[cid].up ].b["biome"] !== "p" && 
-				m[ DIR[cid].left ].b["biome"] == "p" && 
-				m[ DIR[cid].right ].b["biome"] !== "p" &&
-				m[ DIR[cid].down ].b["biome"] !== "p"
-			) {
-				m[cid].s = "pt3";
-			} else if (
-				m[ DIR[cid].up ].b["biome"] !== "p" && 
-				m[ DIR[cid].left ].b["biome"] !== "p" && 
-				m[ DIR[cid].right ].b["biome"] == "p" &&
-				m[ DIR[cid].down ].b["biome"] !== "p"
-			) {
-				m[cid].s = "ptc";
-			} else if (
-				m[ DIR[cid].up ].b["biome"] !== "p" && 
-				m[ DIR[cid].left ].b["biome"] !== "p" && 
-				m[ DIR[cid].right ].b["biome"] !== "p" &&
-				m[ DIR[cid].down ].b["biome"] == "p"
-			) {
-				m[cid].s = "ptn";
-			} else if (
-				m[ DIR[cid].up ].b["biome"] == "p" && 
-				m[ DIR[cid].left ].b["biome"] == "p" && 
-				m[ DIR[cid].right ].b["biome"] == "p" &&
-				m[ DIR[cid].down ].b["biome"] !== "p"
-			) {
-				m[cid].s = "peU";//bottom edge
-			} else if (
-				m[ DIR[cid].up ].b["biome"] == "p" && 
-				m[ DIR[cid].left ].b["biome"] == "p" && 
-				m[ DIR[cid].right ].b["biome"] !== "p" &&
-				m[ DIR[cid].down ].b["biome"] == "p"
-			) {
-				m[cid].s = "pe3";//right edge
-			} else if (
-				m[ DIR[cid].up ].b["biome"] == "p" && 
-				m[ DIR[cid].left ].b["biome"] !== "p" && 
-				m[ DIR[cid].right ].b["biome"] == "p" &&
-				m[ DIR[cid].down ].b["biome"] == "p"
-			) {
-				m[cid].s = "peE";//left edge
-			} else if (
-				m[ DIR[cid].up ].b["biome"] !== "p" && 
-				m[ DIR[cid].left ].b["biome"] == "p" && 
-				m[ DIR[cid].right ].b["biome"] == "p" &&
-				m[ DIR[cid].down ].b["biome"] == "p"
-			) {
-				m[cid].s = "peT";//top edge
-			} else if (
-				m[ DIR[cid].up ].b["biome"] !== "p" && 
-				m[ DIR[cid].left ].b["biome"] == "p" && 
-				m[ DIR[cid].right ].b["biome"] == "p" &&
-				m[ DIR[cid].down ].b["biome"] == "p"
-			) {
-				m[cid].s = "pT";//top edge
-			} else {
-				
-				m[cid].s = "p"; // 
-			}
+			} 
 			
 		}
-		
-		if (biome2 === "m") {
-			//console.log("change m shape");
-			if (
-				m[ DIR[cid].up ].b["biome2"] == "m" && 
-				m[ DIR[cid].left ].b["biome2"] == "m" && 
-				m[ DIR[cid].right ].b["biome2"] == "m" &&
-				m[ DIR[cid].down ].b["biome2"] == "m"
-			) {
-				m[cid].s = "M";
-			} else if (
-				m[ DIR[cid].up ].b["biome2"] == "m" && 
-				m[ DIR[cid].left ].b["biome2"] == "m" && 
-				m[ DIR[cid].right ].b["biome2"] !== "m" &&
-				m[ DIR[cid].down ].b["biome2"] !== "m"
-			) {
-				m[cid].s = "mJ";
-			} else if (
-				m[ DIR[cid].up ].b["biome2"] == "m" && 
-				m[ DIR[cid].left ].b["biome2"] !== "m" && 
-				m[ DIR[cid].right ].b["biome2"] == "m" &&
-				m[ DIR[cid].down ].b["biome2"] !== "m"
-			) {
-				m[cid].s = "mL";
-			} else if (
-				m[ DIR[cid].up ].b["biome2"] !== "m" && 
-				m[ DIR[cid].left ].b["biome2"] == "m" && 
-				m[ DIR[cid].right ].b["biome2"] !== "m" &&
-				m[ DIR[cid].down ].b["biome2"] == "m"
-			) {
-				m[cid].s = "m7";
-			} else if (
-				m[ DIR[cid].up ].b["biome2"] !== "m" && 
-				m[ DIR[cid].left ].b["biome2"] !== "m" && 
-				m[ DIR[cid].right ].b["biome2"] == "m" &&
-				m[ DIR[cid].down ].b["biome2"] == "m"
-			) {
-				m[cid].s = "mr";
-			} else if (
-				m[ DIR[cid].up ].b["biome2"] == "m" && 
-				m[ DIR[cid].left ].b["biome2"] !== "m" && 
-				m[ DIR[cid].right ].b["biome2"] !== "m" &&
-				m[ DIR[cid].down ].b["biome2"] !== "m"
-			) {
-				m[cid].s = "mu";
-			} else if (
-				m[ DIR[cid].up ].b["biome2"] !== "m" && 
-				m[ DIR[cid].left ].b["biome2"] == "m" && 
-				m[ DIR[cid].right ].b["biome2"] !== "m" &&
-				m[ DIR[cid].down ].b["biome2"] !== "m"
-			) {
-				m[cid].s = "m3";
-			} else if (
-				m[ DIR[cid].up ].b["biome2"] !== "m" && 
-				m[ DIR[cid].left ].b["biome2"] !== "m" && 
-				m[ DIR[cid].right ].b["biome2"] == "m" &&
-				m[ DIR[cid].down ].b["biome2"] !== "m"
-			) {
-				m[cid].s = "mc";
-			} else if (
-				m[ DIR[cid].up ].b["biome2"] !== "m" && 
-				m[ DIR[cid].left ].b["biome2"] !== "m" && 
-				m[ DIR[cid].right ].b["biome2"] !== "m" &&
-				m[ DIR[cid].down ].b["biome2"] == "m"
-			) {
-				m[cid].s = "mn";
-			} else if (
-				m[ DIR[cid].up ].b["biome2"] == "m" && 
-				m[ DIR[cid].left ].b["biome2"] == "m" && 
-				m[ DIR[cid].right ].b["biome2"] == "m" &&
-				m[ DIR[cid].down ].b["biome2"] !== "m"
-			) {
-				m[cid].s = "meb";//bottom edge
-			} else if (
-				m[ DIR[cid].up ].b["biome2"] == "m" && 
-				m[ DIR[cid].left ].b["biome2"] == "m" && 
-				m[ DIR[cid].right ].b["biome2"] !== "m" &&
-				m[ DIR[cid].down ].b["biome2"] == "m"
-			) {
-				m[cid].s = "mer";//right edge
-			} else if (
-				m[ DIR[cid].up ].b["biome2"] == "m" && 
-				m[ DIR[cid].left ].b["biome2"] !== "m" && 
-				m[ DIR[cid].right ].b["biome2"] == "m" &&
-				m[ DIR[cid].down ].b["biome2"] == "m"
-			) {
-				m[cid].s = "mel";//left edge
-			} else if (
-				m[ DIR[cid].up ].b["biome2"] !== "m" && 
-				m[ DIR[cid].left ].b["biome2"] == "m" && 
-				m[ DIR[cid].right ].b["biome2"] == "m" &&
-				m[ DIR[cid].down ].b["biome2"] == "m"
-			) {
-				m[cid].s = "met";//top edge
-			} else {
-				m[cid].s = "m"; // small m by itself could just be a bit of rocky terrain
-			}
-			
-		}
-		
-		if (biome2 === "d") {
-			//console.log("change m shape");
-			if (
-				m[ DIR[cid].up ].b["biome2"] == "d" && 
-				m[ DIR[cid].left ].b["biome2"] == "d" && 
-				m[ DIR[cid].right ].b["biome2"] == "d" &&
-				m[ DIR[cid].down ].b["biome2"] == "d"
-			) {
-				m[cid].s = "d";
-			} else if (
-				m[ DIR[cid].up ].b["biome2"] == "d" && 
-				m[ DIR[cid].left ].b["biome2"] == "d" && 
-				m[ DIR[cid].right ].b["biome2"] !== "d" &&
-				m[ DIR[cid].down ].b["biome2"] !== "d"
-			) {
-				if (
-					(m[ DIR[cid].down ].b["biome"] == "w" && m[ DIR[cid].right ].b["biome"] !== "w") ||
-					(m[ DIR[cid].down ].b["biome"] !== "w" && m[ DIR[cid].right ].b["biome"] == "w") ||
-					(m[ DIR[cid].down ].b["biome"] !== "w" && m[ DIR[cid].right ].b["biome"] !== "w") ||
-					(m[ DIR[cid].dRight ].b["biome"] !== "w")
-				) {
-					m[cid].s = "dgJ";
-				} else {
-					m[cid].s = "dJ";
-				}
-			} else if (
-				m[ DIR[cid].up ].b["biome2"] == "d" && 
-				m[ DIR[cid].left ].b["biome2"] !== "d" && 
-				m[ DIR[cid].right ].b["biome2"] == "d" &&
-				m[ DIR[cid].down ].b["biome2"] !== "d"
-			) {
-				if (
-					(m[ DIR[cid].down ].b["biome"] == "w" && m[ DIR[cid].left ].b["biome"] !== "w") ||
-					(m[ DIR[cid].down ].b["biome"] !== "w" && m[ DIR[cid].left ].b["biome"] == "w") ||
-					(m[ DIR[cid].down ].b["biome"] !== "w" && m[ DIR[cid].left ].b["biome"] !== "w") ||
-					(m[ DIR[cid].dLeft ].b["biome"] !== "w")
-				) {
-					m[cid].s = "dgL";
-				} else {
-					m[cid].s = "dL";
-				}
-				
-			} else if (
-				m[ DIR[cid].up ].b["biome2"] !== "d" && 
-				m[ DIR[cid].left ].b["biome2"] == "d" && 
-				m[ DIR[cid].right ].b["biome2"] !== "d" &&
-				m[ DIR[cid].down ].b["biome2"] == "d"
-			) {
-				if (
-					(m[ DIR[cid].up ].b["biome"] == "w" && m[ DIR[cid].right ].b["biome"] !== "w") ||
-					(m[ DIR[cid].up ].b["biome"] !== "w" && m[ DIR[cid].right ].b["biome"] == "w") ||
-					(m[ DIR[cid].up ].b["biome"] !== "w" && m[ DIR[cid].right ].b["biome"] !== "w") ||
-					(m[ DIR[cid].uRight ].b["biome"] !== "w")
-				) {
-					m[cid].s = "dg7";
-				} else {
-					m[cid].s = "d7";
-				}
-				
-			} else if (
-				m[ DIR[cid].up ].b["biome2"] !== "d" && 
-				m[ DIR[cid].left ].b["biome2"] !== "d" && 
-				m[ DIR[cid].right ].b["biome2"] == "d" &&
-				m[ DIR[cid].down ].b["biome2"] == "d"
-			) {
-				if (
-					(m[ DIR[cid].up ].b["biome"] == "w" && m[ DIR[cid].left ].b["biome"] !== "w") ||
-					(m[ DIR[cid].up ].b["biome"] !== "w" && m[ DIR[cid].left ].b["biome"] == "w") ||
-					(m[ DIR[cid].up ].b["biome"] !== "w" && m[ DIR[cid].left ].b["biome"] !== "w") ||
-					(m[ DIR[cid].uLeft ].b["biome"] !== "w")
-				) {
-					m[cid].s = "dgr";
-				} else {
-					m[cid].s = "dr";
-				}
-			} else if (
-				m[ DIR[cid].up ].b["biome2"] == "d" && 
-				m[ DIR[cid].left ].b["biome2"] !== "d" && 
-				m[ DIR[cid].right ].b["biome2"] !== "d" &&
-				m[ DIR[cid].down ].b["biome2"] !== "d"
-			) {
-				m[cid].s = "du";
-			} else if (
-				m[ DIR[cid].up ].b["biome2"] !== "d" && 
-				m[ DIR[cid].left ].b["biome2"] == "d" && 
-				m[ DIR[cid].right ].b["biome2"] !== "d" &&
-				m[ DIR[cid].down ].b["biome2"] !== "d"
-			) {
-				m[cid].s = "d3";
-			} else if (
-				m[ DIR[cid].up ].b["biome2"] !== "d" && 
-				m[ DIR[cid].left ].b["biome2"] !== "d" && 
-				m[ DIR[cid].right ].b["biome2"] == "d" &&
-				m[ DIR[cid].down ].b["biome2"] !== "d"
-			) {
-				m[cid].s = "dc";
-			} else if (
-				m[ DIR[cid].up ].b["biome2"] !== "d" && 
-				m[ DIR[cid].left ].b["biome2"] !== "d" && 
-				m[ DIR[cid].right ].b["biome2"] !== "d" &&
-				m[ DIR[cid].down ].b["biome2"] == "d"
-			) {
-				m[cid].s = "dn";
-			} else if (
-				m[ DIR[cid].up ].b["biome2"] == "d" && 
-				m[ DIR[cid].left ].b["biome2"] == "d" && 
-				m[ DIR[cid].right ].b["biome2"] == "d" &&
-				m[ DIR[cid].down ].b["biome2"] !== "d"
-			) {
-				m[cid].s = "d";//"deU";//bottom edge
-			} else if (
-				m[ DIR[cid].up ].b["biome2"] == "d" && 
-				m[ DIR[cid].left ].b["biome2"] == "d" && 
-				m[ DIR[cid].right ].b["biome2"] !== "d" &&
-				m[ DIR[cid].down ].b["biome2"] == "d"
-			) {
-				m[cid].s = "d";//"de3";//right edge
-			} else if (
-				m[ DIR[cid].up ].b["biome2"] == "d" && 
-				m[ DIR[cid].left ].b["biome2"] !== "d" && 
-				m[ DIR[cid].right ].b["biome2"] == "d" &&
-				m[ DIR[cid].down ].b["biome2"] == "d"
-			) {
-				m[cid].s = "d";//"deE";//left edge
-			} else if (
-				m[ DIR[cid].up ].b["biome2"] !== "d" && 
-				m[ DIR[cid].left ].b["biome2"] == "d" && 
-				m[ DIR[cid].right ].b["biome2"] == "d" &&
-				m[ DIR[cid].down ].b["biome2"] == "d"
-			) {
-				m[cid].s = "d";//"deT";//top edge
-			} else {
-				m[cid].s = "d"; // small m by itself could just be a bit of rocky terrain
-			}
-			
-		}
-		
-		
-		
-		// mountain peak view blocks: xr, xT, x7
-		// mountain slope blocks: sr, s7, sE, s3 
-		/*
-		
-		biome2 shapes, with surrounding mountain chunks
-		. . . . . . . . . . . . . . . .
-		. . . . . . xrxTx7. . . . . . . . //sX   
-		. xrxTx7. . srpns7xTxTx7. . . . . //msr, ms7
-		. srpos7. xrsEpEpTpTp7s7x7. . . . // 
-		. sL? ? x7srprP P P P p7s7. . . .
-		xrxTsrpo. sLpLP P P P p3s3x7. . .
-		srpos7. . xrsEpEP P pUpUp7s7. . .
-		sLsUsJ. . scpcP pUpJsUsUpusJ. . .
-		. . . . . . sLpusUsJ. . su. . . . // stu
-		. . . . . . . su. . . . . . . . . // stu
-		. . xrxTx7. . . msmsms. . . . .
-		. . srpos7. . mspcphp7ms. . . .
-		. . sLsUsJ. . . msmspvms. . . .
-		xTxTxTx7. . . . . mspums. . . .
-		p7sTpns7. . . . . . ms. . . . .
-		P pTp3. . . . . . . . . . . . .
-		
-		sS = slope south -- could be anything
-		
-		*/
-		if (biome !== "p") {
-			let ouL = 1;
-			let ou_ = 1;
-			let ouR = 1;
-			let o_L = 1;
-			let o_R = 1;
-			let odL = 1;
-			let od_ = 1;
-			let odR = 1;
-			
-			if (m[ DIR[cid].uLeft ].b["biome"] == "p") { ouL = 2; }
-			if (m[ DIR[cid].up ].b["biome"] == "p") { ou_ = 3; }
-			if (m[ DIR[cid].uRight ].b["biome"] == "p") { ouR = 5; }
-			if (m[ DIR[cid].left ].b["biome"] == "p") { o_L = 7; }
-			if (m[ DIR[cid].right ].b["biome"] == "p") { o_R = 11; }
-			if (m[ DIR[cid].dLeft ].b["biome"] == "p") { odL = 13; }
-			if (m[ DIR[cid].down ].b["biome"] == "p") { od_ = 17; }
-			if (m[ DIR[cid].dRight ].b["biome"] == "p") { odR = 19; }
-			
-			let ooo = ouL * ou_ * ouR * o_L * o_R * odL * od_ * odR;
-			
-			if (ooo > 1) {
-				
-			  let mcids = "sS";
-			
-				switch (ooo) {
-			  
-					case 0:
-					  mcids = ""; break;
-					case 1:
-					  break;
-					case 2:
-						mcids = "sJ"; break;
-					case 3:
-						mcids = "sU"; break;
-					case 5:
-						mcids = "sL"; break;
-					case 7:
-						mcids = "s7"; break;
-					case 11:
-						mcids = "sr"; break;
-					case 13:
-					  mcids = "x7"; break;
-					case 17:
-					  mcids = "xT"; break;
-					case 19:
-					  mcids = "xr"; break;
-					case 14:
-					  mcids = "s3"; break;
-					case 55:
-					  mcids = "sE"; break;
-					case 91:
-						mcids = "s7"; break;
-					case 209:
-						mcids = "sr"; break;
-					case 221:
-					  mcids = "xT"; break;
-					case 182:
-					  mcids = "s3"; break;
-					case 1547:
-					  mcids = "s7"; break;
-					case 4199:
-					  mcids = "xT"; break;
-					case 323:
-					  mcids = "xT"; break;
-					case 187:
-					  mcids = "xT"; break;
-					case 3553:
-					  mcids = "xT"; break;
-					case 17765:
-					  mcids = "sE"; break;
-					case 3094:
-					  mcids = "s3"; break;
-					case 46189:
-					  mcids = "xT"; break;
-					case 1045:
-						mcids = "sE"; break;
-					
-					default:
-						break;
-				}
-				
-				
-				m[cid].s = mcids;
-			
-			}
-			/*
-			               2  3  5
-			               7     11
-			               13 17 19
-			*/
-			
-		}
-	} // end for
+	}
 	
+	return pixelData;
 	
 }
+
+
+
+function grad_layout(ref_map) {
+	
+	let all_9_maps = [];
+	for (let b=-1; b<2; b++) {
+		for (let a=-1; a<2; a++) {
+			let new_map = [...Array(3)].map(_ => Array(3).fill(0));
+			new_map[0][0] = ref_map[1+b][1+a]-ref_map[2+b][2+a];
+			new_map[0][1] = ref_map[1+b][2+a]-ref_map[2+b][2+a];
+			new_map[0][2] = ref_map[1+b][3+a]-ref_map[2+b][2+a];
+			new_map[1][0] = ref_map[2+b][1+a]-ref_map[2+b][2+a];
+			new_map[1][2] = ref_map[2+b][3+a]-ref_map[2+b][2+a];
+			new_map[2][0] = ref_map[3+b][1+a]-ref_map[2+b][2+a];
+			new_map[2][1] = ref_map[3+b][2+a]-ref_map[2+b][2+a];
+			new_map[2][2] = ref_map[3+b][3+a]-ref_map[2+b][2+a];
+			all_9_maps.push(new_map);
+		}
+	}
+
+	return all_9_maps;
+}
+
+function biome_layout(ref_map) {
+	// just splits into more thingys
+	let all_9_maps = [];
+	for (let b=1; b<4; b++) {
+		for (let a=1; a<4; a++) {
+			let new_map = [...Array(3)].map(_ => Array(3).fill(0));
+			new_map[0][0] = ref_map[b-1][a-1];
+			new_map[0][1] = ref_map[b-1][a];
+			new_map[0][2] = ref_map[b-1][a+1];
+			new_map[1][0] = ref_map[b][a-1];
+			new_map[1][1] = ref_map[b][a];
+			new_map[1][2] = ref_map[b][a+1];
+			new_map[2][0] = ref_map[b+1][a-1];
+			new_map[2][1] = ref_map[b+1][a];
+			new_map[2][2] = ref_map[b+1][a+1];
+			all_9_maps.push(new_map);
+		}
+	}
+
+	return all_9_maps;
+}
+
+function height_layout(ref_map) {
+	//console.log(ref_map);
+	// just splits into more thingys
+	let all_9_maps = [];
+	for (let b=1; b<4; b++) {
+		for (let a=1; a<4; a++) {
+			let new_map = [...Array(3)].map(_ => Array(3).fill(0));
+			/*new_map[0][0] = get_main_altitude_type(Math.floor(ref_map[b-1][a-1]));
+			new_map[0][1] = get_main_altitude_type(Math.floor(ref_map[b-1][a]));
+			new_map[0][2] = get_main_altitude_type(Math.floor(ref_map[b-1][a+1]));
+			new_map[1][0] = get_main_altitude_type(Math.floor(ref_map[b][a-1]));
+			new_map[1][1] = get_main_altitude_type(Math.floor(ref_map[b][a]));
+			new_map[1][2] = get_main_altitude_type(Math.floor(ref_map[b][a+1]));
+			new_map[2][0] = get_main_altitude_type(Math.floor(ref_map[b+1][a-1]));
+			new_map[2][1] = get_main_altitude_type(Math.floor(ref_map[b+1][a]));
+			new_map[2][2] = get_main_altitude_type(Math.floor(ref_map[b+1][a+1]));/**/
+			new_map[0][0] = ref_map[b-1][a-1];
+			new_map[0][1] = ref_map[b-1][a];
+			new_map[0][2] = ref_map[b-1][a+1];
+			new_map[1][0] = ref_map[b][a-1];
+			new_map[1][1] = ref_map[b][a];
+			new_map[1][2] = ref_map[b][a+1];
+			new_map[2][0] = ref_map[b+1][a-1];
+			new_map[2][1] = ref_map[b+1][a];
+			new_map[2][2] = ref_map[b+1][a+1];
+			all_9_maps.push(new_map);
+		}
+	}
+	
+	return all_9_maps;
+	//return ref_map;
+}
+
+function seed_layout(ref_map) {
+	// just splits into more thingys
+	let all_9_maps = [];
+	for (let b=1; b<4; b++) {
+		for (let a=1; a<4; a++) {
+			let new_map = [...Array(3)].map(_ => Array(3).fill(0));
+			new_map[0][0] = ref_map[b-1][a-1];
+			new_map[0][1] = ref_map[b-1][a];
+			new_map[0][2] = ref_map[b-1][a+1];
+			new_map[1][0] = ref_map[b][a-1];
+			new_map[1][1] = ref_map[b][a];
+			new_map[1][2] = ref_map[b][a+1];
+			new_map[2][0] = ref_map[b+1][a-1];
+			new_map[2][1] = ref_map[b+1][a];
+			new_map[2][2] = ref_map[b+1][a+1];
+			all_9_maps.push(new_map);
+		}
+	}
+
+	return all_9_maps;
+}
+
+
+
+
+const FOREST_TYPE = {
+	//"": 
+	
+}
+
+const FMIN = 7;
+const FMAX = 14;
+
+function get_main_biome_type(x,y) {
+	
+	// ----- FOREST -----
+	let f1 = 11; 
+	let f2 = 3;
+  let forest1 = simplex_country_1.noise2D(x/53, y/53);
+	let forest1n = 0 + (forest1 + 1) * f1;
+	let forest2 = simplex_country_2.noise2D(x/27, y/27);
+	let forest2n = 0 + (forest2 + 1) * f2;
+	let forest_max = (f1*2) + (f2*2);
+	
+	let forest_n = Math.floor(forest1n+forest2n); // 20
+	
+	//let h = Math.floor(hcy+hv+hy);
+	//let h_max = hcy_max + hv_max + hy_max;
+	//let hp = (h/h_max) * 100;
+	if (FMIN <= forest_n && forest_n < FMAX) {
+		return "forest";
+	}
+	
+	
+	
+	return forest_n;
+}
+
+
+/*
+var _h_h_p = null;//get_gradient_info_math(x, y);
+
+var _h = null;//h_h_p[0];
+var _h_p = null;//h_h_p[1];
+var _is_river_1 = null;//h_h_p[2];
+var _is_river_2 = null;//h_h_p[3];
+var _difficulty = null;//h_h_p[4];
+var _xyo = null;//h_h_p[5];
+var _bvi = null;//h_h_p[6];
+*/
+
+
+// this function gets info from all 25 chunks around the 'center' one
+export function get_chunk_info(x,y, reset_mini_map=0, reset_chunk_layout=0) {
+	
+	let g_layout = null;
+	let b_layout = null;
+	let h_layout = null;
+	//let s_layout = null;
+	let dot_map_downhill = null;
+	let dot_map_uphill = null;
+	//let cgrad = null;
+	let ograds = null;
+	let obiomes = null;
+	let oheights = null;
+	//let oseeds = null;
+	
+	let height_ = null;
+	let difficulty_ = null;
+	let color_ = null;
+	let special_ = null;
+	let bvi_ = null;
+	let xyo_ = null;
+	let is_river_1_ = null;
+	let is_river_2_ = null;
+	
+	//let seed_xy = x+"_"+y;
+	//let seed_ = PRNG(seed_xy, 100);
+	
+	if (reset_chunk_layout === 1) {
+		// get surrounding map
+		g_layout = [...Array(5)].map(_ => Array(5).fill(0));
+		b_layout = [...Array(5)].map(_ => Array(5).fill(0));
+		h_layout = [...Array(5)].map(_ => Array(5).fill(0));
+		//s_layout = [...Array(5)].map(_ => Array(5).fill(0));
+		
+		for (let yy=-2; yy<3; yy++) {
+			for (let xx=-2; xx<3; xx++) {
+				let ggim = get_gradient_info_math(x+xx, y+yy); // []
+				
+				// [h, h_p, is_river_1, is_river_2, difficulty, xyo, bvi];
+				b_layout[yy+2][xx+2] = get_main_biome_type(x+xx, y+yy);//bims; // from [20, ..., 37]
+				//h_layout[yy+2][xx+2] = get_main_altitude_type(ggim[1]);//ggim[1];//gims[0];
+				g_layout[yy+2][xx+2] = get_main_altitude_type(ggim[1]); // 
+				
+				//s_layout[yy+2][xx+2] = (x+xx)+"_"+(y+yy);
+				
+				//let gims = ggim[1];//get_gradient_info_math(x+xx, y+yy); // []
+				if (yy === 0 && xx === 0) {
+					height_ = get_main_altitude_type(ggim[1]);//ggim[1];
+					is_river_1_ = ggim[2];
+					is_river_2_ = ggim[3];
+					difficulty_ = ggim[4];
+					xyo_ = ggim[5];
+					bvi_ = ggim[6];
+				}
+			}
+		}
+		
+		let bf = b_layout.flat();
+		let small = Math.min(...bf);
+		let big = Math.max(...bf);
+		
+		//console.log("---------vvvvvvv-------");
+		//console.log(bf.join(" ")+" range: "+small+" - "+big);
+		//console.log("range: "+small+" - "+big)
+		//console.log(b_layout.flat().join(" "));
+		//console.log(h_layout.flat().join(" "));
+		//console.log(g_layout.flat().join(" "));
+		//console.log("---------^^^^^^^-------");
+		
+		
+		ograds = grad_layout(g_layout);
+		obiomes = biome_layout(b_layout);
+		oheights = height_layout(g_layout);
+		//oseeds = seed_layout(s_layout);
+		
+	}
+	
+	
+	let mini_map = null;
+	if (reset_mini_map) {
+		mini_map = create_mini_map(x, y);
+	}
+	
+	
+	return {
+		//"biome": biome,
+		//"is_river": river,
+		//"layout": chunk_layout,
+		//"cgrad": cgrad,
+		"oheights": oheights,
+		"ograds": ograds,
+		"obiomes": obiomes,
+		//"oseeds": oseeds,
+		
+		"difficulty": difficulty_,
+		"color": color_,//height_and_color[1],//color,
+		"special": xyo_,
+		"bvi": bvi_,
+		"height": height_,//height_and_color[0],//height,//HEIGHTS[biome].index,
+		"local_mini_map": mini_map,
+		
+		//"seed": seed_
+	};
+}
+
+
+
+
+
+
+
+
+
+
+
+
+const N = 100;
+export function build_chunk(oheight, ograd, obiome, print_=0, x=0, y=0) {
+	let seed = PRNG(x+"_"+y, N+1);
+	let iR = 0;                             
+	//r = min + Math.floor(seed[iR] * max);
+	//iR = iR >= N ? 0 : iR+1;
+	
+	//console.log(obiome.flat().join(" "));
+	
+	
+	let events = [...Array(16)].map(_ => Array(16).fill(0));
+	
+	
+	
+	
+	let w = 11; // 11 for deep water
+	let d = 110;
+	let d2 = 111;
+	let r = 0;
+	
+	let n = 1;
+	
+	
+	events = build_chunk_WATER_VS_LAND(seed, events, oheight, ograd, obiome, x,y);
+	
+	events = build_chunk_MOUNTAIN(seed, events, oheight, ograd, obiome, x,y);
+	
+	
+	//events[0][0] = 20;
+	//events[0][15] = 21;
+	//events[15][0] = 22;
+	//events[15][15] = 0;
+	
+	if (obiome[1][1] === "forest" && events[0][0] !== w) {
+		// ------- FOREST --------
+		
+		/*
+		events[0][0] = 20;
+		events[0][1] = 70;
+		events[0][2] = 71;
+		events[0][3] = 72;
+		events[0][4] = 73;
+		events[0][5] = 74;
+		events[0][6] = 75;
+		events[0][7] = 76;
+		events[0][8] = 77;
+		/**/
+		//console.log(events[0][0]);
+	}
+	
+	
+	
+	
+	
+	if (print_) {
+		let ss = "";
+		let ss_h = "";
+		let ss_g = "";
+		
+		for (let y=0; y<3; y++) {
+			
+			ss = ss+" "+oheight[y][0]+" "+oheight[y][1]+" "+oheight[y][2]+"     "+ograd[y][0]+" "+ograd[y][1]+" "+ograd[y][2]+"\n";
+		}
+		console.log(ss);
+	
+		
+		for (let y=0; y<3; y++) {
+			for (let x=0; x<3; x++) {
+				ss_g = ss_g+" "+ograd[y][x];
+			}
+			ss_g = ss_g+"\n";
+		}
+		//console.log(ss_g);
+	  
+		//console.log();
+  }
+	
+	return events;
+}
+
+
+
+
+
+
+
+
+
+
+
+function build_chunk_WATER_VS_LAND(seed, events, oheight, ograd, obiome, x,y) {
+	let iR = 0;
+	
+	let w = 11; // 11 for deep water
+	let d = 110;
+	let d2 = 111;
+	let r = 0;
+	
+	//let n = 1;
+
+
+	// ================  WATER  =================
+	if (oheight[1][1] === 1) {
+	
+	  // middle done first
+		if (oheight[1][1] === 1) {
+			for (let a=4; a<12; a++) {
+				for (let b=4; b<12; b++) {
+				  events[a][b] = w;
+				}
+			}
+		}
+	
+		// top left corner
+		if (oheight[0][0] === 1 || (oheight[0][1] === 1 && oheight[1][0] === 1)) {
+			for (let a=0; a<4; a++) {
+				for (let b=0; b<4; b++) {
+				  events[a][b] = w;
+				}
+			}
+		} else {
+			if (oheight[0][0] !== 1) { 
+			  if (oheight[1][0] !== 1 && oheight[2][0] === 1) { // left tall corner
+					r = 0 + Math.floor(seed[iR] * (CSHAPES["brc"].length));
+					iR = iR >= N ? 0 : iR+1;
+					for (let b=0; b<4; b++) {
+						for (let a=0; a<4; a++) {
+							if (CSHAPES["brc"][r][b][a]) {
+								events[8+b][0+a] = w;
+							}
+						}
+					}
+				}
+				if (oheight[0][1] !== 1 && oheight[0][2] === 1) { // top wide corner
+					r = 0 + Math.floor(seed[iR] * (CSHAPES["brc"].length));
+					iR = iR >= N ? 0 : iR+1;
+					for (let b=0; b<4; b++) {
+						for (let a=0; a<4; a++) {
+							if (CSHAPES["brc"][r][b][a]) {
+								events[0+b][8+a] = w;
+							}
+						}
+					}
+				}
+				if (oheight[1][0] !== 1 && oheight[0][1] !== 1) {
+					r = 0 + Math.floor(seed[iR] * (CSHAPES["tlc"].length));
+					iR = iR >= N ? 0 : iR+1;
+					for (let b=0; b<4; b++) {
+						for (let a=0; a<4; a++) {
+							if (CSHAPES["tlc"][r][b][a]) {
+								events[4+b][4+a] = 0;
+							}
+						}
+					}
+				}
+			}
+		}
+	
+  
+		// top right corner
+		if (oheight[0][2] === 1 || (oheight[0][1] === 1 && oheight[1][2] === 1)) {
+			for (let a=0; a<4; a++) {
+				for (let b=12; b<16; b++) {
+				  events[a][b] = w;
+				}
+			}
+		} else {
+			if (oheight[0][2] !== 1) { 
+			  if (oheight[1][2] !== 1 && oheight[2][2] === 1) { // right tall corner
+					r = 0 + Math.floor(seed[iR] * (CSHAPES["blc"].length));
+					iR = iR >= N ? 0 : iR+1;
+					for (let b=0; b<4; b++) {
+						for (let a=0; a<4; a++) {
+							if (CSHAPES["blc"][r][b][a]) {
+								events[8+b][12+a] = w;
+							}
+						}
+					}
+				}
+				if (oheight[0][1] !== 1 && oheight[0][0] === 1) { // top wide corner
+					r = 0 + Math.floor(seed[iR] * (CSHAPES["blc"].length));
+					iR = iR >= N ? 0 : iR+1;
+					for (let b=0; b<4; b++) {
+						for (let a=0; a<4; a++) {
+							if (CSHAPES["blc"][r][b][a]) {
+								events[0+b][4+a] = w;
+							}
+						}
+					}
+				}
+				if (oheight[1][2] !== 1 && oheight[0][1] !== 1) {
+					r = 0 + Math.floor(seed[iR] * (CSHAPES["trc"].length));
+					iR = iR >= N ? 0 : iR+1;
+					for (let b=0; b<4; b++) {
+						for (let a=0; a<4; a++) {
+							if (CSHAPES["trc"][r][b][a]) {
+								events[4+b][8+a] = 0;
+							}
+						}
+					}
+				}
+			}
+		}
+	
+  
+		// bottom left corner
+		if (oheight[2][0] === 1 || (oheight[1][0] === 1 && oheight[2][1] === 1)) {
+			for (let a=12; a<16; a++) {
+				for (let b=0; b<4; b++) {
+				  events[a][b] = w;
+				}
+			}
+		} else {
+			if (oheight[2][0] !== 1) { 
+			  if (oheight[1][0] !== 1 && oheight[0][0] === 1) { // left tall corner
+					r = 0 + Math.floor(seed[iR] * (CSHAPES["trc"].length));
+					iR = iR >= N ? 0 : iR+1;
+					for (let b=0; b<4; b++) {
+						for (let a=0; a<4; a++) {
+							if (CSHAPES["trc"][r][b][a]) {
+								events[4+b][0+a] = w;
+							}
+						}
+					}
+				}
+				if (oheight[2][1] !== 1 && oheight[2][2] === 1) { // bottom wide corner
+					r = 0 + Math.floor(seed[iR] * (CSHAPES["trc"].length));
+					iR = iR >= N ? 0 : iR+1;
+					for (let b=0; b<4; b++) {
+						for (let a=0; a<4; a++) {
+							if (CSHAPES["trc"][r][b][a]) {
+								events[12+b][8+a] = w;
+							}
+						}
+					}
+				}
+				if (oheight[1][0] !== 1 && oheight[2][1] !== 1) {
+					r = 0 + Math.floor(seed[iR] * (CSHAPES["blc"].length));
+					iR = iR >= N ? 0 : iR+1;
+					for (let b=0; b<4; b++) {
+						for (let a=0; a<4; a++) {
+							if (CSHAPES["blc"][r][b][a]) {
+								events[8+b][4+a] = 0;
+							}
+						}
+					}
+				}
+			}
+		}
+  
+	
+	  // bottom right corner
+		if (
+			oheight[2][2] === 1 || // corner is water, or
+			(oheight[1][2] === 1 && oheight[2][1] === 1) // right and bottom are both water 
+		) {
+			for (let a=12; a<16; a++) {
+				for (let b=12; b<16; b++) {
+				  events[a][b] = w;
+				}
+			}
+		} else {
+			if (oheight[2][2] !== 1) {
+			  if (oheight[1][2] !== 1 && oheight[0][2] === 1) { // right tall corner
+					r = 0 + Math.floor(seed[iR] * (CSHAPES["tlc"].length));
+					iR = iR >= N ? 0 : iR+1;
+					for (let b=0; b<4; b++) {
+						for (let a=0; a<4; a++) {
+							if (CSHAPES["tlc"][r][b][a]) {
+								events[4+b][12+a] = w;
+							}
+						}
+					}
+				}
+				if (oheight[2][1] !== 1 && oheight[2][0] === 1) { // bottom wide corner
+					r = 0 + Math.floor(seed[iR] * (CSHAPES["tlc"].length));
+					iR = iR >= N ? 0 : iR+1;
+					for (let b=0; b<4; b++) {
+						for (let a=0; a<4; a++) {
+							if (CSHAPES["tlc"][r][b][a]) {
+								events[12+b][4+a] = w;
+							}
+						}
+					}
+				}
+				if (oheight[1][2] !== 1 && oheight[2][1] !== 1) {
+					r = 0 + Math.floor(seed[iR] * (CSHAPES["brc"].length));
+					iR = iR >= N ? 0 : iR+1;
+					for (let b=0; b<4; b++) {
+						for (let a=0; a<4; a++) {
+							if (CSHAPES["brc"][r][b][a]) {
+								events[8+b][8+a] = 0;
+							}
+						}
+					}
+				}	
+			}
+		}
+	
+	
+		// ---------- TOP ------------
+		if (oheight[0][1] === 1) {
+			for (let a=0; a<4; a++) {
+				for (let b=4; b<12; b++) {
+				  events[a][b] = w;
+				}
+			}
+		} else {
+			if (oheight[0][2] === 1 && oheight[2][2] === 1) { // lighthouse south tip
+				r = 0 + Math.floor(seed[iR] * (CSHAPES["lhst"].length));
+				iR = iR >= N ? 0 : iR+1;
+				for (let b=0; b<8; b++) {
+					for (let a=0; a<8; a++) {
+						if (CSHAPES["lhst"][r][b][a]) {
+							events[0+b][4+a] = w;
+						}
+					}
+				}
+			} else if (oheight[0][0] === 1 && oheight[0][2] !== 1) { // top: water on left, two grass on right
+				if (oheight[1][2] === 1) { // water on right
+					r = 0 + Math.floor(seed[iR] * (CSHAPES["b3"].length));
+					iR = iR >= N ? 0 : iR+1;
+					for (let b=0; b<4; b++) {
+						for (let a=0; a<12; a++) {
+							if (CSHAPES["b3"][r][b][a]) {
+								events[0+b][4+a] = w;
+							}
+						}
+					}
+				} 
+			} else if (oheight[0][0] !== 1 && oheight[0][2] === 1 && oheight[1][0] === 1) { // top: two grass on left, water on right, water on left
+				r = 0 + Math.floor(seed[iR] * (CSHAPES["b3"].length));
+				iR = iR >= N ? 0 : iR+1;
+				for (let b=0; b<4; b++) {
+					for (let a=0; a<12; a++) {
+						if (CSHAPES["b3"][r][b][a]) {
+							events[0+b][0+a] = w;
+						}
+					}
+				}
+			} else { // full edge on bottom
+				// MIDDLE row
+				if (oheight[1][0] === 1 && oheight[1][2] === 1) { // left is water, right is water
+					r = 0 + Math.floor(seed[iR] * (CSHAPES["b"].length));
+					iR = iR >= N ? 0 : iR+1;
+					for (let b=0; b<4; b++) {
+						for (let a=0; a<8; a++) {
+							if (CSHAPES["b"][r][b][a]) {
+								events[0+b][0+a] = w;
+							}
+						}
+					}
+					r = 0 + Math.floor(seed[iR] * (CSHAPES["b"].length));
+					iR = iR >= N ? 0 : iR+1;
+					for (let b=0; b<4; b++) {
+						for (let a=0; a<8; a++) {
+							if (CSHAPES["b"][r][b][a]) {
+								events[0+b][8+a] = w;
+							}
+						}
+					}
+				} else if (oheight[1][0] === 1 && oheight[1][2] !== 1) { // left is water, right is grass
+					r = 0 + Math.floor(seed[iR] * (CSHAPES["b"].length));
+					iR = iR >= N ? 0 : iR+1;
+					for (let b=0; b<4; b++) {
+						for (let a=0; a<8; a++) {
+							if (CSHAPES["b"][r][b][a]) {
+								events[0+b][0+a] = w;
+							}
+						}
+					}/**/
+				} else if (oheight[1][0] !== 1 && oheight[1][2] === 1) { // left is grass, right is water
+					r = 0 + Math.floor(seed[iR] * (CSHAPES["b"].length));
+					iR = iR >= N ? 0 : iR+1;
+					for (let b=0; b<4; b++) {
+						for (let a=0; a<8; a++) {
+							if (CSHAPES["b"][r][b][a]) {
+								events[0+b][8+a] = w;
+							}
+						}
+					}
+				} else { // both are grass
+					//events[8][11] = d;
+				}
+			}
+		
+		}
+	
+
+	  // ------- LEFT --------
+		if (oheight[1][0] === 1) {
+			for (let a=4; a<12; a++) {
+				for (let b=0; b<4; b++) {
+				  events[a][b] = w;
+				}
+			}
+		} else {
+			// checking top and bottom now, given left is NOT water
+			if (oheight[0][0] === 1 && oheight[2][0] === 1) { // lighthouse west tip
+				r = 0 + Math.floor(seed[iR] * (CSHAPES["lhwt"].length));
+				iR = iR >= N ? 0 : iR+1;
+				for (let b=0; b<8; b++) {
+					for (let a=0; a<8; a++) {
+						if (CSHAPES["lhwt"][r][b][a]) {
+							events[4+b][0+a] = w;
+						}
+					}
+				}
+			} else if (oheight[0][0] === 1 && oheight[2][0] !== 1 && oheight[2][1] === 1) { // water on top, two grass on bottom, and no grass blocking bottom middle
+				r = 0 + Math.floor(seed[iR] * (CSHAPES["r3"].length));
+				iR = iR >= N ? 0 : iR+1;
+				for (let b=0; b<12; b++) {
+					for (let a=0; a<4; a++) {
+						if (CSHAPES["r3"][r][b][a]) {
+							events[4+b][0+a] = w;
+						}
+					}
+				}/**/
+			} else if (oheight[0][0] !== 1 && oheight[2][0] === 1 && oheight[0][1] === 1) { // two grass on top, water on bottom, and no grass blocking top middle
+				r = 0 + Math.floor(seed[iR] * (CSHAPES["r3"].length));
+				iR = iR >= N ? 0 : iR+1;
+				for (let b=0; b<12; b++) {
+					for (let a=0; a<4; a++) {
+						if (CSHAPES["r3"][r][b][a]) {
+							events[0+b][0+a] = w;
+						}
+					}
+				}
+			} else { // full edge on left
+				// MIDDLE column
+				if (oheight[0][1] === 1 && oheight[2][1] === 1) { // top is water, bottom is water
+					r = 0 + Math.floor(seed[iR] * (CSHAPES["r"].length));
+					iR = iR >= N ? 0 : iR+1;
+					for (let b=0; b<8; b++) {
+						for (let a=0; a<4; a++) {
+							if (CSHAPES["r"][r][b][a]) {
+								events[0+b][0+a] = w;
+							}
+						}
+					}
+					r = 0 + Math.floor(seed[iR] * (CSHAPES["r"].length));
+					iR = iR >= N ? 0 : iR+1;
+					for (let b=0; b<8; b++) {
+						for (let a=0; a<4; a++) {
+							if (CSHAPES["r"][r][b][a]) {
+								events[8+b][0+a] = w;
+							}
+						}
+					}
+				} else if (oheight[0][1] === 1 && oheight[2][1] !== 1) { // top is water, bottom is grass
+					r = 0 + Math.floor(seed[iR] * (CSHAPES["r"].length));
+					iR = iR >= N ? 0 : iR+1;
+					for (let b=0; b<8; b++) {
+						for (let a=0; a<4; a++) {
+							if (CSHAPES["r"][r][b][a]) {
+								events[0+b][0+a] = w;
+							}
+						}
+					}
+				} else if (oheight[0][1] !== 1 && oheight[2][1] === 1) { // top is grass, bottom is water
+					r = 0 + Math.floor(seed[iR] * (CSHAPES["r"].length));
+					iR = iR >= N ? 0 : iR+1;
+					for (let b=0; b<8; b++) {
+						for (let a=0; a<4; a++) {
+							if (CSHAPES["r"][r][b][a]) {
+								events[8+b][0+a] = w;
+							}
+						}
+					}
+				} else { // both are grass
+					events[8][5] = d;
+				}
+			}
+		}
+	
+
+	  // ----------- RIGHT ---------------
+		if (oheight[1][2] === 1) {
+			for (let a=4; a<12; a++) {
+				for (let b=12; b<16; b++) {
+				  events[a][b] = w;
+				}
+			}
+		} else {
+			if (oheight[0][2] === 1 && oheight[2][2] === 1) { // lighthouse east tip
+				r = 0 + Math.floor(seed[iR] * (CSHAPES["lhet"].length));
+				iR = iR >= N ? 0 : iR+1;
+				for (let b=0; b<8; b++) {
+					for (let a=0; a<8; a++) {
+						if (CSHAPES["lhet"][r][b][a]) {
+							events[4+b][8+a] = w;
+						}
+					}
+				}
+			} else if (oheight[0][2] === 1 && oheight[2][2] !== 1) {
+				if (oheight[2][1] === 1) { // water on top, two grass on bottom, no grass blocking bottom middle
+					r = 0 + Math.floor(seed[iR] * (CSHAPES["l3"].length));
+					iR = iR >= N ? 0 : iR+1;
+					for (let b=0; b<12; b++) {
+						for (let a=0; a<4; a++) {
+							if (CSHAPES["l3"][r][b][a]) {
+								events[4+b][12+a] = w;
+							}
+						}
+					}
+				}
+			} else if (oheight[0][2] !== 1 && oheight[2][2] === 1 && oheight[0][1] === 1) { // two grass on top, water on bottom, no grass blocking top middle
+				r = 0 + Math.floor(seed[iR] * (CSHAPES["l3"].length));
+				iR = iR >= N ? 0 : iR+1;
+				for (let b=0; b<12; b++) {
+					for (let a=0; a<4; a++) {
+						if (CSHAPES["l3"][r][b][a]) {
+							events[0+b][12+a] = w;
+						}
+					}
+				}
+			} else { // full edge on right
+				// MIDDLE column
+				if (oheight[0][1] === 1 && oheight[2][1] === 1) { // top is water, bottom is water
+					r = 0 + Math.floor(seed[iR] * (CSHAPES["l"].length));
+					iR = iR >= N ? 0 : iR+1;
+					for (let b=0; b<8; b++) {
+						for (let a=0; a<4; a++) {
+							if (CSHAPES["l"][r][b][a]) {
+								events[0+b][12+a] = w;
+							}
+						}
+					}
+					r = 0 + Math.floor(seed[iR] * (CSHAPES["l"].length));
+					iR = iR >= N ? 0 : iR+1;
+					for (let b=0; b<8; b++) {
+						for (let a=0; a<4; a++) {
+							if (CSHAPES["l"][r][b][a]) {
+								events[8+b][12+a] = w;
+							}
+						}
+					}
+				} else if (oheight[0][1] === 1 && oheight[2][1] !== 1) { // top is water, bottom is grass
+					r = 0 + Math.floor(seed[iR] * (CSHAPES["l"].length));
+					iR = iR >= N ? 0 : iR+1;
+					for (let b=0; b<8; b++) {
+						for (let a=0; a<4; a++) {
+							if (CSHAPES["l"][r][b][a]) {
+								events[0+b][12+a] = w;
+							}
+						}
+					}
+				} else if (oheight[0][1] !== 1 && oheight[2][1] === 1) { // top is grass, bottom is water
+					r = 0 + Math.floor(seed[iR] * (CSHAPES["l"].length));
+					iR = iR >= N ? 0 : iR+1;
+					for (let b=0; b<8; b++) {
+						for (let a=0; a<4; a++) {
+							if (CSHAPES["l"][r][b][a]) {
+								events[8+b][12+a] = w;
+							}
+						}
+					}
+				} else { // both are grass
+					events[8][11] = d;
+				}
+			}
+		}
+	
+	
+		// ---------- BOTTOM ------------
+		if (oheight[2][1] === 1) {
+			for (let a=12; a<16; a++) {
+				for (let b=4; b<12; b++) {
+				  events[a][b] = w;
+				}
+			}
+		} else {
+			if (oheight[2][0] === 1 && oheight[2][2] === 1) { // lighthouse north tip
+				r = 0 + Math.floor(seed[iR] * (CSHAPES["lhnt"].length-1));
+				iR = iR >= N ? 0 : iR+1;
+				for (let b=0; b<8; b++) {
+					for (let a=0; a<8; a++) {
+						if (CSHAPES["lhnt"][r][b][a]) {
+							events[8+b][4+a] = w;
+						}
+					}
+				}
+			} else if (oheight[2][0] === 1 && oheight[2][2] !== 1) { // bottom: water on left, two grass on right
+				if (oheight[1][2] === 1) { // water on right
+					r = 0 + Math.floor(seed[iR] * (CSHAPES["t3"].length-1));
+					iR = iR >= N ? 0 : iR+1;
+					for (let b=0; b<4; b++) {
+						for (let a=0; a<12; a++) {
+							if (CSHAPES["t3"][r][b][a]) {
+								events[12+b][4+a] = w;
+							}
+						}
+					}
+				} 
+			} else if (oheight[2][0] !== 1 && oheight[2][2] === 1 && oheight[1][0] === 1) { // two grass on left, water on right, water on left
+				r = 0 + Math.floor(seed[iR] * (CSHAPES["t3"].length-1));
+				iR = iR >= N ? 0 : iR+1;
+				for (let b=0; b<4; b++) {
+					for (let a=0; a<12; a++) {
+						if (CSHAPES["t3"][r][b][a]) {
+							events[12+b][0+a] = w;
+						}
+					}
+				}
+			} else { // full edge on bottom
+				// MIDDLE row
+				if (oheight[1][0] === 1 && oheight[1][2] === 1) { // left is water, right is water
+					r = 0 + Math.floor(seed[iR] * (CSHAPES["t"].length-1));
+					iR = iR >= N ? 0 : iR+1;
+					for (let b=0; b<4; b++) {
+						for (let a=0; a<8; a++) {
+							if (CSHAPES["t"][r][b][a]) {
+								events[12+b][0+a] = w;
+							}
+						}
+					}
+					r = 0 + Math.floor(seed[iR] * (CSHAPES["t"].length-1));
+					iR = iR >= N ? 0 : iR+1;
+					for (let b=0; b<4; b++) {
+						for (let a=0; a<8; a++) {
+							if (CSHAPES["t"][r][b][a]) {
+								events[12+b][8+a] = w;
+							}
+						}
+					}
+				} else if (oheight[1][0] === 1 && oheight[1][2] !== 1) { // left is water, right is grass
+					r = 0 + Math.floor(seed[iR] * (CSHAPES["t"].length-1));
+					iR = iR >= N ? 0 : iR+1;
+					for (let b=0; b<4; b++) {
+						for (let a=0; a<8; a++) {
+							if (CSHAPES["t"][r][b][a]) {
+								events[12+b][0+a] = w;
+							}
+						}
+					}
+				} else if (oheight[1][0] !== 1 && oheight[1][2] === 1) { // left is grass, right is water
+					r = 0 + Math.floor(seed[iR] * (CSHAPES["t"].length-1));
+					iR = iR >= N ? 0 : iR+1;
+					for (let b=0; b<4; b++) {
+						for (let a=0; a<8; a++) {
+							if (CSHAPES["t"][r][b][a]) {
+								events[12+b][8+a] = w;
+							}
+						}
+					}
+				} else { // both are grass
+					//events[8][11] = d;
+				}
+			
+			}
+		
+		}
+			
+		// ============= LAND ==================
+	} else { 
+	
+	
+		// top left corner
+		if (oheight[0][0] === 1 && (oheight[0][1] === 1 && oheight[1][0] === 1)) {
+			r = 0 + Math.floor(seed[iR] * (CSHAPES["tlc"].length));
+			iR = iR >= N ? 0 : iR+1;
+			for (let b=0; b<4; b++) {
+				for (let a=0; a<4; a++) {
+					if (CSHAPES["tlc"][r][b][a]) {
+						events[0+b][0+a] = w;
+					}
+				}
+			}
+		}
+	
+		// top right corner
+		if (oheight[0][2] === 1 && (oheight[0][1] === 1 && oheight[1][2] === 1)) {
+			r = 0 + Math.floor(seed[iR] * (CSHAPES["trc"].length));
+			iR = iR >= N ? 0 : iR+1;
+			for (let b=0; b<4; b++) {
+				for (let a=0; a<4; a++) {
+					if (CSHAPES["trc"][r][b][a]) {
+						events[0+b][12+a] = w;
+					}
+				}
+			}
+		}
+	
+		// bottom left corner
+		if (oheight[2][0] === 1 && (oheight[1][0] === 1 && oheight[2][1] === 1)) {
+			r = 0 + Math.floor(seed[iR] * (CSHAPES["blc"].length));
+			iR = iR >= N ? 0 : iR+1;
+			for (let b=0; b<4; b++) {
+				for (let a=0; a<4; a++) {
+					if (CSHAPES["blc"][r][b][a]) {
+						events[12+b][0+a] = w;
+					}
+				}
+			}
+		}
+	
+	  // bottom right corner
+		if (oheight[2][2] === 1 && (oheight[1][2] === 1 && oheight[2][1] === 1)) {
+			r = 0 + Math.floor(seed[iR] * (CSHAPES["brc"].length));
+			iR = iR >= N ? 0 : iR+1;
+			for (let b=0; b<4; b++) {
+				for (let a=0; a<4; a++) {
+					if (CSHAPES["brc"][r][b][a]) {
+						events[12+b][12+a] = w;
+					}
+				}
+			}
+		} 
+	
+		// top left cross
+		if (oheight[0][0] !== 1 && oheight[0][1] === 1 && oheight[1][0] === 1) {
+			r = 0 + Math.floor(seed[iR] * (CSHAPES["tlc"].length));
+			iR = iR >= N ? 0 : iR+1;
+			for (let b=0; b<4; b++) {
+				for (let a=0; a<4; a++) {
+					if (CSHAPES["tlc"][r][b][a]) {
+						events[0+b][0+a] = w;
+					}
+				}
+			}
+		}
+	
+		// top right cross
+		if (oheight[0][2] !== 1 && oheight[0][1] === 1 && oheight[1][2] === 1) {
+			r = 0 + Math.floor(seed[iR] * (CSHAPES["trc"].length));
+			iR = iR >= N ? 0 : iR+1;
+			for (let b=0; b<4; b++) {
+				for (let a=0; a<4; a++) {
+					if (CSHAPES["trc"][r][b][a]) {
+						events[0+b][12+a] = w;
+					}
+				}
+			}
+		}
+	
+		// bottom left cross
+		if (oheight[2][0] !== 1 && oheight[1][0] === 1 && oheight[2][1] === 1) {
+			r = 0 + Math.floor(seed[iR] * (CSHAPES["blc"].length));
+			iR = iR >= N ? 0 : iR+1;
+			for (let b=0; b<4; b++) {
+				for (let a=0; a<4; a++) {
+					if (CSHAPES["blc"][r][b][a]) {
+						events[12+b][0+a] = w;
+					}
+				}
+			}
+		}
+	
+		// bottom right cross
+		if (oheight[2][2] !== 1 && oheight[1][2] === 1 && oheight[2][1] === 1) {
+			r = 0 + Math.floor(seed[iR] * (CSHAPES["brc"].length));
+			iR = iR >= N ? 0 : iR+1;
+			for (let b=0; b<4; b++) {
+				for (let a=0; a<4; a++) {
+					if (CSHAPES["brc"][r][b][a]) {
+						events[12+b][12+a] = w;
+					}
+				}
+			}
+		}
+	
+	}
+
+
+	return events;
+
+}
+
+
+function build_chunk_MOUNTAIN(seed, e, oh, og, ob, x,y) {
+	let iR = 0;
+	let r = 0;
+	
+	
+	//console.log()
+	// EDGES / RIDGES / CLIFFS / SLOPES
+	// 36 37
+	
+	// top left corner
+	if (og[0][0] === 1) {
+		if (og[0][1] !== 1 && og[1][0] !== 1) { // empty around corner
+			e[0][3] = 34; e[1][3] = 34; e[1][2] = 34; e[2][2] = 34; e[2][1] = 34; e[3][1] = 34; e[2][0] = 34; e[3][0] = 34;
+		} else if (og[0][1] !== 1 && og[1][0] === 1) {
+		} else if (og[0][1] === 1 && og[1][0] !== 1) {
+		} else if (og[0][1] === 1 && og[1][0] === 1) { // full corner
+			if (og[2][1] !== 1 && og[1][2] !== 1) { // opposites are empty
+				r = 0 + Math.floor(seed[iR] * (CLIFFS["cliff_tlc"].length));
+				iR = iR >= N ? 0 : iR+1;
+				for (let b=0; b<8; b++) {
+					for (let a=0; a<8; a++) {
+						let c = CLIFFS["cliff_tlc"][r][b][a];
+						if (c === 4) {
+							e[4+b][4+a] = 34;
+						} else if (c === 2) {
+							e[4+b][4+a] = 32;
+						}
+					}
+				}
+				// top right connect across
+				e[3][12] = 34; e[4][12] = 34; e[3][13] = 34; e[4][13] = 34; e[3][14] = 34; e[4][14] = 34; e[3][15] = 34; e[4][15] = 34;
+				// bottom left connect down
+				e[10][3] = 33; e[11][3] = 33; e[12][3] = 33; e[13][3] = 33; e[14][3] = 33; e[15][3] = 33;
+			}
+		}
+	}
+	
+	// top right corner
+	if (og[0][2] === 1) {
+		if (og[0][1] !== 1 && og[1][2] !== 1) { // empty around corner
+			e[0][12] = 34; e[1][12] = 34; e[1][13] = 34; e[2][13] = 34; e[2][14] = 34; e[3][14] = 34; e[2][15] = 34; e[3][15] = 34;
+		} else if (og[0][1] !== 1 && og[1][2] === 1) {
+		} else if (og[0][1] === 1 && og[1][2] !== 1) {
+		} else if (og[0][1] === 1 && og[1][2] === 1) { // full corner
+			if (og[1][0] !== 1 && og[2][1] !== 1) { // opposites are empty
+				r = 0 + Math.floor(seed[iR] * (CLIFFS["cliff_trc"].length));
+				iR = iR >= N ? 0 : iR+1;
+				for (let b=0; b<8; b++) {
+					for (let a=0; a<8; a++) {
+						let c = CLIFFS["cliff_trc"][r][b][a];
+						if (c === 4) {
+							e[4+b][4+a] = 34;
+						} else if (c === 3) {
+							e[4+b][4+a] = 33;
+						}
+					}
+				}
+				// top left connect across
+				e[3][0] = 34; e[4][0] = 34; e[3][1] = 34; e[4][1] = 34; e[3][2] = 34; e[4][2] = 34; e[3][3] = 34; e[4][3] = 34;
+				// bottom right connect down
+				e[10][12] = 32; e[11][12] = 32; e[12][12] = 32; e[13][12] = 32; e[14][12] = 32; e[15][12] = 32;
+			}
+		}
+	}
+	
+	// bottom left corner
+	if (og[2][0] === 1) {
+		if (og[1][0] !== 1 && og[2][1] !== 1) { // empty around corner
+			e[12][0] = 31; e[13][0] = 31; e[13][1] = 31; e[14][1] = 31; e[14][2] = 31; e[15][2] = 31; e[14][3] = 31; e[15][3] = 31;
+		} else if (og[1][0] !== 1 && og[2][1] === 1) {
+		} else if (og[1][0] === 1 && og[2][1] !== 1) {
+		} else if (og[1][0] === 1 && og[2][1] === 1) { // full corner
+			if (og[0][1] !== 1 && og[1][2] !== 1) { // opposites are empty
+				r = 0 + Math.floor(seed[iR] * (CLIFFS["cliff_blc"].length));
+				iR = iR >= N ? 0 : iR+1;
+				for (let b=0; b<8; b++) {
+					for (let a=0; a<8; a++) {
+						let c = CLIFFS["cliff_blc"][r][b][a];
+						if (c === 1) {
+							e[4+b][4+a] = 31;
+						} else if (c === 3) {
+							e[4+b][4+a] = 33;
+						}
+					}
+				}
+				// top left connect up
+				e[0][3] = 33; e[1][3] = 33; e[2][3] = 33; e[3][3] = 33;
+				// bottom right connect across
+				e[12][11] = 31; e[13][11] = 31; e[12][12] = 31; e[13][12] = 31; e[12][13] = 31; e[13][13] = 31; e[12][14] = 31; e[13][14] = 31; e[12][15] = 31; e[13][15] = 31;
+			}
+		}
+	}
+	
+	// bottom right corner
+	if (og[2][2] === 1) {
+		if (og[1][2] !== 1 && og[2][1] !== 1) { // empty around corner
+			e[12][15] = 31; e[13][15] = 31; e[13][14] = 31; e[14][14] = 31; e[14][13] = 31; e[15][13] = 31; e[14][12] = 31; e[15][12] = 31;
+		} else if (og[1][2] !== 1 && og[2][1] === 1) {
+		} else if (og[1][2] === 1 && og[2][1] !== 1) {
+		} else if (og[1][2] === 1 && og[2][1] === 1) { // full corner
+			if (og[0][1] !== 1 && og[1][0] !== 1) { // opposites are empty
+				r = 0 + Math.floor(seed[iR] * (CLIFFS["cliff_brc"].length));
+				iR = iR >= N ? 0 : iR+1;
+				for (let b=0; b<8; b++) {
+					for (let a=0; a<8; a++) {
+						let c = CLIFFS["cliff_brc"][r][b][a];
+						if (c === 1) {
+							e[4+b][4+a] = 31;
+						} else if (c === 2) {
+							e[4+b][4+a] = 32;
+						}
+					}
+				}
+				// top right connect up
+				e[0][12] = 32; e[1][12] = 32; e[2][12] = 32; e[3][12] = 32;
+				// bottom left connect across
+				e[12][0] = 31; e[13][0] = 31; e[12][1] = 31; e[13][1] = 31; e[12][2] = 31; e[13][2] = 31; e[12][3] = 31; e[13][3] = 31; e[12][4] = 31; e[13][4] = 31;
+			}
+		}
+	}
+	
+	//top
+	if (og[0][1] === 1) {
+		if (og[1][0] !== 1 && og[1][2] !== 1) { // left right empty
+			for (let a=0; a<16; a++) {
+				e[3][a] = 34; e[4][a] = 34;
+			}
+		}
+	}
+	
+	//left
+	if (og[1][0] === 1) {
+		if (og[0][1] !== 1 && og[2][1] !== 1) { // top bottom empty
+			for (let b=0; b<16; b++) {
+				e[b][3] = 33;
+			}
+		}
+	}
+	
+	//right
+	if (og[1][2] === 1) {
+		if (og[0][1] !== 1 && og[2][1] !== 1) { // top bottom empty
+			for (let b=0; b<16; b++) {
+				e[b][12] = 32;
+			}
+		}
+	}
+	
+	// bottom
+	if (og[2][1] === 1) {
+		if (og[1][0] !== 1 && og[1][2] !== 1) { // left right empty
+			for (let a=0; a<16; a++) {
+				e[12][a] = 31; e[13][a] = 31;
+			}
+		}
+	}
+	
+	/*
+	// top
+	if (ograd[0][1] === 1) {
+		if (ograd[0][0] !== 1 && ograd[0][2] !== 1) {
+			for (let x=0; x<16; x++) {
+				events[2][x] = 34; // 34 bottom face
+				events[3][x] = 34;
+			}
+		}
+	}
+	
+	// bottom
+	if (ograd[2][1] === 1) {
+		if (ograd[2][0] !== 1 && ograd[2][2] !== 1) {
+			for (let x=0; x<16; x++) {
+				events[12][x] = 31; // 31 top edge
+				events[13][x] = 31;
+			}
+		}
+	}
+	
+	// left side ( 7_ right cliff 33 )
+	if (ograd[1][0] === 1) {
+		if (ograd[0][0] !== 1 && ograd[2][0] !== 1) {
+			for (let y=0; y<16; y++) {
+				if (events[y][3] === 34) {
+					events[y][3] = 334; // 334 right cliff overlap front face
+				} else if (events[y][3] === 31) {
+					events[y][3] = 331; // 331 right cliff overlap back edge
+				} else {
+					events[y][3] = 33;
+				}
+			}
+		}
+	}
+	
+	// right side ( _Γ left cliff 32 )
+	if (ograd[1][2] === 1) {
+		if (ograd[0][2] !== 1 && ograd[2][2] !== 1) {
+			for (let y=0; y<16; y++) {
+				if (events[y][12] === 34) {
+					events[y][12] = 324; // 324 left cliff overlap front face
+				} else if (events[y][12] === 31) {
+					events[y][12] = 321; // 321 left cliff overlap back edge
+				} else {
+					events[y][12] = 32;
+				}
+			}
+		}
+	}/**/
+	
+	e[0][0] = 403;
+	
+	
+	
+	
+	return e;
+}
+
+
+
+
+
+/*
+
+
+	
+	/*
+	if (ograd[0][0] === -1 && ograd[0][1] === -1 && ograd[0][2] === -1
+		&& ograd[1][0] === -1 && ograd[1][2] === -1 
+		&& ograd[2][0] === -1 && ograd[2][1] === -1 && ograd[2][2] === -1
+	) {
+		for (let b=0; b<8; b++) {
+			for (let a=0; a<8; a++) {
+				if (CLIFFS["test_cliff_top"][0][b][a]) {
+					events[4+b][4+a] = 30;
+				}
+				if (CLIFFS["test_cliff_face"][0][b][a]) {
+					events[4+b][4+a] = 31;
+				}
+			}
+		}	
+	}
+
+
+if (0) {
+	for (let b=0; b<8; b++) {
+		for (let a=0; a<8; a++) {
+			let c = CLIFFS["test_cliff"][0][b][a];
+			// 31 reserved for other cliff type
+		
+		
+			switch (c) {
+				case 1:
+					events[4+b][4+a] = 31; //top
+					break;
+				case 2:
+					events[4+b][4+a] = 32; //left
+					break;
+				case 3:
+					events[4+b][4+a] = 33; //right
+					break;
+				case 4:
+					events[4+b][4+a] = 34; // bottom
+					break;
+				case 5:
+					events[4+b][4+a] = 35; // top (block)
+					break;
+				default:
+					break;
+			}
+		}
+	}	
+}
+
+/*
+events[0][3] = 401; events[1][3] = 401; events[2][3] = 401; events[3][3] = 401;
+for (let a=4; a<12; a++) {
+	events[a][3] = 30;
+}
+events[12][3] = 401; events[13][3] = 401; events[14][3] = 401; events[15][3] = 401;
+/**/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+function mini_map_(sp_id) {
+	
+	let sprite_id = 960;
+	
+	
+	switch (sp_id.biome) {
+		case "w": 
+			sprite_id = 960;
+			break;
+		case "g":
+			if (["m", "M"].includes(sp_id.biome2)) {
+				sprite_id = 963;
+			} else if (sp_id.biome2 === "f") {
+				sprite_id = 964;
+			} else if (sp_id.biome2 === "q") {
+			  sprite_id = 966;
+			} else {
+				sprite_id = 961;
+			}
+			break;
+		case "d":
+			sprite_id = 962;
+			break;
+		case "m":
+			sprite_id = 963;
+			break;
+		case "M":
+			sprite_id = 963;
+			break;
+		case "f":
+			sprite_id = 964;
+			break;
+		case "p":
+			sprite_id = 965;
+			break;
+		case "q":
+			sprite_id = 966;
+			break;
+	}
+	return sprite_id;
+}/**/
+
+
+
+
+
+// Function to draw the image on the canvas
+export function drawImageFromArray(pixelData) {
+  const canvas = document.getElementById('myCanvas');
+  const context = canvas.getContext('2d');
+	
+	
+	//context.translate(canvas.width / (SCALE*2), canvas.height / (SCALE*2));
+	
+	//console.log(pixelData)
+	// biome
+  pixelData.forEach(([x, y, color, biome]) => {
+		//console.log(x+" "+y);
+    context.fillStyle = color;
+    context.fillRect(x*SCALE, y*SCALE, 1*SCALE, 1*SCALE);
+		if (biome === "forest") {
+		  context.fillStyle = "#070";
+		  context.fillRect(x*SCALE, y*SCALE, 1, 1);/**/
+			//context.fillRect(QSIZE*SCALE, QSIZE*SCALE+1, 1, 1);/**/
+			//context.fillRect(QSIZE*SCALE+2, QSIZE*SCALE+1, 1, 1);/**/
+			//context.fillRect(QSIZE*SCALE+1, QSIZE*SCALE+2, 1, 1);/**/
+		} 
+		
+  });/**/
+	
+	/*
+  // special areas
+  spPixelData.forEach(([x, y, color]) => {
+    context.fillStyle = color;
+    context.fillRect(x*SCALE+xx*SCALE*1, y*SCALE+yy*SCALE*1, SCALE*1, SCALE*1);
+  });/**/
+	
+  // origin (0,0)
+  context.fillStyle = "rgb(250,250,250)";
+  context.fillRect(QSIZE*SCALE+1, QSIZE*SCALE, 1, 1);/**/
+	context.fillRect(QSIZE*SCALE, QSIZE*SCALE+1, 1, 1);/**/
+	context.fillRect(QSIZE*SCALE+2, QSIZE*SCALE+1, 1, 1);/**/
+	context.fillRect(QSIZE*SCALE+1, QSIZE*SCALE+2, 1, 1);/**/
+		
+}
+
+
+
+
+const CHUNK_SCALE = 4;
+
+
+// Function to draw the CHUNK image on the canvas (NOT USED YET)
+export function drawChunk(chunkLayoutData) {
+	throw 0;
+  const canvas = document.getElementById('myCanvasChunk');
+  const context = canvas.getContext('2d');
+	
+	
+	//context.translate(canvas.width / (SCALE*2), canvas.height / (SCALE*2));
+	
+	//console.log(pixelData)
+	// biome
+  chunkLayoutData.forEach(([x, y, color]) => {
+		//console.log(x+" "+y);
+    context.fillStyle = color;
+    context.fillRect(x*CHUNK_SCALE, y*CHUNK_SCALE, 1*CHUNK_SCALE, 1*CHUNK_SCALE);
+  });
+	
+}
+
+
+// THIS is the bread and butter
+function chunk_layout() {
+	//throw 0;
+}
+
+
 

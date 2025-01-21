@@ -5,7 +5,6 @@ import ast
 import random
 
 """
-button to 'clean', any trees that are one on top of another, or 2x2 bushes that are too close together
 
 
 """
@@ -52,6 +51,7 @@ class PaintApp:
           "Grass", 
           "Bushes",
           "Trees",
+          "Trees Random",
           "Stairs",
           "Flower 1",
           "Flower 2",
@@ -60,6 +60,7 @@ class PaintApp:
           "Flower 5",
           "Flower 6",
           "Flowers Random",
+          "snow",
         ]
         
         # Variable to hold the selected option
@@ -71,7 +72,7 @@ class PaintApp:
         self.stamp_option_menu.pack(side=tk.RIGHT)
         
         
-        self.shape_options_strs = ["g", "f", "m", "M"]
+        self.shape_options_strs = ["g", "f", "m", "M", "p"]
         
         # Variable to hold the selected option
         self.selected_shape_option = tk.StringVar(self.root)
@@ -181,6 +182,8 @@ class PaintApp:
           20: {"index": 404, "icon": "flower"},
           21: {"index": 405, "icon": "flower"},
           22: {"index": 406, "icon": "flower"},# random flowers
+          23: {"index": 91, "icon": "snow"}, # snow rocks
+          24: {"index": 40, "icon": "tree"},# random trees
           9999: {
             0: 0,
             61: 1,
@@ -197,6 +200,7 @@ class PaintApp:
             112: 12,
             20: 13,
             41: 14,
+            40: 24,
             65: 15,
             400: 16,
             401: 17,
@@ -205,6 +209,7 @@ class PaintApp:
             404: 20,
             405: 21,
             406: 22,
+            91: 23,
             
           },
           "stamp_from_string": {
@@ -223,6 +228,7 @@ class PaintApp:
             "Grass": 12, 
             "Bushes": 13,
             "Trees": 14,
+            "Trees Random": 24,
             "Stairs": 15,
             "Flower 1": 16,
             "Flower 2": 17,
@@ -231,11 +237,30 @@ class PaintApp:
             "Flower 5": 20,
             "Flower 6": 21,
             "Flowers Random": 22,
+            "snow": 23,
           }
         }
         
         
         self.icons = {
+          "snow": [
+            [0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0, 1,0,0,0,0,0,0,0],
+            [0,0,0,0,0,1,0,0, 1,0,0,1,0,0,0,0],
+            [0,0,0,0,0,0,1,0, 1,0,1,0,0,0,0,0],
+            [0,0,0,0,0,0,0,1, 1,1,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0, 1,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,1, 1,1,0,0,0,0,0,0],
+            [0,0,0,0,0,0,1,0, 1,0,1,0,0,0,0,0],
+            [0,0,0,0,0,1,0,0, 1,0,0,1,0,0,0,0],
+            [0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0],
+          ],
           "dirt": [
             [0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,1, 0,0,0,0,0,0,0,0], [0,0,1,1,0,0,0,0, 0,0,0,0,0,0,1,0], [0,0,1,1,0,0,0,0, 0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0, 0,0,1,1,0,0,0,0], [0,0,0,0,0,0,0,0, 0,0,1,1,0,0,0,0], [0,0,0,0,0,0,1,0, 0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0], 
             [0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0], [0,1,0,0,0,0,0,0, 0,1,0,0,0,0,0,0], [0,0,0,0,1,1,0,0, 0,0,0,0,0,0,0,0], [0,0,0,0,1,1,0,0, 0,0,0,0,0,1,1,0], [0,0,0,0,0,0,0,0, 0,0,0,0,0,1,1,0], [0,0,1,0,0,0,0,0, 0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0, 0,1,0,0,0,0,0,0], [0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0],
@@ -514,6 +539,8 @@ class PaintApp:
           20: "#3399ff",
           21: "#9933ff",
           22: "#ffffff", # random
+          23: "#777755", # snow rock
+          24: "#ffffff", # random
           
         }
         
@@ -535,6 +562,7 @@ class PaintApp:
           1: "f", 
           2: "m",
           3: "M",
+          4: "p",
         }
         
         return shape_mapping.get(value, "m")
@@ -542,7 +570,7 @@ class PaintApp:
     # --- deprecated
     def get_biome_from_value(self, value):
         # Map integer biome values to corresponding biome strings
-        biome_mapping = {0: "g", 1: "f", 2: "m", 3: "M"}
+        biome_mapping = {0: "g", 1: "f", 2: "m", 3: "M", 4: "p"}
         return biome_mapping.get(value, "g")
     
     
@@ -697,6 +725,8 @@ class PaintApp:
         new_contents = {}
         orientation = "horizontal"
         
+        biome = self.selected_shape_option.get()
+        
         if self.canvas_height > self.canvas_width:
           orientation = "vertical"
           vertical = {"top": [], "bottom": []}
@@ -706,12 +736,16 @@ class PaintApp:
             if j < 17:
               try:
                 row_ = [400+random.randint(0,5) if x == 406 else x for x in rowy[1:17]]
+                if biome == "p":
+                  row_ = [9 if x == 0 else x for x in row_]
                 vertical["top"].append(row_)
               except:
                 print(rowy)
                 raise
             else:
               row_ = [400+random.randint(0,5) if x == 406 else x for x in rowy[1:17]]
+              if biome == "p":
+                row_ = [9 if x == 0 else x for x in row_]
               vertical["bottom"].append(row_)
               
           new_contents = str(vertical).strip().replace(" ", "")+","
@@ -722,8 +756,12 @@ class PaintApp:
             if j == 0 or j == self.canvas_height-1:
               continue
             row_l = [400+random.randint(0,5) if x == 406 else x for x in rowy[1:17]]
+            if biome == "p":
+              row_l = [9 if x == 0 else x for x in row_l]
             horizontal["left"].append(row_l)
             row_r = [400+random.randint(0,5) if x == 406 else x for x in rowy[17:-1]]
+            if biome == "p":
+              row_r = [9 if x == 0 else x for x in row_r]
             horizontal["right"].append(row_r)
           
           new_contents = str(horizontal).strip().replace(" ", "")+","
@@ -772,7 +810,8 @@ class PaintApp:
           if (comp_line == '"f":{' and letter == "f") or \
              (comp_line == '"g":{' and letter == "g") or \
              (comp_line == '"m":{' and letter == "m") or \
-             (comp_line == '"M":{' and letter == "M"):
+             (comp_line == '"M":{' and letter == "M") or \
+             (comp_line == '"p":{' and letter == "p"):
             enter_here = 1
       
       return collect_lines
@@ -821,7 +860,7 @@ class PaintApp:
       elif biome == "m":
         file_path = "mount_herringbone.js"
         export_line = "export const MOUNT_HBTILES = {"
-      elif biome == "M":
+      elif biome == "p":
         file_path = "peak_herringbone.js"
         export_line = "export const PEAK_HBTILES = {"
         

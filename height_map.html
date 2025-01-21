@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Display Image</title>
+	
+	<!--script src="https://cdn.jsdelivr.net/npm/simplex-noise@4.0.3/dist/cjs/simplex-noise.min.js"></script-->
+	<!--script src="https://unpkg.com/simplex-noise@2.4.0/simplex-noise.min.js"></script-->
+	<script src="https://cdn.jsdelivr.net/npm/simplex-noise@2.4.0/simplex-noise.min.js"></script>
+	
+	
+</head>
+<body style="background: black; display: flex; margin: 0">
+<!--div style="width: 2048px; height: 2048px; background: black; left: 0px"-->
+<canvas id="myCanvas" width="2048" height="2048" style="background: black; position: absolute; top: 0; left: 0; "></canvas>
+</div>
+<script>
+	
+	const simplex_world_1 = new SimplexNoise("world1xx");
+	const simplex_world_2 = new SimplexNoise("world2yyy");
+	const simplex_continent_1 = new SimplexNoise("continent1");
+	const simplex_continent_2 = new SimplexNoise("continent2");
+	const simplex_country_1 = new SimplexNoise("country1");
+	const simplex_country_2 = new SimplexNoise("country2");
+	const simplex_village_1 = new SimplexNoise("village1");
+	const simplex_village_2 = new SimplexNoise("village2");
+	const simplex_yard_1 = new SimplexNoise("yard1");
+	const simplex_yard_2 = new SimplexNoise("yard2");
+	
+	
+	
+	const simplex_river1_0 = new SimplexNoise("0river0");
+	const simplex_river1_1 = new SimplexNoise("1river1");
+	const simplex_river1_2 = new SimplexNoise("2river2");
+	const simplex_river2_0 = new SimplexNoise("0riVer0");
+	const simplex_river2_1 = new SimplexNoise("1riVer1");
+	const simplex_river2_2 = new SimplexNoise("2riVer2");
+	
+	
+	
+	//import { createNoise2D } from 'simplex-noise';
+	//const { createNoise2D } = require('simplex-noise');
+	//const noise = new SimplexNoise(seed);
+	
+	//const noise2D = createNoise2D();
+	//import { createNoise2D } from 'simplex-noise';
+	
+	
+	function gaussian2D(x, y, amplitude, meanX, meanY, sigma) {
+	    const exponent = -((Math.pow(x - meanX, 2) + Math.pow(y - meanY, 2)) / (2 * Math.pow(sigma, 2)));
+	    let result = amplitude * Math.exp(exponent);
+			
+			return result;
+			/*
+			if (result > disc) {
+				return result;
+			} else {
+				return 0;
+			}/**/
+			
+	}
+	
+	function noise2DA(x,y,n){
+		let xoff = 55511;
+		let yoff = 1323;
+		let doff = 103;
+		let eoff = 31; 
+		let foff = 19;
+		let a = Math.cos(x+xoff)+xoff;
+		let b = Math.cos(y+yoff)+yoff;
+		let c = (a*b*doff)%eoff+Math.sin(x*y+foff);
+		let d = Math.floor(Math.abs(c));
+		let e = d%100;
+		
+		let thres = n - 1;
+		if (thres <= e) {
+			return 255;
+		} else {
+			return 0;
+		}
+	}
+	
+	function noise2DB(x,y,n){
+		let xoff = 13011;
+		let yoff = 591931;
+		let doff = 679;
+		let eoff = 13; 
+		let foff = 29;
+		let a = Math.cos(x+xoff)+xoff;
+		let b = Math.cos(y+yoff)+yoff;
+		let c = (a*b*doff)%eoff+Math.sin(x*y+foff);
+		let d = Math.floor(Math.abs(c));
+		let e = d%100;
+		
+		let thres = n - 1;
+		if (thres <= e) {
+			return 255;
+		} else {
+			return 0;
+		}
+	}
+	
+	function check_if_circle(d) {
+		return (d & (d-1)) || d <= 0 ? 0 : 255;
+	}
+	
+	function is_power_of(exponent, n){
+		//return !Number.isInteger(Math.log(n) / Math.log(exponent)) || n <= 0 ? 255 : 0;
+	}
+	
+  var pixelData = [];
+	var spPixelData = [];
+	var blackPixelData = [];
+	
+	var riverPixelData = [];
+	
+	var values = [];
+	
+	const QSIZE = 800;
+	const SCALE = 1;
+	//const I = 100;
+	
+	
+	
+	const A = 1;
+	
+	let max_ = 0;
+	
+	
+	
+	function get_biome_value(x_,y_,res) {
+		let N = 15*res;
+		
+		let dxs = [...Array(N)].map((n,i) => i*2+N*100 ); // i*2+N*100
+		let dys = [...Array(N)].map((n,i) => i*3+N ); // i*3+N
+		
+		let xs = dxs.map(dx_ => x_+dx_);
+		let ys = dys.map(dy_ => y_+dy_);
+		
+		let ths = [...Array(N)].map((n,i) => i*0.29 ); // 29
+		
+		let xrs = ths.map( (th,i) => Math.floor( xs[i] * Math.cos(th) - ys[i] * Math.sin(th) ) );
+		let yrs = ths.map( (th,i) => Math.floor( ys[i] * Math.cos(th) + xs[i] * Math.sin(th) ) );
+		
+		let sizes = [...Array(N)].map((n,i) => 0.01 + 0.0097*i); // 97
+		let chps = sizes.map((s,i) => Math.cos(s*xrs[i])*Math.cos(s*yrs[i]));
+		
+		let b = chps.reduce((acc,c) => acc + c, 0);
+		//let b = chp;
+		
+		return b;
+		
+	}
+	
+	function is_special(x_,y_) {
+		let radius = Math.floor(Math.sqrt((x_)**2 + (y_)**2));
+		if (Number.isInteger(Math.sqrt(radius)) && radius > 15) {
+			
+			// number of thetas is proportional to radius
+			let n = Math.floor(Math.sqrt(radius)); // or log
+			let delta_th = 19.9;
+			let A = 22.9;//5.64;//29.39;
+			let B = 19.01;
+			let C = 191.07; 
+			
+			/*((i+1)*r_offset_B*(radius**2))*/  /*(((i+1)*r_offset_A)*delta_th)*/
+			
+			let start_th = A*Math.PI/180;
+			let ths = [...Array(n)].map((_,i) => start_th + (((i+A)**2)/B)*((2*Math.PI)/(n)) );
+			
+			let xys = ths.map((t,i) => {
+				let xo = Math.floor( radius * Math.sin(t+((i*B)*Math.PI/180)) );
+				let yo = Math.floor( radius * Math.cos(t+((i*B)*Math.PI/180)) );
+				return [xo, yo];
+			});
+			
+			return xys;
+			
+		}
+		
+		return 0;
+	}
+	
+	//[[-4,15],[-12,-12],[14,-8],[4,15]]
+	
+	//var tally = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0};
+	//const tally = Object.fromEntries(values.map(value => [value, 0]));
+	const tally = Object.fromEntries(Array.from({ length: 100 }, (_, i) => [i, 0]));
+	tally.max_ = 0;
+	
+	const rtally = Object.fromEntries(Array.from({ length: 100 }, (_, i) => [i, 0]));
+	rtally.max_ = 0;
+	
+	function check_if_river_1(x,y) {
+		
+		let ra0 = 450; 
+		let ra1 = 70; 
+		let ra2 = 10;
+		
+    let r0 = simplex_river1_0.noise2D(x/200, y/200);
+		let r0n = 0 + (r0 + 1) * ra0;
+    let r1 = simplex_river1_1.noise2D(x/20, y/20);
+		let r1n = 0 + (r1 + 1) * ra1;
+		let r2 = simplex_river1_2.noise2D(x/10, y/10);
+		let r2n = 0 + (r2 + 1) * ra2;
+		let r_max = (ra0*2) + (ra1*2) + (ra2*2);
+		
+		let rall = r0n + r1n + r2n;
+		
+		let r = Math.floor(rall);
+		let rp = (r/r_max) * 100;
+		
+		let int_rperc = Math.floor(rp);
+		if (rtally.hasOwnProperty(int_rperc)) {
+			rtally[int_rperc]++;
+		}
+		
+		let phase = 40;
+		let thickness = 2;
+		let is_river_ = false;
+		if (phase <= rp && rp < phase+thickness){
+			is_river_ = true;
+		}
+		return is_river_;
+	}
+	
+	function check_if_river_2(x,y) {
+		
+		let ra0 = 450; 
+		let ra1 = 70; 
+		let ra2 = 10;
+		
+    let r0 = simplex_river2_0.noise2D(x/200, y/200);
+		let r0n = 0 + (r0 + 1) * ra0;
+    let r1 = simplex_river2_1.noise2D(x/20, y/20);
+		let r1n = 0 + (r1 + 1) * ra1;
+		let r2 = simplex_river2_2.noise2D(x/10, y/10);
+		let r2n = 0 + (r2 + 1) * ra2;
+		let r_max = (ra0*2) + (ra1*2) + (ra2*2);
+		
+		let rall = r0n + r1n + r2n;
+		
+		let r = Math.floor(rall);
+		let rp = (r/r_max) * 100;
+		
+		let int_rperc = Math.floor(rp);
+		//if (rtally.hasOwnProperty(int_rperc)) {
+		//	rtally[int_rperc]++;
+		//}
+		
+		let phase = 40;
+		let thickness = 4;
+		let is_river_ = false;
+		if (phase <= rp && rp < phase+thickness){
+			is_river_ = true;
+		}
+		return is_river_;
+	}
+	
+	const HEIGHTS = {
+		"water": {h: 45, color: "#00a"}, //30
+		"grass": {h: 50, color: "#050"}, //45
+		"upland": {h: 54, color: "#161"}, //58
+		"hills": {h: 58, color: "#696"}, //62
+		"uphills": {h: 62, color: "#960"}, //64
+		"mountains": {h: 66, color: "#888"}, //69
+		"peaks": {h: 70, color: "#fff"}, //74
+	};
+	
+	
+	function get_biome_data(x,y) {
+		let thickness = 1;
+		let radius = Math.floor(thickness*Math.sqrt((x)**2 + (y)**2));
+		let difficulty = Math.floor(Math.sqrt(radius));
+		
+		let xyo = is_special(x,y);
+		
+		let is_river_1 = check_if_river_1(x,y);
+		let is_river_2 = check_if_river_2(x,y);
+		
+		
+		let o1 = 100; let o2 = 100;
+		let a1 = 40; let a2 = 40; 
+		let b1 = 25; let b2 = 25;
+		let c1 = 5; let c2 = 5;
+		let d1 = 4; let d2 = 4;
+		
+		
+    let hworld1 = simplex_world_1.noise2D(x/400, y/400);
+		let hw1n = 0 + (hworld1 + 1) * o1;
+		let hworld2 = simplex_world_2.noise2D(x/300, y/300);
+		let hw2n = 0 + (hworld2 + 1) * o2;
+		let hw_max = (o1*2) + (o2*2);
+		
+    let hcontinent1 = simplex_continent_1.noise2D(x/200, y/200);
+		let hci1n = 0 + (hcontinent1 + 1) * a1;
+		let hcontinent2 = simplex_continent_2.noise2D(x/100, y/100);
+		let hci2n = 0 + (hcontinent2 + 1) * a2;
+		let hci_max = (a1*2) + (a2*2);
+		
+    let hcountry1 = simplex_country_1.noise2D(x/50, y/50);
+		let hcy1n = 0 + (hcountry1 + 1) * b1;
+		let hcountry2 = simplex_country_2.noise2D(x/25, y/25);
+		let hcy2n = 0 + (hcountry2 + 1) * b2;
+		let hcy_max = (b1*2) + (b2*2);
+		
+    let hvillage1 = simplex_village_1.noise2D(x/10, y/10);
+		let hv1n = 0 + (hvillage1 + 1) * c1;
+		let hvillage2 = simplex_village_2.noise2D(x/7, y/7);
+		let hv2n = 0 + (hvillage2 + 1) * c2;
+		let hv_max = (c1*2) + (c2*2);
+		
+    let hyard1 = simplex_yard_1.noise2D(x/5, y/5);
+		let hy1n = 0 + (hyard1 + 1) * d1;
+		let hyard2 = simplex_yard_2.noise2D(x/4, y/4);
+		let hy2n = 0 + (hvillage2 + 1) * d2;
+		let hy_max = (d1*2) + (d2*2);
+		
+		//let hy_ = Math.floor(hy1n + hy2n);
+		
+		let hw = hw1n + hw2n;
+		let hci = hci1n+hci2n; // 10 + 10 = 0 to 20
+		let hcy = hcy1n+hcy2n; // 20
+		let hv = hv1n+hv2n; // 20
+		let hy = hy1n+hy2n; // 20
+		
+		
+		//console.log(hci);
+		let biome = "deep_water";
+		let color = "#007";
+		
+		
+		
+		
+		/*
+		
+		                                                  +3 (10)
+		                                       +2  (7)   ^^^^^^^^^
+		                      +1 (3)  +2 (5)  TTTTTTTTTTT
+		  0   +1 (1)  +1 (2)  _______TTTTTTTTT
+		______-------TTTTTTTTT
+		water  grass  upland   hills  uphills  mountains  peaks
+		
+		       contains beach
+		              single ledge
+		                       another ledge
+		                              much higher
+		                                         
+		
+		
+		
+		
+		
+		
+		
+		*/
+		
+		
+		let h = Math.floor(hw+hci+hcy+hv+hy);
+		let h_max = hw_max + hci_max + hcy_max + hv_max + hy_max;
+		let h_p = (h/h_max) * 100;
+		
+		let int_perc = Math.floor(h_p);
+		
+		if (tally.hasOwnProperty(int_perc)) {
+			tally[int_perc]++;
+		}
+		
+		
+		//console.log(h+" "+h_p);
+		if (h_p < HEIGHTS["water"].h) {
+			biome = "deep_water";
+			color = "rgb(0,0,70)";
+	  } else if (HEIGHTS["water"].h <= h_p && h_p < HEIGHTS["grass"].h) {
+			biome = "water";
+			color = HEIGHTS["water"].color;
+			
+		} else if (HEIGHTS["grass"].h  <= h_p && h_p < HEIGHTS["upland"].h) {
+			biome = "grass";
+			color = HEIGHTS["grass"].color;
+			
+		} else if (HEIGHTS["upland"].h <= h_p && h_p < HEIGHTS["hills"].h) {
+			biome = "upland";
+			color = HEIGHTS["upland"].color;
+			
+		} else if (HEIGHTS["hills"].h <= h_p && h_p < HEIGHTS["uphills"].h) {
+			biome = "hills";
+			color = HEIGHTS["hills"].color;
+			
+		} else if (HEIGHTS["uphills"].h <= h_p && h_p < HEIGHTS["mountains"].h) {
+			biome = "uphills";
+			color = HEIGHTS["uphills"].color;
+			
+		} else if (HEIGHTS["mountains"].h <= h_p && h_p < HEIGHTS["peaks"].h) {
+			biome = "mountains";
+			color = HEIGHTS["mountains"].color;
+			
+		} else if (HEIGHTS["peaks"].h <= h_p) {
+			biome = "peaks";
+			color = HEIGHTS["peaks"].color;
+		} else {
+			console.log("???");
+		}/**/
+		
+		
+		if (is_river_1 && ["grass", "upland", "hills_"].includes(biome)) {
+			if (is_river_2 && ["grass", "upland", "hills_"].includes(biome)) {
+				//color = "#00a";//"#0ff";
+				
+			} else {
+				//color = "#00a";//"#f0f";
+			}
+		} else if (is_river_2 && ["grass", "upland", "hills"].includes(biome)) {
+			//color = "#00a";//"#0f0";
+		}/**/
+		
+		
+		
+		return {
+			"biome_color": color,
+			"biome_type": biome,
+			"difficulty": difficulty,
+			"special": xyo,
+			"height": h,
+			//"is_river": is_river
+		}
+		
+	}
+	
+	
+	
+	// initialize with black first
+	/*for (let y=0; y<16; y++) {
+		for (let x=0; x<16; x++) {
+			blackPixelData.push([x*8,y*8, "rgb(0,100,0)"]);
+		}
+	}/**/
+	
+	
+	// TURN ON to see full biome map
+	if (1) {
+		
+		for (let y=-QSIZE; y<=QSIZE; y++) {
+			for (let x=-QSIZE; x<QSIZE; x++) {
+			
+			
+				let biome_info = get_biome_data(x,y);
+				
+				// fill normally
+				if ([
+					"deep_water",
+					"water",
+					"grass",
+					"upland",
+					"hills",
+					"uphills",
+					"mountains",
+					"peaks",
+				].includes(biome_info["biome_type"])) {
+					pixelData.push([x,y, biome_info["biome_color"]]);
+				}
+				
+				/*
+				if ([
+					"mountains",
+					"peak",
+				].includes(biome_info["biome_type"])) {
+					pixelData.push([x,y, "rgb(0,250,250)"]); //biome_info["biome_color"]]);
+				}/**/
+			  
+				
+				if (biome_info["special"] !== 0) {
+					//console.log(spPixelData);
+					try {
+						biome_info["special"].forEach(([x, y]) => {
+							if (x === 0 && y === 0) {
+								spPixelData.push([x,y, "rgb(250,250,250)"]);
+							} else {
+								spPixelData.push([x,y, "rgb(250,0,0)"]);
+							}
+						});
+					} catch (e) { console.log("error"); }
+				} 
+			
+			}
+		
+		}
+		
+		for (let key in tally) {
+			//console.log(key+":   "+(tally[key]));
+		}
+		
+		for (let key in rtally) {
+			console.log(key+":   "+(rtally[key]));
+		}
+		//console.log(tally);
+	}
+	
+	
+
+	
+
+
+
+
+
+
+	/* =============== random number generator ================ */
+	/* random number generator for seed. n is how many you need (source?)*/
+	function PRNG(input_string, n){
+	  // create seed state
+	  function xmur3(str) {
+	      for(var i = 0, h = 1779033703 ^ str.length; i < str.length; i++)
+	          h = Math.imul(h ^ str.charCodeAt(i), 3432918353),
+	          h = h << 13 | h >>> 19;
+	      return function() {
+	          h = Math.imul(h ^ h >>> 16, 2246822507);
+	          h = Math.imul(h ^ h >>> 13, 3266489909);
+	          return (h ^= h >>> 16) >>> 0;
+	      }
+	  }
+	  // output randomizer
+	  function mulberry32(a) {
+	      return function() {
+	        var t = a += 0x6D2B79F5;
+	        t = Math.imul(t ^ t >>> 15, t | 1);
+	        t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+	        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+	      }
+	  }
+	  var ssseed = xmur3(input_string);
+	  var rrrand = mulberry32(ssseed());
+	  var rands = [];
+	  for (let i=0; i<n; i++) { rands.push(rrrand()); }
+  
+	  return rands;
+	}
+	
+	const seed = PRNG("0_5", 16);
+	// how would this work if exported from another function?
+	// input starting iR, spit out final?
+	//var iR = 0; //increment every time a new number is used
+
+	/*
+	function rnd(min_, max_) {
+	  let value = min_ + Math.floor(seed[iR]*(max_-min_));
+	  iR++;
+	  if (iR >= seed.length) {
+	    iR=0;
+	  }
+	  return value;
+	}*/
+	
+	
+	
+	
+	
+	
+	
+	
+	function xyWithinRadius(r, x, y) {
+	    let result = [];
+
+	    // Loop through each potential coordinate within a square around (x, y)
+	    for (let i = x - r; i <= x + r; i++) {
+	        for (let j = y - r; j <= y + r; j++) {
+	            // Check if the distance from (i, j) to (x, y) is less than or equal to the radius
+	            if (Math.sqrt(Math.pow(i - x, 2) + Math.pow(j - y, 2)) <= r) {
+	                result.push([i, j]);
+	            }
+	        }
+	    }
+
+	    return result;
+	}
+	
+	
+	
+
+	
+	
+	
+	//var pixelData = g7();
+	function variance(xx, yy, xoffset, yoffset, sparse) {
+		let x = xx+xoffset;
+		let y = yy+yoffset;
+		let p = (x*y)+((x-y)*(x+y));
+		
+		let q = 0;
+		
+		switch (sparse) {
+		  case 0:
+			  q = !(p%2+p%3-p%5+p%7-p%9);
+			  break;
+		  case 1:
+			  q = !(p%2-p%3-p%5+p%7-p%9);//+p%13);//+p%17-p%19);
+			  break;
+		  case 2:
+			  q = !(p%2-p%3+p%5-p%7-p%9-p%13+p%17+p%19);
+			  break;
+		  case 3:
+			  q = !(p%2-p%3+p%5-p%7+p%9+p%13);//+p%17-p%19);
+			  break;
+		  case 4:
+			  q = !(p%2+p%3+p%5-p%7+p%9+p%13);//+p%17-p%19);
+			  break;
+		  case 5:
+			  q = !(p%2-p%3-p%5+p%7-p%9-p%13-p%17+p%19-p%23);
+			  break;
+		  case 6:
+			  q = !(p%2+p%3-p%5-p%7+p%9-p%13-p%17-p%19);
+			  break;
+			case 7:
+			  q = !(p%2-p%3+p%5-p%7+p%9-p%13-p%17-p%19-p%23);
+			  break;
+		}
+		
+		return q;
+	}
+	
+	function variance_II(x,y, s) {
+		
+		let q1 = variance(x,y,0,0, s);
+		let q2 = variance(x,y,90,20, s);
+		let q3 = variance(x,y,0,990, s);
+		let q4 = variance(x,y,-71,0, s);
+		let q5 = variance(x,y,222,431, s);/**/
+		let q6 = variance(x,y,22,-4311, s);/**/
+		let q7 = variance(x,y,-222,-93108, s);/**/
+		
+		let result = q1 || q2 || q3 || q4 || q5 || q6 || q7;
+		
+		return result;
+		
+	}
+	
+	
+	function forest_variance() {
+		for (let y=-QSIZE; y<=QSIZE; y++) {
+			for (let x=-QSIZE; x<QSIZE; x++) {
+				
+				let r0 = variance_II(x,y,0);
+				let r1 = variance_II(x,y,1);
+				let r2 = variance_II(x,y,2);
+				let r3 = variance_II(x,y,3);
+				let r4 = variance_II(x,y,4);
+				let r5 = variance_II(x,y,5);
+				let r6 = variance_II(x,y,6);
+				let r7 = variance_II(x,y,7);
+				
+				
+				let r = r7;
+			
+				
+				if (x === 0 && y === 0) {
+					pixelData.push([x,y, "rgb(250,250,250)"]);
+//				} else if (r7) { pixelData.push([x,y, "rgb(150,0,250)"]);
+//				} else if (r6) { pixelData.push([x,y, "rgb(0,200,250)"]);
+//				} else if (r5) { pixelData.push([x,y, "rgb(0,150,0)"]);
+//				} else if (r4) { pixelData.push([x,y, "rgb(200,200,0)"]);
+//        } else if (r3) { pixelData.push([x,y, "rgb(200,130,0)"]);
+//				} else if (r2) { pixelData.push([x,y, "rgb(200,0,0)"]);
+//        } else if (r1) { pixelData.push([x,y, "rgb(150,0,150)"]);
+//				} else if (r0) { pixelData.push([x,y, "rgb(150,0,150)"]);
+				} else { pixelData.push([x,y, "rgb(0,0,0)"]);
+				}
+			}
+		}
+	}
+	
+	
+	
+  // Function to draw the image on the canvas
+  function drawImageFromArray(xx, yy) {
+    const canvas = document.getElementById('myCanvas');
+    const context = canvas.getContext('2d');
+		
+		
+		context.translate(canvas.width / (SCALE*2), canvas.height / (SCALE*2));
+		
+		// biome
+		
+    pixelData.forEach(([x, y, color]) => {
+      context.fillStyle = color;
+      context.fillRect(x*SCALE+xx*SCALE*1, y*SCALE+yy*SCALE*1, SCALE*1, SCALE*1);
+    });/**/
+		
+	  // special areas
+		
+    spPixelData.forEach(([x, y, color]) => {
+      context.fillStyle = color;
+      context.fillRect(x*SCALE+xx*SCALE*1, y*SCALE+yy*SCALE*1, SCALE*1, SCALE*1);
+    });/**/
+		
+    // origin (0,0)
+	  context.fillStyle = "rgb(250,250,250)";
+	  context.fillRect(0, 0, SCALE*1, SCALE*1);/**/
+			
+  }
+
+	
+	/*  1 biome map  */
+	drawImageFromArray(0, 0);
+  	
+	
+	
+	
+	
+	
+	// ----------------
+	/*
+	let g = gaussian2D(xx, yy, 200, 0, 0, 50);
+	let g_c = Math.cos(g/3)*100;
+	let h = gaussian2D(xx, yy, 100, 0, 0, 40);
+	let h_c = Math.cos(h/5)*100;
+	let i = ((h_c/g_c)%23)*100;
+	
+	max_ = g >= max_ ? g : max_;
+	
+	
+	
+	// ---------------- NOISE
+	let aa = noise2DA(xx, yy, 31);//*noise2DA(x+9897,y+9543, 1); // 2-32
+	let bb = noise2DB(xx+234,yy+998, 32);
+	let cc = noise2DB(xx+23, yy-99, 1);//noise2DB(x+251,y+875, 2)+noise2DB(x+25,y+87, 2);
+	
+	let q = 1;
+	let wx = Math.cos((50*Math.abs(x+q))**0.5);
+	let wy = Math.cos((50*Math.abs(y+q))**0.5);
+	
+	
+	
+	// ----------------- CONCENTRIC CIRCLES (boss levels)
+	let d = 1*Math.sqrt((x+xoffset)**2 + (y+yoffset)**2);
+	let w = check_if_circle(d);// * (aa);// || bb);
+	
+	*/
+	
+</script>
+
+</body>
+</html>

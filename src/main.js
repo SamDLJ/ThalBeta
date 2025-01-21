@@ -5,9 +5,10 @@ import { platforms } from "./platforms.js";
 import { TERRAIN, ZEN, dot_order, pnode, PLAT_STYLE, BRANCH, T } from "./objects.js";
 import { CHUNKS } from "./chunks.js";
 import { 
-	dot_, dot_image, dot_w, get_biome_info, get_chunk_shapes, init_curr_chunk_ids, biome_variance_index,
+	mini_map, build_chunk,
+	dot_, dot_image, dot_w, get_chunk_info, init_curr_chunk_ids, biome_variance_index,
 	herringbone_tile, m_chunk, w_chunk, d_chunk, s_chunk, p_chunk,
-	rocky,
+	rocky, drawImageFromArray
  } from "./game_functions.js";
 
 //import { tileinfo } from "./objects.js";
@@ -19,14 +20,44 @@ import {
 //gamepad;
 var WHATAMI = 0;
 
+const COOL_PLACES = {
+	0: { x: 0, y: 0 },
+	1: { x: -157, y: -532 }, // mountain
+	2: { x: -68, y: -42 }, // big forest to the northwest
+	3: { x: -52, y: -260}, // weird snow target pattern thing way up north
+	
+	// new map (these are the chunk numbers, not the x and y)
+	4: { x: 510, y:8 },
+	5: { x: 550, y:50 },
+	6: { x: -27, y: -1 },
+	7: { x: 27, y: 317 }, // lots of lakes
+	8: { x: 11, y: 336 }, // lhrt
+	9: { x: -529, y: -660},
+	10: {x: -542, y: -639},
+	11: { x: -560, y: -651},
+	12: { x: -563, y: -634 },
+	13: { x: -533, y: -637 },
+	14: { x: 1, y: 23 },
+	
+};
+
+const cool_place = 1;
+
 // temporary for chunks
-const INIT_X = 85; // -11 //-69, -44
-const INIT_Y = -160; // 3 for mountains
+const INIT_X = COOL_PLACES[cool_place].x;
+const INIT_Y = COOL_PLACES[cool_place].y;
+
+
+
+var SHOW_MAP = 1;
 
 /*
 
--69, -44  is in the middle of the big forest to the northwest
+forests:
+	-68, -42  big forest to the northwest
 
+mountain peaks:
+	88, -164 
 */
 
 
@@ -93,6 +124,7 @@ var bg_rain = assets.foregrounds.light_rain;
 // tilesheets
 var ts_1 = assets.tilesheet_grassland;
 var ts_wmap = assets.tilesheet_worldmap;
+var ts_uwmap = assets.tilesheet_undermap;
 //var ts_m = assets.tilesheet_mountain;
 //var ts_2 = assets.tilesheet2;
 //var ts_se = assets.tilesheet_enemies;
@@ -183,6 +215,8 @@ function PRNG(input_string, n){
 
 
 
+
+
 //const seed = PRNG("who knows", 10000); // "Hello World" -> 0.6276661821175367, ...
 const seed = PRNG(WORLD_ID, 10000); // "Hello World" -> 0.6276661821175367, ...
 //const seed = PRNG("devil666", 10000); 
@@ -263,7 +297,16 @@ function player1_world_movement() {
 		
 	}
 	
+	if (btn.I) {
+		pw.x += 4;
+		pw.y += 4;
+		//console.log("???");
+	}
 	
+	if (btn.O) {
+		tilesheet(ts_wmap);
+		//console.log(all_seeds_test);
+	}
 	
 	if (btn.P) {
 		//pw.x = 2*8;
@@ -272,8 +315,8 @@ function player1_world_movement() {
 		//pw.cx = 0;
 		//pw.cy = 0;
 		
-		
-		console.log(chunk_set);
+		tilesheet(ts_uwmap);
+		//console.log(chunk_set);
 		/*
 		let cset = chunk_set[pw.cx+"_"+pw.cy]["image"];
 		for (let cy=0; cy<16; cy++) {
@@ -294,12 +337,14 @@ function player1_world_movement() {
 		
 		//flush_chunk_set(pw.cx, pw.cy);
 	}
+	
+	let blocked = [1,2,20,35,41,61,63,60,610,620,63620,64620,630,640,63610,64610,62610,64630, 71,72,73,74,75,76];
 
 	w_walking = 0;
 	if (btn.R || GP.R) {
 		w_walking = 1;
 		going_left = false;
-		if (!([1,2,20,33,41,61,63,60,610,620,63620,64620,630,640,63610,64610,62610,64630, 71,72,73,74,75,76].includes(check_world_grid(pw.x+2, pw.y)))) { //&& check_world_grid(pw.x+2, pw.y+4) !== 1) {
+		if (!(blocked.includes(check_world_grid(pw.x+2, pw.y)))) { //&& check_world_grid(pw.x+2, pw.y+4) !== 1) {
 			//console.log();
 			if (1) {
 				let xspeed = pw.x%3 ? 2 : 1;
@@ -309,7 +354,7 @@ function player1_world_movement() {
 	} else if (btn.L || GP.L) {
 		w_walking = 1;
 		going_left = true;
-		if (!([1,2,20,33,41,61,63,60,610,620,63620,64620,630,640,63610,64610,62610,64630, 71,72,73,74,75,76].includes(check_world_grid(pw.x-2, pw.y)))) { //&& check_world_grid(pw.x-2, pw.y+4) !== 1) {
+		if (!(blocked.includes(check_world_grid(pw.x-2, pw.y)))) { //&& check_world_grid(pw.x-2, pw.y+4) !== 1) {
 			if (1) {
 				let xspeed = pw.x%3 ? 2 : 1;
 				pw.x-= xspeed; 
@@ -319,7 +364,7 @@ function player1_world_movement() {
 	
 	if (btn.A || GP.U) {
 		w_walking = 1;
-		if (!([1,2,20,33,41,61,63,60,610,620,63620,64620,630,640,63610,64610,62610,64630, 71,72,73,74,75,76].includes(check_world_grid(pw.x, pw.y-2)))) { // && check_world_grid(pw.x+2, pw.y-4) !== 1) {
+		if (!(blocked.includes(check_world_grid(pw.x, pw.y-2)))) { // && check_world_grid(pw.x+2, pw.y-4) !== 1) {
 			if (1) {
 				let yspeed = pw.y%3 ? 2 : 1;
 				pw.y-= yspeed; 
@@ -328,7 +373,7 @@ function player1_world_movement() {
 	} else if (btn.D || GP.D) {
 		w_walking = 1;
 		// (check_grid(p.x, pB(p.y)) == 0) && (check_grid(p.x+7, pB(p.y)) == 0)
-		if (!([1,2,20,33,41,61,63,60,610,620,63620,64620,630,640,63610,64610,62610,64630, 71,72,73,74,75,76].includes(check_world_grid(pw.x, pw.y+2)))) { //&& check_world_grid(pw.x+2, pw.y+4) !== 1) {
+		if (!(blocked.includes(check_world_grid(pw.x, pw.y+2)))) { //&& check_world_grid(pw.x+2, pw.y+4) !== 1) {
 			if (1) {
 				let yspeed = pw.y%3 ? 2 : 1;
 				pw.y+= yspeed; 
@@ -363,7 +408,8 @@ function player1_world_animation() {
 }
 
 
-var M_LAYER = 0;
+var M_LAYER = -1;
+var UNDERGROUND = 0;
 
 
 
@@ -2108,6 +2154,7 @@ function reset_position(where_to) {
 	if (where_to == "P") {
 		p.x = groundsavepoint[0];//reset_position_x;
 		p.y = groundsavepoint[1]-8;//reset_position_y;
+		//console.log("???");
 	}
 	
 	if (where_to == "3") {
@@ -8007,10 +8054,11 @@ function draw_tree(tree_type, x, y) {
 	
 	
 	switch (tree_type) {
-		case 40:
+	  case 40:
+			// randomized trees (also acts as a default, should )
 			sprite(64*2+12, -(pw.x%128+n_x)+(x-1)*8, -(pw.y%128+n_y)+(y-1)*8-CHUNK_Y_OFFSET);
 			sprite(64*2+11, -(pw.x%128+n_x)+(x-1)*8, -(pw.y%128+n_y)-CHUNK_Y_OFFSET+8*(y-1 - 1));
-			//sprite(64*2+11, -(pw.x%128+n_x)+(x-1)*8, -(pw.y%128+n_y)-CHUNK_Y_OFFSET+8*(y-1 - 2));
+			sprite(64*2+11, -(pw.x%128+n_x)+(x-1)*8, -(pw.y%128+n_y)-CHUNK_Y_OFFSET+8*(y-1 - 2));
 			//sprite(64*2+11, -(pw.x%128+n_x)+(x-1)*8, -(pw.y%128+n_y)-CHUNK_Y_OFFSET+8*(y-1 - 3));
 			
 			
@@ -8102,6 +8150,8 @@ functions:
 
 */
 
+var all_seeds_test = [];
+
 // ready made
 var grass_terrain_chunk = [...Array(16)].map(_ => Array(16).fill(0));
 var water_terrain_chunk = [...Array(16)].map(_ => Array(16).fill(1));
@@ -8111,7 +8161,7 @@ var desert_terrain_chunk = [...Array(16)].map(_ => Array(16).fill(4));
 
 
 // each of the 9 3x3 chunks will go through this
-function build_chunk_shape(chunk_info) { //chs, cid, sp="", b2="", bvi={}) {
+function build_chunk_shape_dep(chunk_info) { //chs, cid, sp="", b2="", bvi={}) {
 //function build_chunk_shape(chs, cid, sp="", b2="", bvi={}) {
 	//console.log(chunk_info);
 	
@@ -8148,12 +8198,18 @@ function build_chunk_shape(chunk_info) { //chs, cid, sp="", b2="", bvi={}) {
 	let b2 = chunk_info.b.biome2;
 	let bvi = chunk_info.b.bvi;
 	let cid = chunk_info.cid;
+	
+	//console.log(cid);
 	let hbid = "";
 	if (bvi[8] === 1) {
 		cid = (chunk_info.x-1)+"_"+chunk_info.y;
+		//console.log("   "+cid);
 	} else if (bvi[8] === 2) {
 		cid = chunk_info.x+"_"+(chunk_info.y-1);
+		//console.log("   "+cid);
 	}
+	
+	
 	let chs = chunk_info.s;
 	
 	// sp is "x" as default, will deal with it later
@@ -8165,9 +8221,23 @@ function build_chunk_shape(chunk_info) { //chs, cid, sp="", b2="", bvi={}) {
 	
 	
 	if (["mr", "m7", "mL", "mJ", "mc", "mn", "m3", "mu", "met", "mer", "mel", "mbv", "mbh"].includes(chs)) {
-		events = m_chunk(chunk_seed, b2, bvi, chs);
+		// MOUNTAIN CHUNK
+		//events = m_chunk(chunk_seed, b2, bvi, chs);
 		
 	} else if (["M", "g", "p"].includes(chs)) {
+		if (b2 === "f") {
+			//console.log("\n");
+			//console.log(cid);
+			if (!all_seeds_test.includes(chunk_seed[0])) {
+				all_seeds_test.push(chunk_seed[0]);
+			}
+			
+		} else if (b2 === "m") {
+			
+			// TURN OFF or remove to get mountain chunks/herringbone tiles
+			return events;
+		}
+		
 		
 		if (bvi[8] === 0) {
 			events = herringbone_tile(chunk_seed, b2, bvi, "left"); // should produce the same hb tile as the right one below
@@ -8183,6 +8253,7 @@ function build_chunk_shape(chunk_info) { //chs, cid, sp="", b2="", bvi={}) {
 	  
 	  //console.log(chs);
 		events = d_chunk(chunk_seed, b2, bvi, chs);
+		
 		
 	} else if (chs === "w") {
 		events = water_terrain_chunk;
@@ -8223,6 +8294,14 @@ var curr_chunk_ids = init_curr_chunk_ids(pw.cx, pw.cy);
 
 
 
+let up = 0;
+
+
+
+
+
+
+
 
 var chunk_count = 0;
 var curr_chunk = chunk_set[curr_chunk_ids["O"].cid];
@@ -8249,284 +8328,216 @@ function update_world_chunks() {
 	
 	
 	
-	// check the current chunk location -- if player steps into a new chunk, do the necessary changes
+	// get_chunk_info(x,y) should get the biome and shape of the chunk
+	
+	// check the current chunk location -- if player steps into a new chunk (or not loaded into set yet), do the necessary changes
 	if (curr_chunk_ids["O"].cid != cidO || Object.keys(chunk_set).length < 2) {
 		
 		curr_chunk_ids["O"].cid = cidO;
+		
+		let oheights = null;
+		let ograds = null;//curr_chunk_ids["O"].b.gradient;
+		let obiomes = null;
+		
 		//curr_chunk_ids["O"].hbid = hbid;
 		
 		curr_chunk_ids["O"].x = chunkx;
 		curr_chunk_ids["O"].y = chunky;
-		curr_chunk_ids["O"].b = get_biome_info(chunkx, chunky);
+		
+		
+		// NEW ******** DRAW MAP HERE
+		if (SHOW_MAP) {
+			curr_chunk_ids["O"].b = get_chunk_info(chunkx, chunky, 1, 1); // x, y, reset_mini_map, reset_chunk_layout
+			drawImageFromArray(curr_chunk_ids["O"].b.local_mini_map);
+			
+			//let cl = curr_chunk_ids["O"].b.layout;
+			ograds = curr_chunk_ids["O"].b.ograds;
+			obiomes = curr_chunk_ids["O"].b.obiomes;
+			oheights = curr_chunk_ids["O"].b.oheights;
+			
+			//console.log(obiomes);
+			/*
+			let cgrad = ograds[4];
+			let cbiome = obiomes[4];
+			let cheight = oheights[4];
+			/**/
+			//console.log(ograds);
+			//let cbiome = obiomes[4];
+			
+			// print tiny chunk map
+			if (0) {
+				let cols_ = "";
+				for (let cly=0; cly<3; cly++) {
+					let row_ = cgrad[cly].join(" ");
+					cols_ = cols_+row_+"\n";
+				} console.log(cols_);
+			
+				cols_ = "";
+				for (let cly=0; cly<3; cly++) {
+					let row_ = cbiome[cly].join(" ");
+					cols_ = cols_+row_+"\n";
+				} console.log(cols_);
+			}
+			
+		} else {
+			//console.log("SHOW_MAP == false");
+			curr_chunk_ids["O"].b = get_chunk_info(chunkx, chunky, 0, 1);
+			
+			//let cl = curr_chunk_ids["O"].b.layout;
+			ograds = curr_chunk_ids["O"].b.ograds;
+			obiomes = curr_chunk_ids["O"].b.obiomes;
+			oheights = curr_chunk_ids["O"].b.oheights;
+			
+			//console.log(obiomes);
+			/*
+			let cgrad = ograds[4];
+			let cbiome = obiomes[4];
+			let cheight = oheights[4];
+			/**/
+		}
+		let cgrad = ograds[4];
+		let cbiome = obiomes[4];
+		let cheight = oheights[4];
+		
+		
+		
+		
 		//curr_chunk_ids["O"].bvi = biome_variance_index(chunkx, chunky);
 		
 		let cidr = (chunkx-1)+"_"+(chunky-1);
 		curr_chunk_ids["r"].cid = cidr;
 		curr_chunk_ids["r"].x = chunkx-1;
 		curr_chunk_ids["r"].y = chunky-1;
-		curr_chunk_ids["r"].b = get_biome_info(chunkx-1, chunky-1);
+		curr_chunk_ids["r"].b = null;//get_chunk_info(chunkx-1, chunky-1);
 		//curr_chunk_ids["r"].bvi = biome_variance_index(chunkx-1, chunky-1);
 		
 		let cidT = chunkx+"_"+(chunky-1);
 		curr_chunk_ids["T"].cid = cidT;
 		curr_chunk_ids["T"].x = chunkx;
 		curr_chunk_ids["T"].y = chunky-1;
-		curr_chunk_ids["T"].b = get_biome_info(chunkx, chunky-1);
+		curr_chunk_ids["T"].b = null;//get_chunk_info(chunkx, chunky-1);
 		//curr_chunk_ids["T"].bvi = biome_variance_index(chunkx, chunky-1);
 		
 		let cid7 = (chunkx+1)+"_"+(chunky-1);
 		curr_chunk_ids["7"].cid = cid7;
 		curr_chunk_ids["7"].x = chunkx+1;
 		curr_chunk_ids["7"].y = chunky-1;
-		curr_chunk_ids["7"].b = get_biome_info(chunkx+1, chunky-1);
+		curr_chunk_ids["7"].b = null;//get_chunk_info(chunkx+1, chunky-1);
 		//curr_chunk_ids["7"].bvi = biome_variance_index(chunkx+1, chunky-1);
 		
 		let cidE = (chunkx-1)+"_"+chunky;
 		curr_chunk_ids["E"].cid = cidE;
 		curr_chunk_ids["E"].x = chunkx-1;
 		curr_chunk_ids["E"].y = chunky;
-		curr_chunk_ids["E"].b = get_biome_info(chunkx-1, chunky);
+		curr_chunk_ids["E"].b = null;//get_chunk_info(chunkx-1, chunky);
 		//curr_chunk_ids["E"].bvi = biome_variance_index(chunkx-1, chunky);
 		
 		let cid3 = (chunkx+1)+"_"+chunky;
 		curr_chunk_ids["3"].cid = cid3;
 		curr_chunk_ids["3"].x = chunkx+1;
 		curr_chunk_ids["3"].y = chunky;
-		curr_chunk_ids["3"].b = get_biome_info(chunkx+1, chunky);
+		curr_chunk_ids["3"].b = null;//get_chunk_info(chunkx+1, chunky);
 		//curr_chunk_ids["3"].bvi = biome_variance_index(chunkx+1, chunky);
 		
 		let cidL = (chunkx-1)+"_"+(chunky+1);
 		curr_chunk_ids["L"].cid = cidL;
 		curr_chunk_ids["L"].x = chunkx-1;
 		curr_chunk_ids["L"].y = chunky+1;
-		curr_chunk_ids["L"].b = get_biome_info(chunkx-1, chunky+1);
+		curr_chunk_ids["L"].b = null;//get_chunk_info(chunkx-1, chunky+1);
 		//curr_chunk_ids["L"].bvi = biome_variance_index(chunkx-1, chunky+1);
 		
 		let cidU = chunkx+"_"+(chunky+1);
 		curr_chunk_ids["U"].cid = cidU;
 		curr_chunk_ids["U"].x = chunkx;
 		curr_chunk_ids["U"].y = chunky+1;
-		curr_chunk_ids["U"].b = get_biome_info(chunkx, chunky+1);
+		curr_chunk_ids["U"].b = null;//get_chunk_info(chunkx, chunky+1);
 		//curr_chunk_ids["U"].bvi = biome_variance_index(chunkx, chunky+1);
 		
 		let cidJ = (chunkx+1)+"_"+(chunky+1);
 		curr_chunk_ids["J"].cid = cidJ;
 		curr_chunk_ids["J"].x = chunkx+1;
 		curr_chunk_ids["J"].y = chunky+1;
-		curr_chunk_ids["J"].b = get_biome_info(chunkx+1, chunky+1);
+		curr_chunk_ids["J"].b = null;//get_chunk_info(chunkx+1, chunky+1);
 		//curr_chunk_ids["J"].bvi = biome_variance_index(chunkx+1, chunky+1);
 		
 		
-		
 		// info about far chunks -- this will help with the shape of the close chunks
-		curr_chunk_ids["rr"].b = get_biome_info(chunkx-2, chunky-2);
-		curr_chunk_ids["rT"].b = get_biome_info(chunkx-1, chunky-2);
-		curr_chunk_ids["TT"].b = get_biome_info(chunkx, chunky-2);
-		curr_chunk_ids["T7"].b = get_biome_info(chunkx+1, chunky-2);
-		curr_chunk_ids["77"].b = get_biome_info(chunkx+2, chunky-2);
+		curr_chunk_ids["rr"].b = null;//get_chunk_info(chunkx-2, chunky-2);
+		curr_chunk_ids["rT"].b = null;//get_chunk_info(chunkx-1, chunky-2);
+		curr_chunk_ids["TT"].b = null;//get_chunk_info(chunkx, chunky-2);
+		curr_chunk_ids["T7"].b = null;//get_chunk_info(chunkx+1, chunky-2);
+		curr_chunk_ids["77"].b = null;//get_chunk_info(chunkx+2, chunky-2);
 		
-		curr_chunk_ids["Er"].b = get_biome_info(chunkx-2, chunky-1);
-		curr_chunk_ids["EE"].b = get_biome_info(chunkx-2, chunky);
-		curr_chunk_ids["EL"].b = get_biome_info(chunkx-2, chunky+1);
+		curr_chunk_ids["Er"].b = null;//get_chunk_info(chunkx-2, chunky-1);
+		curr_chunk_ids["EE"].b = null;//get_chunk_info(chunkx-2, chunky);
+		curr_chunk_ids["EL"].b = null;//get_chunk_info(chunkx-2, chunky+1);
 		
-		curr_chunk_ids["73"].b = get_biome_info(chunkx+2, chunky-1);
-		curr_chunk_ids["33"].b = get_biome_info(chunkx+2, chunky);
-		curr_chunk_ids["J3"].b = get_biome_info(chunkx+2, chunky+1);
+		curr_chunk_ids["73"].b = null;//get_chunk_info(chunkx+2, chunky-1);
+		curr_chunk_ids["33"].b = null;//get_chunk_info(chunkx+2, chunky);
+		curr_chunk_ids["J3"].b = null;//get_chunk_info(chunkx+2, chunky+1);
 		
-		curr_chunk_ids["LL"].b = get_biome_info(chunkx-2, chunky+2);
-		curr_chunk_ids["LU"].b = get_biome_info(chunkx-1, chunky+2);
-		curr_chunk_ids["UU"].b = get_biome_info(chunkx, chunky+2);
-		curr_chunk_ids["UJ"].b = get_biome_info(chunkx+1, chunky+2);
-		curr_chunk_ids["JJ"].b = get_biome_info(chunkx+2, chunky+2);
+		curr_chunk_ids["LL"].b = null;//get_chunk_info(chunkx-2, chunky+2);
+		curr_chunk_ids["LU"].b = null;//get_chunk_info(chunkx-1, chunky+2);
+		curr_chunk_ids["UU"].b = null;//get_chunk_info(chunkx, chunky+2);
+		curr_chunk_ids["UJ"].b = null;//get_chunk_info(chunkx+1, chunky+2);
+		curr_chunk_ids["JJ"].b = null;//get_chunk_info(chunkx+2, chunky+2);
 		
-		
-		//console.log(curr_chunk_ids["O"]);
-		
-		/*
-		let chunk_events_O = [...Array(world_chunk_size)].map(_ => Array(world_chunk_size).fill(0));
-		let chunk_image_O = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
-		let chunk_image_mid_O = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
-		*/
-		//let chunk_seed = PRNG(cidJ, 256);
-		
-		
-		
-		
-		// re-shapes 5x5 minimap, changes curr_chunk_ids["_"].s
-		get_chunk_shapes(curr_chunk_ids);
-		
-		
-		
-		
-		
-		// use curr_chunk_ids["_"].s
-		
-		
-		/*
-		for (let chy=0; chy<world_chunk_size; chy++) {
-			for (let chx=0; chx<world_chunk_size; chx++) {
-			
-				// TESTING PURPOSES (value)
-			
-			  let value = 0 + Math.floor(chunk_seed[csi]*(noiseMax)); // 0, 1
-			  csi++;
-			  if (csi >= chunk_seed.length) {
-			    csi=0;
-			  }
-				value = value > noiseThres ? 15 : 0;//0+2*(chunk_count%2); 
-			
-				//let value = testing_chunk[chy][chx];
-				// -------------------------------- 
-			
-				chunk_events[chy][chx] = value > 0 ? 1 : 0;
-			
-			}
-		}
-		*/
-		
-		//console.log(curr_chunk_ids["O"].b["biome"]);
-		//print(curr_chunk_ids["J"].b["biome"],0,0);
-		
-		
-		// deep copy -- will these point to the same 2d array?
-		// 'b' is the biome type (w, g, f, etc.)
-		// 's' is the biome shape (wr, gJ, wlhst, etc.)
 		
 		// TODO: don't need the chunk images after all, just the events for each of the surrounding chunks
-		//                   
-		//let [chunk_events_r, cnpy_r] = build_chunk_shape(curr_chunk_ids["r"].s, curr_chunk_ids["r"].cid, "x", curr_chunk_ids["r"].b.biome2 );
-		let chunk_events_r = build_chunk_shape(curr_chunk_ids["r"]);//.s, curr_chunk_ids["r"].cid, "x", curr_chunk_ids["r"].b.biome2 );
-		//let chunk_image_r = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
-		//let chunk_image_mid_r = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
-		chunk_set[cidr] = { 
-			"event": chunk_events_r,
-			//"collision_event": [...Array(16)].map(_ => Array(16).fill(0)),
-			//"canopy": cnpy_r,
-			//"image_low": chunk_image_r, 
-			//"image_mid": chunk_image_mid_r, 
-			"b": curr_chunk_ids["r"].b,
-			//"biv": curr_chunk_ids["r"].bvi
-		};
+		// 
 		
-		//let [chunk_events_T, cnpy_T] = build_chunk_shape(curr_chunk_ids["T"].s, curr_chunk_ids["T"].cid, "x", curr_chunk_ids["T"].b.biome2);
-		let chunk_events_T = build_chunk_shape(curr_chunk_ids["T"]);//.s, curr_chunk_ids["T"].cid, "x", curr_chunk_ids["T"].b.biome2);
-		//let chunk_image_T = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
-		//let chunk_image_mid_T = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
-		chunk_set[cidT] = { 
-			"event": chunk_events_T,
-			//"collision_event": [...Array(16)].map(_ => Array(16).fill(0)),
-			//"canopy": cnpy_T,
-			//"image_low": chunk_image_T, 
-			//"image_mid": chunk_image_mid_T,
-			"b": curr_chunk_ids["T"].b,
-			//"biv": curr_chunk_ids["T"].bvi
-		};
+		// set chunk_set for each
+		// stinky
+		//let chunk_events_ = [...Array(16)].map(_ => Array(16).fill(0)); /// probably change
 		
-		//let [chunk_events_7, cnpy_7] = build_chunk_shape(curr_chunk_ids["7"].s, curr_chunk_ids["7"].cid, "x", curr_chunk_ids["7"].b.biome2);
-		let chunk_events_7 = build_chunk_shape(curr_chunk_ids["7"]);//.s, curr_chunk_ids["7"].cid, "x", curr_chunk_ids["7"].b.biome2);
-		//let chunk_image_7 = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
-		//let chunk_image_mid_7 = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
-		chunk_set[cid7] = { 
-			"event": chunk_events_7,
-			//"collision_event": [...Array(16)].map(_ => Array(16).fill(0)),
-			//"canopy": cnpy_7,
-			//"image_low": chunk_image_7, 
-			//"image_mid": chunk_image_mid_7,
-			"b": curr_chunk_ids["7"].b,
-			//"biv": curr_chunk_ids["7"].bvi
-		};
 		
-		//let [chunk_events_E, cnpy_E] = build_chunk_shape(curr_chunk_ids["E"].s, curr_chunk_ids["E"].cid, "x", curr_chunk_ids["E"].b.biome2);
-		let chunk_events_E = build_chunk_shape(curr_chunk_ids["E"]);//.s, curr_chunk_ids["E"].cid, "x", curr_chunk_ids["E"].b.biome2);
-		//let chunk_image_E = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
-		//let chunk_image_mid_E = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
-		chunk_set[cidE] = { 
-			"event": chunk_events_E,
-			//"collision_event": [...Array(16)].map(_ => Array(16).fill(0)),
-			//"canopy": cnpy_E, 
-			//"image_low": chunk_image_E, 
-			//"image_mid": chunk_image_mid_E,
-			"b": curr_chunk_ids["E"].b,
-			//"biv": curr_chunk_ids["E"].bvi
-		};
+		// TODO ********** TESTING need to put things on map to test the gradients work
 		
-		//let [chunk_events_O, cnpy_O] = build_chunk_shape(curr_chunk_ids["O"].s, curr_chunk_ids["O"].cid, "x", curr_chunk_ids["O"].b.biome2);
-		let chunk_events_O = build_chunk_shape(curr_chunk_ids["O"]);//.s, curr_chunk_ids["O"].cid, "x", curr_chunk_ids["O"].b.biome2);
-		//console.log("curr_chunk_ids[O].b.biome2 "+curr_chunk_ids["O"].b.biome2);
-		//let chunk_image_O = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
-		//let chunk_image_mid_O = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
-		chunk_set[cidO] = { 
-			"event": chunk_events_O,
-			//"collision_event": [...Array(16)].map(_ => Array(16).fill(0)),
-			//"canopy": cnpy_O,
-			//"image_low": chunk_image_O, 
-			//"image_mid": chunk_image_mid_O,
-			"b": curr_chunk_ids["O"].b,
-			//"biv": curr_chunk_ids["O"].bvi
-		};
+		/*
+		if (ograds[4][2][1] === 1) {
+			for (let bbb=4; bbb<11; bbb++) {
+				chunk_events_[12][bbb] = 1;
+			}
+		}/**/
 		
-		//let [chunk_events_3, cnpy_3] = build_chunk_shape(curr_chunk_ids["3"].s, curr_chunk_ids["3"].cid, "x", curr_chunk_ids["3"].b.biome2);
-		let chunk_events_3 = build_chunk_shape(curr_chunk_ids["3"]);//.s, curr_chunk_ids["3"].cid, "x", curr_chunk_ids["3"].b.biome2);
-		//let chunk_image_3 = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
-		//let chunk_image_mid_3 = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
-		chunk_set[cid3] = { 
-			"event": chunk_events_3, 
-			//"collision_event": [...Array(16)].map(_ => Array(16).fill(0)),
-			//"canopy": cnpy_3,
-			//"image_low": chunk_image_3, 
-			//"image_mid": chunk_image_mid_3,
-			"b": curr_chunk_ids["3"].b,
-			//"biv": curr_chunk_ids["3"].bvi
-		};
 		
-		//let [chunk_events_L, cnpy_L] = build_chunk_shape(curr_chunk_ids["L"].s, curr_chunk_ids["L"].cid, "x", curr_chunk_ids["L"].b.biome2);
-		let chunk_events_L = build_chunk_shape(curr_chunk_ids["L"]);//.s, curr_chunk_ids["L"].cid, "x", curr_chunk_ids["L"].b.biome2);
-		//let chunk_image_L = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
-		//let chunk_image_mid_L = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
-		chunk_set[cidL] = { 
-			"event": chunk_events_L,
-			//"collision_event": [...Array(16)].map(_ => Array(16).fill(0)),
-			//"canopy": cnpy_L, 
-			//"image_low": chunk_image_L, 
-			//"image_mid": chunk_image_mid_L,
-			"b": curr_chunk_ids["L"].b,
-			//"biv": curr_chunk_ids["L"].bvi
-		};
+		/*
+		ograds = [0,1,2,3,4,5,6,7,8];
 		
-		//let [chunk_events_U, cnpy_U] = build_chunk_shape(curr_chunk_ids["U"].s, curr_chunk_ids["U"].cid, "x", curr_chunk_ids["U"].b.biome2);
-		let chunk_events_U = build_chunk_shape(curr_chunk_ids["U"]);//.s, curr_chunk_ids["U"].cid, "x", curr_chunk_ids["U"].b.biome2);
-		//let chunk_image_U = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
-		//let chunk_image_mid_U = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
-		chunk_set[cidU] = { 
-			"event": chunk_events_U, 
-			//"collision_event": [...Array(16)].map(_ => Array(16).fill(0)),
-			//"canopy": cnpy_U,
-			//"image_low": chunk_image_U, 
-			//"image_mid": chunk_image_mid_U,
-			"b": curr_chunk_ids["U"].b,
-			//"biv": curr_chunk_ids["U"].bvi
-		};
+		/**/
 		
-		//let [chunk_events_J, cnpy_J] = build_chunk_shape(curr_chunk_ids["J"].s, curr_chunk_ids["J"].cid, "x", curr_chunk_ids["J"].b.biome2);
-		let chunk_events_J = build_chunk_shape(curr_chunk_ids["J"]);//.s, curr_chunk_ids["J"].cid, "x", curr_chunk_ids["J"].b.biome2);
-		//let chunk_image_J = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
-		//let chunk_image_mid_J = [...Array(world_chunk_size+2)].map(_ => Array(world_chunk_size+2).fill(0));
-		chunk_set[cidJ] = { 
-			"event": chunk_events_J,
-			//"collision_event": [...Array(16)].map(_ => Array(16).fill(0)),
-			//"canopy": cnpy_J,
-			//"image_low": chunk_image_J, 
-			//"image_mid": chunk_image_mid_J, 
-			"b": curr_chunk_ids["J"].b,
-			//"biv": curr_chunk_ids["J"].bvi 
-		};
+		let cidr_events = build_chunk(oheights[0], ograds[0], obiomes[0], 0, chunkx-1, chunky-1);
+		let cidT_events = build_chunk(oheights[1], ograds[1], obiomes[1], 0, chunkx, chunky-1);
+		let cid7_events = build_chunk(oheights[2], ograds[2], obiomes[2], 0, chunkx+1, chunky-1);
+		let cidE_events = build_chunk(oheights[3], ograds[3], obiomes[3], 0, chunkx-1, chunky);
+		
+		//console.log(chunkx+"-"+chunky);
+		let cidO_events = build_chunk(oheights[4], ograds[4], obiomes[4], SHOW_MAP, chunkx, chunky);
+	  //console.log("^^^");
+		
+		let cid3_events = build_chunk(oheights[5], ograds[5], obiomes[5], 0, chunkx+1, chunky);
+		let cidL_events = build_chunk(oheights[6], ograds[6], obiomes[6], 0, chunkx-1, chunky+1);
+		let cidU_events = build_chunk(oheights[7], ograds[7], obiomes[7], 0, chunkx, chunky+1);
+		let cidJ_events = build_chunk(oheights[8], ograds[8], obiomes[8], 0, chunkx+1, chunky+1);
+		
+			
+			
+			
+		//chunk_events_[8][8] = 1;
+		chunk_set[cidr] = { "event": cidr_events,/**/ "b": curr_chunk_ids["r"].b, };
+		chunk_set[cidT] = { "event": cidT_events,/**/ "b": curr_chunk_ids["T"].b, };
+		chunk_set[cid7] = { "event": cid7_events,/**/ "b": curr_chunk_ids["7"].b, };
+		chunk_set[cidE] = { "event": cidE_events,/**/ "b": curr_chunk_ids["E"].b, };
+		chunk_set[cidO] = { "event": cidO_events,/**/ "b": curr_chunk_ids["O"].b, };
+		chunk_set[cid3] = { "event": cid3_events,/**/ "b": curr_chunk_ids["3"].b, };
+		chunk_set[cidL] = { "event": cidL_events,/**/ "b": curr_chunk_ids["L"].b, };
+		chunk_set[cidU] = { "event": cidU_events,/**/ "b": curr_chunk_ids["U"].b, };
+		chunk_set[cidJ] = { "event": cidJ_events,/**/ "b": curr_chunk_ids["J"].b, };
+		
+		
 		
 		
 		let chunk_events = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
-		//chunk_set["collision_event"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
-		
-		
-		
 		
 		
 		// grass and water
@@ -8543,16 +8554,21 @@ function update_world_chunks() {
 		main_map["image_forest_canopy_2"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
 		main_map["image_forest_canopy"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
 		
-		
+		/*
 		main_map["image_m_base_wall"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
 		main_map["image_m_base_plat"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
 		main_map["image_m_mid_wall"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
 		main_map["image_m_mid_plat"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
+		/**/
+		main_map["image_cliff_top"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
+		main_map["image_cliff_face"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
+		
 		//main_map["image_mountain_4"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
 		//main_map["image_mountain_5"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
 		//main_map["image_mountain"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
 		
-		
+		main_map["image_snow"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
+		main_map["image_snow_rocks"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
 		//main_map["image_mountain_side"] = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
 		//let dot_image_mountain = [...Array(3*world_chunk_size+2)].map(_ => Array(3*world_chunk_size+2).fill(0));
 		
@@ -8616,6 +8632,7 @@ function update_world_chunks() {
 			for (let chx=0; chx<world_chunk_size; chx++) {
 				for (let co=0; co<=8; co++) {
 					let cid_ = chunk_order[co][0];
+					//console.log(cid_);
 					let xx_ = chunk_order[co][1];
 					let yy_ = chunk_order[co][2];
 					if (chunk_set[cid_]["event"][chy][chx]) {
@@ -8648,7 +8665,8 @@ function update_world_chunks() {
 								... /**/
 							}
 						
-						} else if ([61,62,63,64,6261,6361,6461,6362,6462,6463,610,620,63620,64620,630,640,63610,64610,62610,64630].includes(chunk_set[cid_]["event"][chy][chx])) {
+						}
+						/*else if ([61,62,63,64,6261,6361,6461,6362,6462,6463,610,620,63620,64620,630,640,63610,64610,62610,64630].includes(chunk_set[cid_]["event"][chy][chx])) {
 						  let chse0 = chunk_set[cid_]["event"][chy][chx];
 							
 						  if ([61,6261,6361,6461,6362,610,62610,63610,64610,63620].includes(chse0)) { dot_w( main_map["image_m_base_wall"], chx+xx_+1, chy+yy_+1); }
@@ -8660,15 +8678,23 @@ function update_world_chunks() {
 							//if ([610,620,63620,64620,630,640,63610,64610,62610,64630].includes(chse0)) {} 
 							
 						
-						} else if (chunk_set[cid_]["event"][chy][chx] === 3) {
-							dot_w( main_map["image_desert"], chx+xx_+1, chy+yy_+1);
-							//} else if ([60, -61, 61, -62, 62,-63, 63, -64, 64, -65, 65, -66, 66, -67, 67].includes(chunk_set[cidO]["event"][chy][chx])) {
-						
-							// 
-							//dot_w( main_map["image_mountain"], chx+16+1, chy+16+1);
+						} /**/ // 32 33 34
+							else if ([31,32,33,35].includes(chunk_set[cid_]["event"][chy][chx])) {
+							dot_w( main_map["image_cliff_top"], chx+xx_+1, chy+yy_+1);
+						} else if (chunk_set[cid_]["event"][chy][chx] === 34) {
+							dot_w( main_map["image_cliff_face"], chx+xx_+1, chy+yy_+1);
+							
+							
+							
+							
 						} else if (chunk_set[cid_]["event"][chy][chx] === 33) {
-							dot_w( main_map["image_desert_rocks"], chx+xx_+1, chy+yy_+1);
-							dot_w( main_map["image_desert"], chx+xx_+1, chy+yy_+1);
+							//dot_w( main_map["image_desert_rocks"], chx+xx_+1, chy+yy_+1);
+							//dot_w( main_map["image_desert"], chx+xx_+1, chy+yy_+1);
+							//dot_w( main_map["image_cliff_edge"], chx+xx_+1, chy+yy_+1);
+							
+						} else if (chunk_set[cid_]["event"][chy][chx] === 91) {
+							dot_w( main_map["image_snow_rocks"], chx+xx_+1, chy+yy_+1);
+							dot_w( main_map["image_snow"], chx+xx_+1, chy+yy_+1);
 							
 						} else if (chunk_set[cid_]["event"][chy][chx] === 110) { // grass paths, etc
 							dot_w( main_map["image_grass_0"], chx+xx_+1, chy+yy_+1);
@@ -8775,16 +8801,33 @@ function update_world_chunks() {
 					//console.log("if tile_ === 3");
 					//render_map.set(chx+0, chy+0, main_map["image_mountain"][chy+1][chx+1] + 128);
 					render_map.set(chx+0, chy+0, main_map["image_desert"][chy+1][chx+1] + 64*11);
-				} else if (tile_ === 33) { // desert rocks
+				} /*else if (tile_ === 34) { // desert rocks
 					//console.log("if tile_ === 3");
 					//render_map.set(chx+0, chy+0, main_map["image_mountain"][chy+1][chx+1] + 128);
 					render_map.set(chx+0, chy+0, main_map["image_desert_rocks"][chy+1][chx+1] + 64*6);
+					
+					
+					
+				}/**/ else if (tile_ === 31) {
+					render_map.set(chx+0, chy+0, main_map["image_cliff_top"][chy+1][chx+1] + 64*20);
+				} else if (tile_ === 32) { // left cliff  _Γ
+					render_map.set(chx+0, chy+0, 32 + 64*20);
+				} else if (tile_ === 33) { //right cliff  7_
+					render_map.set(chx+0, chy+0, 34 + 64*20);
+				} else if (tile_ === 34) {
+					render_map.set(chx+0, chy+0, main_map["image_cliff_face"][chy+1][chx+1] + 64*21);
+				} else if (tile_ === 35) {
+					render_map.set(chx+0, chy+0, main_map["image_cliff_top"][chy+1][chx+1] + 64*20);
+					
+					
+					
 				} else if (tile_ === 4) {
 					//render_map.set(chx+0, chy+0, main_map["image_desert"][chy+1][chx+1] + 192);
 					
 				} 
 				
-				else if (tile_ === 40) {
+				else if ([40,41,42,43,44,45].includes(tile_)) { // tree randomizer (should be set in f_chunk or the other chunk methods)
+					
 					//render_map.set(chx+0, chy+0, 0);
 					//render_map_canopy.set(chx+0, chy+0, 139);
 				} 
@@ -8792,7 +8835,7 @@ function update_world_chunks() {
 				else if (tile_ === 41) { // tree base + trunk
 					//console.log("set 41");
 					//render_map.set(chx+0, chy+0, 0);
-					//render_map.set(chx+0, chy+0, 140); // **** TREE ****
+					render_map.set(chx+0, chy+0, 140); // **** TREE ****
 					//try { render_map_above.set(chx+0, chy+0-1, 139); } catch {}
 					//try { render_map_above.set(chx+0, chy+0-2, 139); } catch {}
 					//try { render_map_above.set(chx+0, chy+0-3, 139); } catch {}
@@ -8804,7 +8847,7 @@ function update_world_chunks() {
 				else if (tile_ === 42) { // tree base + trunk
 					//console.log(41+64);
 					//render_map.set(chx+0, chy+0, 0);
-					//render_map.set(chx+0, chy+0, 140+64); // **** TREE **** base
+					render_map.set(chx+0, chy+0, 140+64); // **** TREE **** base
 					
 					/*
 					main_map["image_forest_canopy"][chy+1][chx+1]+= 64;
@@ -8826,13 +8869,14 @@ function update_world_chunks() {
 					
 					//let tree_type = chunk_set[cidO]["event"][chy][chx] === 42 ? 64 : 0;
 					//main_map["image_m_base_plat"]
-				} else if ([61,62,63,64,6261,6361,6461,6362,6462,6463,610,620,630,640,62610,63610,64610,63620,64620,64630].includes(tile_)) {
+				} else if ([/*61,62,63,64,/**/6261,6361,6461,6362,6462,6463,610,620,630,640,62610,63610,64610,63620,64620,64630].includes(tile_)) {
 					
-					
+					/*
 					let bw = main_map["image_m_base_wall"][chy+1][chx+1];
 					let bp = main_map["image_m_base_plat"][chy+1][chx+1];
 					let mw = main_map["image_m_mid_wall"][chy+1][chx+1];
 					let mp = main_map["image_m_mid_plat"][chy+1][chx+1];
+					/**/
 					
 					if (bw || (bp && bp !== 33) || mw || (mp && mp !== 33)) {
 						
@@ -8876,9 +8920,9 @@ function update_world_chunks() {
 				} else if (tile_ === 64999) {
 					let rock_type = 7;
 					//render_map_top.set(chx+0, chy+0, main_map["image_m_mid_plat"][chy+1][chx+1] + rock_type*64 );
-					if (main_map["image_m_mid_plat"][chy+1][chx+1] !== 33) {
+					/*if (main_map["image_m_mid_plat"][chy+1][chx+1] !== 33) {
 						try { chunk_set[cidO]["collision_event"][chy-16][chx-16] = 1; } catch {}
-					}
+					}/**/
 					
 				} else if (tile_ === 6362999) {
 					let rock_type = 9;
@@ -8933,8 +8977,13 @@ function update_world_chunks() {
 				
 				
 				} else if (tile_ === 9) { // snow
-					render_map.set(chx+0, chy+0, 64*7 + 36);
+					render_map.set(chx+0, chy+0, main_map["image_snow"][chy+1][chx+1] + 64*19);
 					
+				// snow 
+				
+				} else if (tile_ === 91) { // mountainsnow rocks
+					//render_map.set(chx+0, chy+0, 64*7 + 36);
+					render_map.set(chx+0, chy+0, main_map["image_snow_rocks"][chy+1][chx+1] + 64*19);
 				
 				
 				} else if (tile_ === 100) { // forest
@@ -8946,7 +8995,7 @@ function update_world_chunks() {
 				} else if (tile_ === 120) { 
 					render_map.set(chx+0, chy+0, 5*64+39); 
 				
-				} else if ([400,401,402,403,404,405].includes(tile_)) { // flowers
+				} else if ([400,401,402,403,404,405].includes(tile_)) { // flowers. 400 is the flower randomizer
 					//console.log("flowers: "+(tile_-400));
 					//render_map.set(chx+0, chy+0, 16*64+(400-tile_));
 					render_map.set(chx+0, chy+0, 16*64+(tile_-400));
@@ -9015,6 +9064,7 @@ function update_world_chunks() {
 			}
 		}
 		
+		//drawImageFromArray();
 	}
 	
 	
@@ -9099,47 +9149,9 @@ function flush_chunk_set(cx, cy) {
 
 
 
-function mini_map(sp_id) {
-	
-	let sprite_id = 960;
-	
-	
-	switch (sp_id.biome) {
-		case "w": 
-			sprite_id = 960;
-			break;
-		case "g":
-			if (["m", "M"].includes(sp_id.biome2)) {
-				sprite_id = 963;
-			} else if (sp_id.biome2 === "f") {
-				sprite_id = 964;
-			} else if (sp_id.biome2 === "q") {
-			  sprite_id = 966;
-			} else {
-				sprite_id = 961;
-			}
-			break;
-		case "d":
-			sprite_id = 962;
-			break;
-		case "m":
-			sprite_id = 963;
-			break;
-		case "M":
-			sprite_id = 963;
-			break;
-		case "f":
-			sprite_id = 964;
-			break;
-		case "p":
-			sprite_id = 965;
-			break;
-		case "q":
-			sprite_id = 966;
-			break;
-	}
-	return sprite_id;
-}
+
+
+
 
 
 var CHUNK_X_OFFSET = 0;
@@ -9186,7 +9198,10 @@ function draw_world_chunks() {
 	
 	draw(render_map_particles, 0-(pw.x%128+n_x), 0-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
 	
-	if (M_LAYER === 0) {
+	if (M_LAYER === -1) {
+		draw_player_1();
+	} else if (M_LAYER === 0) {
+		throw 0;
 		draw_mount_behind(pwx8_pacman, pwy8_pacman);
 		draw_trees_behind();
 		draw_player_1();
@@ -9195,6 +9210,7 @@ function draw_world_chunks() {
 		//draw(render_map_mid, 0-(pw.x%128+n_x), 0-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
 		//draw(render_map_top, 0-(pw.x%128+n_x), 0-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
 	} else if (M_LAYER === 1) {
+		throw 0;
 		//draw(render_map_mid, 0-(pw.x%128+n_x), 0-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
 		draw_mount_behind(pwx8_pacman, pwy8_pacman);
 		draw_trees_behind();
@@ -9203,6 +9219,7 @@ function draw_world_chunks() {
 		draw_trees_front();
 		//draw(render_map_top, 0-(pw.x%128+n_x), 0-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
 	} else if (M_LAYER === 2) {
+		throw 0;
 		//draw(render_map_mid, 0-(pw.x%128+n_x), 0-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
 		//draw(render_map_top, 0-(pw.x%128+n_x), 0-(pw.y%128+n_y)-CHUNK_Y_OFFSET);
 		draw_mount_behind(pwx8_pacman, pwy8_pacman);
@@ -9243,12 +9260,13 @@ function draw_world_chunks() {
 	print("x y  : "+pw.x+" "+pw.y, 8, 8);
 	print("grid : "+pwx8+" "+pwy8+" /  "+pwx8_pacman+" "+pwy8_pacman, 8, 16);
 	print("chunk: "+pw.cx+" "+pw.cy+"  (total: "+Object.keys(chunk_set).length+")", 8, 24);
-	print("biome type:  "+curr_chunk_ids["O"].b.biome, 8, 32);
+	print("biome height:  "+curr_chunk_ids["O"].b.height, 8, 32);
+	/*
 	if (curr_chunk_ids["O"].b.biome2 === "M") {
 		print("   secondary biome type: Mount ", 128, 32);
 	} else {
-		print("   secondary biome type: "+curr_chunk_ids["O"].b.biome2, 128, 32);
-	}
+		print("   secondary biome type: "+curr_chunk_ids["O"].b.biome, 128, 32);
+	}/**/
 	
 	print("biome shape: "+curr_chunk_ids["O"].s, 8, 40);
 	print("biome diff: "+curr_chunk_ids["O"].b.difficulty, 8, 48);
@@ -9259,7 +9277,10 @@ function draw_world_chunks() {
 		curr_chunk_ids["O"].b.bvi[2]+" "+
 		curr_chunk_ids["O"].b.bvi[3]+" "+
 	  curr_chunk_ids["O"].b.bvi[8], 
-	8, 180);
+	8, 176);
+	
+	//print("slope: "+curr_chunk_ids["O"].b.slope, 8, 184);
+	//print("gap: "+curr_chunk_ids["O"].b.gap, 64, 184);
 	
 	if (cbs.length > 0) {
 		
@@ -9309,64 +9330,6 @@ function draw_world_chunks_canopy() {
 	draw(render_map_canopy_1, 0-(pw.x%128+n_x)-CANOPY_X_OFFSET*8, 0-(pw.y%128+n_y)-CHUNK_Y_OFFSET-CANOPY_Y_OFFSET*8);
 	
 	
-	
-	// MINI MAP
-	let sprite_id = 960;
-	sprite_id = mini_map(curr_chunk_ids["O"].b);
-	sprite(sprite_id, 202, 22);
-	sprite_id = mini_map(curr_chunk_ids["r"].b);
-	sprite(sprite_id, 200, 20);
-	sprite_id = mini_map(curr_chunk_ids["T"].b);
-	sprite(sprite_id, 202, 20);
-	sprite_id = mini_map(curr_chunk_ids["7"].b);
-	sprite(sprite_id, 204, 20);
-	sprite_id = mini_map(curr_chunk_ids["E"].b);
-	sprite(sprite_id, 200, 22);
-	sprite_id = mini_map(curr_chunk_ids["3"].b);
-	sprite(sprite_id, 204, 22);
-	sprite_id = mini_map(curr_chunk_ids["L"].b);
-	sprite(sprite_id, 200, 24);
-	sprite_id = mini_map(curr_chunk_ids["U"].b);
-	sprite(sprite_id, 202, 24);
-	sprite_id = mini_map(curr_chunk_ids["J"].b);
-	sprite(sprite_id, 204, 24);
-	
-	sprite_id = mini_map(curr_chunk_ids["rr"].b);
-	sprite(sprite_id, 198, 18);
-	sprite_id = mini_map(curr_chunk_ids["rT"].b);
-	sprite(sprite_id, 200, 18);
-	sprite_id = mini_map(curr_chunk_ids["TT"].b);
-	sprite(sprite_id, 202, 18);
-	sprite_id = mini_map(curr_chunk_ids["T7"].b);
-	sprite(sprite_id, 204, 18);
-	sprite_id = mini_map(curr_chunk_ids["77"].b);
-	sprite(sprite_id, 206, 18);
-	
-	sprite_id = mini_map(curr_chunk_ids["Er"].b);
-	sprite(sprite_id, 198, 20);
-	sprite_id = mini_map(curr_chunk_ids["EE"].b);
-	sprite(sprite_id, 198, 22);
-	sprite_id = mini_map(curr_chunk_ids["EL"].b);
-	sprite(sprite_id, 198, 24);
-	
-	sprite_id = mini_map(curr_chunk_ids["73"].b);
-	sprite(sprite_id, 206, 20);
-	sprite_id = mini_map(curr_chunk_ids["33"].b);
-	sprite(sprite_id, 206, 22);
-	sprite_id = mini_map(curr_chunk_ids["J3"].b);
-	sprite(sprite_id, 206, 24);
-	
-	sprite_id = mini_map(curr_chunk_ids["LL"].b);
-	sprite(sprite_id, 198, 26);
-	sprite_id = mini_map(curr_chunk_ids["LU"].b);
-	sprite(sprite_id, 200, 26);
-	sprite_id = mini_map(curr_chunk_ids["UU"].b);
-	sprite(sprite_id, 202, 26);
-	sprite_id = mini_map(curr_chunk_ids["UJ"].b);
-	sprite(sprite_id, 204, 26);
-	sprite_id = mini_map(curr_chunk_ids["JJ"].b);
-	sprite(sprite_id, 206, 26);
-
 }
 
 
@@ -9723,7 +9686,7 @@ function debug_print() {
 /* ========================= TIMED EVENTS =========================== */
 var dt = 0;
 var frame_dt = 0;
-var max_dt = 2; // change 'speed' of game
+var max_dt = 1; // change 'speed' of game
 var lastLoop = 1;
 var fps = 0;
 var fps_display = 0;
